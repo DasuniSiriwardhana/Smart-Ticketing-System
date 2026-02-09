@@ -1,0 +1,8 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<OSDM_Design class="oracle.dbtools.crest.model.design.Design" name="Smart Ticketing System" id="E23BEF88-44CF-F377-8187-BB73DEACA5BB" version="3.5">
+<createdBy>USER</createdBy>
+<createdTime>2026-02-08 20:57:17 UTC</createdTime>
+<ownerDesignName>SMARTTICKETINGSYSTEM</ownerDesignName>
+<capitalNames>false</capitalNames>
+<designId>E23BEF88-44CF-F377-8187-BB73DEACA5BB</designId>
+</OSDM_Design>
