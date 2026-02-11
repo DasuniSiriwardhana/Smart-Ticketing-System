@@ -11,6 +11,10 @@ namespace SmartTicketingSystem.Models
         public string category { get; set; }
         public string message { get; set; }
         public string status { get; set; }
+        public DateTime createdAt { get; set; }
+        public int HandleByUserID { get; set; }
+        public DateTime HandleAt {  get; set; }
+        public string ResponseNote { get; set; }
 
       
        
