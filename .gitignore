@@ -1,0 +1,17 @@
+# ===== Visual Studio / .NET =====
+.vs/
+bin/
+obj/
+*.user
+*.suo
+
+# ===== ASP.NET secrets / local settings =====
+appsettings.Development.json
+
+# ===== Logs =====
+*.log
+
+# ===== SQL Server / LocalDB files (never commit) =====
+*.mdf
+*.ldf
+*.bak
