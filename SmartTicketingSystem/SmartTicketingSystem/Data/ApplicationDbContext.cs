@@ -11,5 +11,6 @@ namespace SmartTicketingSystem.Data
         {
         }
         public DbSet<SmartTicketingSystem.Models.EVENT> EVENT { get; set; } = default!;
+        public DbSet<SmartTicketingSystem.Models.Role> Role { get; set; } = default!;
     }
 }
