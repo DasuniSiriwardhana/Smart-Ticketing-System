@@ -308,6 +308,85 @@ namespace SmartTicketingSystem.Data.Migrations
                     b.ToTable("EVENT");
                 });
 
+            modelBuilder.Entity("SmartTicketingSystem.Models.EVENT_APPROVAL", b =>
+                {
+                    b.Property<int>("ApprovalID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ApprovalID"));
+
+                    b.Property<int>("ApprovedByUserID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Decision")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(1)");
+
+                    b.Property<DateTime>("DecisionDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DecisionNote")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EventID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("member_id")
+                        .HasColumnType("int");
+
+                    b.HasKey("ApprovalID");
+
+                    b.ToTable("EVENT_APPROVAL");
+                });
+
+            modelBuilder.Entity("SmartTicketingSystem.Models.INQUIRY", b =>
+                {
+                    b.Property<int>("InquiryID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InquiryID"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("HandleAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("HandleByUserID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResponseNote")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("InquiryID");
+
+                    b.ToTable("INQUIRY");
+                });
+
             modelBuilder.Entity("SmartTicketingSystem.Models.PUBLIC_EVENT_REQUEST", b =>
                 {
                     b.Property<int>("requestID")
@@ -397,8 +476,8 @@ namespace SmartTicketingSystem.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateOnly>("issuedAt")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("issuedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("TicketID");
 

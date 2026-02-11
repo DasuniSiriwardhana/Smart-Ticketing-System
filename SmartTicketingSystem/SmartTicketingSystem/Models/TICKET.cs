@@ -8,6 +8,6 @@ namespace SmartTicketingSystem.Models
         public int TicketID { get; set; }
         public int BookingID { get; set; }
         public string QRcodevalue { get; set; }
-        public DateOnly issuedAt { get; set; }
+        public DateTime issuedAt { get; set; }
     }
 }
