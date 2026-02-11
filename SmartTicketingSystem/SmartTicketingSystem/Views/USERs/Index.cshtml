@@ -1,0 +1,89 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.USER>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.FullName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.phone)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.passwordHash)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.userType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UniversityNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.isverified)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.createdAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ApprovalID)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.FullName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.phone)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.passwordHash)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.userType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UniversityNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.isverified)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.createdAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ApprovalID)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.member_id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.member_id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.member_id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
