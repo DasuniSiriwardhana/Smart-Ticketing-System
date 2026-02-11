@@ -18,5 +18,6 @@ namespace SmartTicketingSystem.Data
         public DbSet<SmartTicketingSystem.Models.INQUIRY> INQUIRY { get; set; } = default!;
         public DbSet<SmartTicketingSystem.Models.EVENT_APPROVAL> EVENT_APPROVAL { get; set; } = default!;
         public DbSet<SmartTicketingSystem.Models.ATTENDANCE> ATTENDANCE { get; set; } = default!;
+        public DbSet<SmartTicketingSystem.Models.REVIEW_REPORT> REVIEW_REPORT { get; set; } = default!;
     }
 }

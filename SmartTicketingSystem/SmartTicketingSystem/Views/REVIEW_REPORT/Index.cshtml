@@ -1,0 +1,59 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.REVIEW_REPORT>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.ReviewID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReportedByUserID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReportReason)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReportDetail)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReportedAt)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReviewID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReportedByUserID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReportReason)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReportDetail)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReportedAt)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.RportID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.RportID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.RportID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
