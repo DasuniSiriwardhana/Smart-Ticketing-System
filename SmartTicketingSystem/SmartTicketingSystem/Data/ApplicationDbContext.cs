@@ -21,5 +21,6 @@ namespace SmartTicketingSystem.Data
         public DbSet<SmartTicketingSystem.Models.REVIEW_REPORT> REVIEW_REPORT { get; set; } = default!;
         public DbSet<SmartTicketingSystem.Models.PAYMENT> PAYMENT { get; set; } = default!;
         public DbSet<SmartTicketingSystem.Models.USER> USER { get; set; } = default!;
+        public DbSet<SmartTicketingSystem.Models.REVIEW> REVIEW { get; set; } = default!;
     }
 }
