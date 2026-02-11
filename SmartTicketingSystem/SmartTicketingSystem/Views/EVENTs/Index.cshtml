@@ -1,0 +1,149 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.EVENT>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StartDateTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.endDateTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.venue)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsOnline)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.onlineLink)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AccessibilityInfo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.capacity)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.visibility)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.organizerInfo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Agenda)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.maplink)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.createdByUserID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.organizerUnitID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.categoryID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.createdAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.updatedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ApprovalID)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StartDateTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.endDateTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.venue)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsOnline)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.onlineLink)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AccessibilityInfo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.capacity)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.visibility)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.organizerInfo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Agenda)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.maplink)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.createdByUserID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.organizerUnitID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.categoryID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.createdAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.updatedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ApprovalID)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.eventID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.eventID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.eventID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

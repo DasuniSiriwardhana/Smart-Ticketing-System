@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Smart_Ticketing_System.Data;
+using SmartTicketingSystem.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 

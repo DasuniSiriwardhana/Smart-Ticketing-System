@@ -1,4 +1,4 @@
-namespace Smart_Ticketing_System.Models
+namespace SmartTicketingSystem.Models
 {
     public class ErrorViewModel
     {

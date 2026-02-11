@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Smart_Ticketing_System.Models;
+using SmartTicketingSystem.Models;
 
-namespace Smart_Ticketing_System.Controllers
+namespace SmartTicketingSystem.Controllers
 {
     public class HomeController : Controller
     {

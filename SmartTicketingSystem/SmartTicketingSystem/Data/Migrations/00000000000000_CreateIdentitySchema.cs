@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Smart_Ticketing_System.Data.Migrations
+namespace SmartTicketingSystem.Data.Migrations
 {
     public partial class CreateIdentitySchema : Migration
     {

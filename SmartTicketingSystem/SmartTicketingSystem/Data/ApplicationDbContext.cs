@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SmartTicketingSystem.Models;
 
-namespace Smart_Ticketing_System.Data
+namespace SmartTicketingSystem.Data
 {
     public class ApplicationDbContext : IdentityDbContext
     {
@@ -9,5 +10,6 @@ namespace Smart_Ticketing_System.Data
             : base(options)
         {
         }
+        public DbSet<SmartTicketingSystem.Models.EVENT> EVENT { get; set; } = default!;
     }
 }
