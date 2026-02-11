@@ -1,0 +1,65 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.EVENT_APPROVAL>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.EventID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ApprovedByUserID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Decision)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DecisionNote)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DecisionDateTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.member_id)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.EventID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ApprovedByUserID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Decision)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DecisionNote)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DecisionDateTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.member_id)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.ApprovalID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.ApprovalID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.ApprovalID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

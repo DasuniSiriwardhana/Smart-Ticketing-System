@@ -1,0 +1,57 @@
+﻿@model SmartTicketingSystem.Models.EVENT_APPROVAL
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>EVENT_APPROVAL</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.EventID)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.EventID)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.ApprovedByUserID)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ApprovedByUserID)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Decision)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Decision)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DecisionNote)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DecisionNote)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DecisionDateTime)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DecisionDateTime)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.member_id)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.member_id)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="ApprovalID" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Index">Back to List</a>
+    </form>
+</div>
