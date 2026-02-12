@@ -26,5 +26,6 @@ namespace SmartTicketingSystem.Data
         public DbSet<SmartTicketingSystem.Models.WAITING_LIST> WAITING_LIST { get; set; } = default!;
         public DbSet<SmartTicketingSystem.Models.BOOKING_ITEM> BOOKING_ITEM { get; set; } = default!;
         public DbSet<SmartTicketingSystem.Models.BOOKING_PROMO> BOOKING_PROMO { get; set; } = default!;
+        public DbSet<SmartTicketingSystem.Models.ORGANIZER_UNIT> ORGANIZER_UNIT { get; set; } = default!;
     }
 }
