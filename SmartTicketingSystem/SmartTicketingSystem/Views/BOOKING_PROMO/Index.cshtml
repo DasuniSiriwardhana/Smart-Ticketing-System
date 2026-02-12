@@ -1,0 +1,53 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.BOOKING_PROMO>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.BookingID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BookingCodeID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DiscountedAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AppliedAt)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.BookingID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BookingCodeID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DiscountedAmount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AppliedAt)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.BookingPromoID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.BookingPromoID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.BookingPromoID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
