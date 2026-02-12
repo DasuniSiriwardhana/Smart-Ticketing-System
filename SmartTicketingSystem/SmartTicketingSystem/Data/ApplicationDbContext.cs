@@ -29,5 +29,6 @@ namespace SmartTicketingSystem.Data
         public DbSet<SmartTicketingSystem.Models.ORGANIZER_UNIT> ORGANIZER_UNIT { get; set; } = default!;
         public DbSet<SmartTicketingSystem.Models.EVENT_CATEGORY> EVENT_CATEGORY { get; set; } = default!;
         public DbSet<SmartTicketingSystem.Models.TICKET_TYPE> TICKET_TYPE { get; set; } = default!;
+        public DbSet<SmartTicketingSystem.Models.PROMO_CODE> PROMO_CODE { get; set; } = default!;
     }
 }
