@@ -9,89 +9,35 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<form asp-action="Index" method="get" class="mb-3" id="searchForm">
-    <div class="row g-2 align-items-end">
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="row g-2">
 
-        <div class="col-md-3">
-            <label class="form-label">Search Mode</label>
-            <select class="form-select" name="mode" id="modeSelect">
-                <option value="AttendanceID">Attendance ID</option>
-                <option value="EventID">Event ID</option>
-                <option value="UserID">User ID</option>
-                <option value="TicketID">Ticket ID</option>
-                <option value="Status">Status</option>
-                <option value="Advanced">Advanced (Multiple)</option>
-            </select>
+        <div class="col-md-2">
+            <input type="number" name="attendanceId" class="form-control" placeholder="Attendance ID" />
         </div>
 
-        <div class="col-md-3 filter-field" data-mode="AttendanceID">
-            <label class="form-label">Attendance ID</label>
-            <input type="number" class="form-control" name="attendanceId"
-                   value="@Context.Request.Query["attendanceId"]" />
+        <div class="col-md-2">
+            <input type="number" name="eventId" class="form-control" placeholder="Event ID" />
         </div>
 
-        <div class="col-md-3 filter-field" data-mode="EventID">
-            <label class="form-label">Event ID</label>
-            <input type="number" class="form-control" name="eventId"
-                   value="@Context.Request.Query["eventId"]" />
+        <div class="col-md-2">
+            <input type="number" name="userId" class="form-control" placeholder="User ID" />
         </div>
 
-        <div class="col-md-3 filter-field" data-mode="UserID">
-            <label class="form-label">User ID</label>
-            <input type="number" class="form-control" name="userId"
-                   value="@Context.Request.Query["userId"]" />
+        <div class="col-md-2">
+            <input type="number" name="ticketId" class="form-control" placeholder="Ticket ID" />
         </div>
 
-        <div class="col-md-3 filter-field" data-mode="TicketID">
-            <label class="form-label">Ticket ID</label>
-            <input type="number" class="form-control" name="ticketId"
-                   value="@Context.Request.Query["ticketId"]" />
+        <div class="col-md-2">
+            <input type="text" name="status" class="form-control" placeholder="Status" />
         </div>
 
-        <div class="col-md-3 filter-field" data-mode="Status">
-            <label class="form-label">Status</label>
-            <input type="text" class="form-control" name="status"
-                   value="@Context.Request.Query["status"]" />
-        </div>
-
-        <div class="col-md-3 d-flex gap-2">
+        <div class="col-md-2">
             <button type="submit" class="btn btn-primary w-100">Search</button>
-            <a asp-action="Index" class="btn btn-secondary w-100">Clear</a>
         </div>
+
     </div>
 </form>
-
-<script>
-    (function () {
-        const modeSelect = document.getElementById("modeSelect");
-        const fields = Array.from(document.querySelectorAll(".filter-field"));
-
-        function updateVisibility() {
-            const mode = modeSelect.value;
-
-            if (mode === "Advanced") {
-                // Show ALL fields
-                fields.forEach(f => f.classList.remove("d-none"));
-            } else {
-                // Hide ALL fields
-                fields.forEach(f => f.classList.add("d-none"));
-
-                // Show only the selected field
-                const target = document.querySelector(`.filter-field[data-mode="${mode}"]`);
-                if (target) target.classList.remove("d-none");
-            }
-        }
-
-        // Keep selection after search (if mode exists in query string)
-        const params = new URLSearchParams(window.location.search);
-        const savedMode = params.get("mode");
-        if (savedMode) modeSelect.value = savedMode;
-
-        modeSelect.addEventListener("change", updateVisibility);
-        updateVisibility();
-    })();
-</script>
-
 
 <table class="table">
     <thead>
