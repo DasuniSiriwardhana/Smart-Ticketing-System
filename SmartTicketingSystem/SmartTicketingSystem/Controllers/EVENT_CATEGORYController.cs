@@ -19,6 +19,49 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
+        //Search Bar
+        public async Task<IActionResult> Search(
+    string mode,
+    int? categoryId,
+    string categoryName,
+    DateTime? fromDate,
+    DateTime? toDate)
+        {
+            var query = _context.Set<EVENT_CATEGORY>().AsQueryable();
+
+            if (mode == "CategoryID" && categoryId.HasValue)
+                query = query.Where(c => c.categoryID == categoryId.Value);
+
+            else if (mode == "CategoryName" && !string.IsNullOrWhiteSpace(categoryName))
+                query = query.Where(c => c.categoryName.Contains(categoryName));
+
+            else if (mode == "DateRange")
+            {
+                if (fromDate.HasValue)
+                    query = query.Where(c => c.createdAt >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(c => c.createdAt < toDate.Value.AddDays(1));
+            }
+
+            else if (mode == "Advanced")
+            {
+                if (categoryId.HasValue)
+                    query = query.Where(c => c.categoryID == categoryId.Value);
+
+                if (!string.IsNullOrWhiteSpace(categoryName))
+                    query = query.Where(c => c.categoryName.Contains(categoryName));
+
+                if (fromDate.HasValue)
+                    query = query.Where(c => c.createdAt >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(c => c.createdAt < toDate.Value.AddDays(1));
+            }
+
+            return View("Index", await query.ToListAsync());
+        }
+
         // GET: EVENT_CATEGORY
         public async Task<IActionResult> Index()
         {

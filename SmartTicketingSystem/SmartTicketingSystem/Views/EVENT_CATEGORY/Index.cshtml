@@ -9,6 +9,80 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+<form asp-action="Search" method="get" class="mb-4">
+    <div class="row g-3 align-items-end">
+
+        <div class="col-md-3">
+            <label class="form-label">Search Mode</label>
+            <select class="form-select" name="mode" id="modeSelect">
+                <option value="CategoryID">Category ID</option>
+                <option value="CategoryName">Category Name</option>
+                <option value="DateRange">Created Date Range</option>
+                <option value="Advanced">Advanced (Multiple)</option>
+            </select>
+        </div>
+
+        <!-- Category ID -->
+        <div class="col-md-3 filter-field" data-mode="CategoryID">
+            <label class="form-label">Category ID</label>
+            <input type="number" class="form-control" name="categoryId"
+                   value="@Context.Request.Query["categoryId"]" />
+        </div>
+
+        <!-- Category Name -->
+        <div class="col-md-3 filter-field" data-mode="CategoryName">
+            <label class="form-label">Category Name</label>
+            <input type="text" class="form-control" name="categoryName"
+                   value="@Context.Request.Query["categoryName"]" />
+        </div>
+
+        <!-- Date Range -->
+        <div class="col-md-3 filter-field" data-mode="DateRange">
+            <label class="form-label">From</label>
+            <input type="date" class="form-control" name="fromDate"
+                   value="@Context.Request.Query["fromDate"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="DateRange">
+            <label class="form-label">To</label>
+            <input type="date" class="form-control" name="toDate"
+                   value="@Context.Request.Query["toDate"]" />
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+            <a asp-action="Index" class="btn btn-secondary w-100">Clear</a>
+        </div>
+
+    </div>
+</form>
+
+<script>
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
+
+        function updateVisibility() {
+            const mode = modeSelect.value;
+
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
+                matching.forEach(f => f.classList.remove("d-none"));
+            }
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const savedMode = params.get("mode");
+        if (savedMode) modeSelect.value = savedMode;
+
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
+</script>
+
 <table class="table">
     <thead>
         <tr>
