@@ -72,6 +72,28 @@
 
     </div>
 </form>
+<script>
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
+
+        function updateVisibility() {
+            const mode = modeSelect.value;
+
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
+                matching.forEach(f => f.classList.remove("d-none"));
+            }
+        }
+
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
+</script>
+
 
 <table class="table">
     <thead>
