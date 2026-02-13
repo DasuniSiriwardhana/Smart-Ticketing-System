@@ -9,6 +9,70 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+
+<form asp-action="Search" method="get" class="mb-4">
+    <div class="row g-3 align-items-end">
+
+        <div class="col-md-3">
+            <label class="form-label">Search Mode</label>
+            <select class="form-select" name="mode" id="modeSelect">
+                <option value="EventID">Event ID</option>
+                <option value="Title">Title</option>
+                <option value="Venue">Venue</option>
+                <option value="Status">Status</option>
+                <option value="IsOnline">Online / Physical</option>
+                <option value="DateRange">Start Date Range</option>
+                <option value="Advanced">Advanced Search</option>
+            </select>
+        </div>
+
+        <!-- Event ID -->
+        <div class="col-md-3 filter-field" data-mode="EventID">
+            <input type="number" class="form-control" name="eventId" placeholder="Event ID" />
+        </div>
+
+        <!-- Title -->
+        <div class="col-md-3 filter-field" data-mode="Title">
+            <input type="text" class="form-control" name="title" placeholder="Title" />
+        </div>
+
+        <!-- Venue -->
+        <div class="col-md-3 filter-field" data-mode="Venue">
+            <input type="text" class="form-control" name="venue" placeholder="Venue" />
+        </div>
+
+        <!-- Status -->
+        <div class="col-md-3 filter-field" data-mode="Status">
+            <input type="text" class="form-control" name="status" placeholder="Status" />
+        </div>
+
+        <!-- IsOnline -->
+        <div class="col-md-3 filter-field" data-mode="IsOnline">
+            <select class="form-select" name="isOnline">
+                <option value="">Select</option>
+                <option value="Y">Online</option>
+                <option value="N">Physical</option>
+            </select>
+        </div>
+
+        <!-- Date Range -->
+        <div class="col-md-3 filter-field" data-mode="DateRange">
+            <label>From</label>
+            <input type="date" class="form-control" name="fromDate" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="DateRange">
+            <label>To</label>
+            <input type="date" class="form-control" name="toDate" />
+        </div>
+
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+
+    </div>
+</form>
+
 <table class="table">
     <thead>
         <tr>
