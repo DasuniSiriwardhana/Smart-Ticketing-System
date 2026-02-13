@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartTicketingSystem.Data;
 using SmartTicketingSystem.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace SmartTicketingSystem.Controllers
 {
@@ -19,8 +20,50 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: ATTENDANCEs
-        public async Task<IActionResult> Index()
+        //Search bar for the attendances 
+       
+
+        public async Task<IActionResult> Search(
+                string mode,
+                int? attendanceId,
+                int? eventId,
+                int? userId,
+                int? ticketId,
+                string status)
+    {
+        var query = _context.Set<ATTENDANCE>().AsQueryable();
+
+        if (mode == "AttendanceID" && attendanceId.HasValue)
+            query = query.Where(a => a.AttendanceID == attendanceId.Value);
+
+        else if (mode == "EventID" && eventId.HasValue)
+            query = query.Where(a => a.EventID == eventId.Value);
+
+        else if (mode == "UserID" && userId.HasValue)
+            query = query.Where(a => a.UserID == userId.Value);
+
+        else if (mode == "TicketID" && ticketId.HasValue)
+            query = query.Where(a => a.TicketID == ticketId.Value);
+
+        else if (mode == "Status" && !string.IsNullOrWhiteSpace(status))
+            query = query.Where(a => (a.CheckInStatus ?? "").Contains(status));
+
+        else if (mode == "Advanced")
+        {
+            if (attendanceId.HasValue) query = query.Where(a => a.AttendanceID == attendanceId.Value);
+            if (eventId.HasValue) query = query.Where(a => a.EventID == eventId.Value);
+            if (userId.HasValue) query = query.Where(a => a.UserID == userId.Value);
+            if (ticketId.HasValue) query = query.Where(a => a.TicketID == ticketId.Value);
+            if (!string.IsNullOrWhiteSpace(status))
+                query = query.Where(a => (a.CheckInStatus ?? "").Contains(status));
+        }
+
+        return View(await query.ToListAsync());
+    }
+
+
+    // GET: ATTENDANCEs
+    public async Task<IActionResult> Index()
         {
             return View(await _context.ATTENDANCE.ToListAsync());
         }
