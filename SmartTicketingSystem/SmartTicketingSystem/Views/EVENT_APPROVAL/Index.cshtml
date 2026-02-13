@@ -9,6 +9,108 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+
+<form asp-action="Search" method="get" class="mb-4">
+    <div class="row g-3 align-items-end">
+
+        <div class="col-md-3">
+            <label class="form-label">Search Mode</label>
+            <select class="form-select" name="mode" id="modeSelect">
+                <option value="ApprovalID">Approval ID</option>
+                <option value="EventID">Event ID</option>
+                <option value="ApprovedByUserID">Approved By User ID</option>
+                <option value="MemberID">Member ID</option>
+                <option value="Decision">Decision</option>
+                <option value="DecisionNote">Decision Note</option>
+                <option value="DateRange">Decision Date Range</option>
+                <option value="Advanced">Advanced (Multiple Filters)</option>
+            </select>
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="ApprovalID">
+            <label class="form-label">Approval ID</label>
+            <input type="number" class="form-control" name="approvalId"
+                   value="@Context.Request.Query["approvalId"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="EventID">
+            <label class="form-label">Event ID</label>
+            <input type="number" class="form-control" name="eventId"
+                   value="@Context.Request.Query["eventId"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="ApprovedByUserID">
+            <label class="form-label">Approved By User ID</label>
+            <input type="number" class="form-control" name="approvedByUserId"
+                   value="@Context.Request.Query["approvedByUserId"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="MemberID">
+            <label class="form-label">Member ID</label>
+            <input type="number" class="form-control" name="memberId"
+                   value="@Context.Request.Query["memberId"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="Decision">
+            <label class="form-label">Decision</label>
+            <select class="form-select" name="decision">
+                <option value="">Select</option>
+                <option value="A">Approved</option>
+                <option value="R">Rejected</option>
+            </select>
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="DecisionNote">
+            <label class="form-label">Decision Note</label>
+            <input type="text" class="form-control" name="decisionNote"
+                   value="@Context.Request.Query["decisionNote"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="DateRange">
+            <label class="form-label">From</label>
+            <input type="date" class="form-control" name="fromDate"
+                   value="@Context.Request.Query["fromDate"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="DateRange">
+            <label class="form-label">To</label>
+            <input type="date" class="form-control" name="toDate"
+                   value="@Context.Request.Query["toDate"]" />
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+            <a asp-action="Index" class="btn btn-secondary w-100">Clear</a>
+        </div>
+    </div>
+</form>
+
+<script>
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
+
+        function updateVisibility() {
+            const mode = modeSelect.value;
+
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
+                matching.forEach(f => f.classList.remove("d-none"));
+            }
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const savedMode = params.get("mode");
+        if (savedMode) modeSelect.value = savedMode;
+
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
+</script>
+
 <table class="table">
     <thead>
         <tr>

@@ -18,6 +18,68 @@ namespace SmartTicketingSystem.Controllers
         {
             _context = context;
         }
+        //Search Bar
+        public async Task<IActionResult> Search(
+    string mode,
+    int? approvalId,
+    int? eventId,
+    int? approvedByUserId,
+    int? memberId,
+    char? decision,
+    string decisionNote,
+    DateTime? fromDate,
+    DateTime? toDate)
+        {
+            var query = _context.Set<EVENT_APPROVAL>().AsQueryable();
+
+            if (mode == "ApprovalID" && approvalId.HasValue)
+                query = query.Where(x => x.ApprovalID == approvalId.Value);
+
+            else if (mode == "EventID" && eventId.HasValue)
+                query = query.Where(x => x.EventID == eventId.Value);
+
+            else if (mode == "ApprovedByUserID" && approvedByUserId.HasValue)
+                query = query.Where(x => x.ApprovedByUserID == approvedByUserId.Value);
+
+            else if (mode == "MemberID" && memberId.HasValue)
+                query = query.Where(x => x.member_id == memberId.Value);
+
+            else if (mode == "Decision" && decision.HasValue)
+                query = query.Where(x => x.Decision == decision.Value);
+
+            else if (mode == "DecisionNote" && !string.IsNullOrWhiteSpace(decisionNote))
+                query = query.Where(x => (x.DecisionNote ?? "").Contains(decisionNote));
+
+            else if (mode == "DateRange")
+            {
+                if (fromDate.HasValue)
+                    query = query.Where(x => x.DecisionDateTime >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(x => x.DecisionDateTime < toDate.Value.AddDays(1));
+            }
+
+            else if (mode == "Advanced")
+            {
+                if (approvalId.HasValue) query = query.Where(x => x.ApprovalID == approvalId.Value);
+                if (eventId.HasValue) query = query.Where(x => x.EventID == eventId.Value);
+                if (approvedByUserId.HasValue) query = query.Where(x => x.ApprovedByUserID == approvedByUserId.Value);
+                if (memberId.HasValue) query = query.Where(x => x.member_id == memberId.Value);
+
+                if (decision.HasValue) query = query.Where(x => x.Decision == decision.Value);
+
+                if (!string.IsNullOrWhiteSpace(decisionNote))
+                    query = query.Where(x => (x.DecisionNote ?? "").Contains(decisionNote));
+
+                if (fromDate.HasValue)
+                    query = query.Where(x => x.DecisionDateTime >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(x => x.DecisionDateTime < toDate.Value.AddDays(1));
+            }
+
+            return View("Index", await query.ToListAsync());
+        }
 
         // GET: EVENT_APPROVAL
         public async Task<IActionResult> Index()
