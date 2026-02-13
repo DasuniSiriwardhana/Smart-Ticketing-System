@@ -19,6 +19,57 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
+        //Serach Bar
+        public async Task<IActionResult> Search(
+                string mode,
+                int? bookingPromoId,
+                int? bookingId,
+                int? bookingCodeId,
+                DateTime? fromDate,
+                DateTime? toDate)
+        {
+            var query = _context.Set<BOOKING_PROMO>().AsQueryable();
+
+            if (mode == "BookingPromoID" && bookingPromoId.HasValue)
+                query = query.Where(x => x.BookingPromoID == bookingPromoId.Value);
+
+            else if (mode == "BookingID" && bookingId.HasValue)
+                query = query.Where(x => x.BookingID == bookingId.Value);
+
+            else if (mode == "BookingCodeID" && bookingCodeId.HasValue)
+                query = query.Where(x => x.BookingCodeID == bookingCodeId.Value);
+
+            else if (mode == "DateRange")
+            {
+                if (fromDate.HasValue)
+                    query = query.Where(x => x.AppliedAt >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(x => x.AppliedAt <= toDate.Value);
+            }
+
+            else if (mode == "Advanced")
+            {
+                if (bookingPromoId.HasValue)
+                    query = query.Where(x => x.BookingPromoID == bookingPromoId.Value);
+
+                if (bookingId.HasValue)
+                    query = query.Where(x => x.BookingID == bookingId.Value);
+
+                if (bookingCodeId.HasValue)
+                    query = query.Where(x => x.BookingCodeID == bookingCodeId.Value);
+
+                if (fromDate.HasValue)
+                    query = query.Where(x => x.AppliedAt >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(x => x.AppliedAt <= toDate.Value);
+            }
+
+            return View("Index", await query.ToListAsync());
+        }
+
+
         // GET: BOOKING_PROMO
         public async Task<IActionResult> Index()
         {

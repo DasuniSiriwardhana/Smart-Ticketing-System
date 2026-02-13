@@ -9,6 +9,96 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+<form asp-action="Search" method="get" class="mb-4">
+    <div class="row g-3 align-items-end">
+
+        <!-- Search Mode -->
+        <div class="col-md-3">
+            <label class="form-label">Search Mode</label>
+            <select class="form-select" name="mode" id="modeSelect">
+                <option value="BookingPromoID">Booking Promo ID</option>
+                <option value="BookingID">Booking ID</option>
+                <option value="BookingCodeID">Booking Code ID</option>
+                <option value="DateRange">Applied Date Range</option>
+                <option value="Advanced">Advanced (Multiple Filters)</option>
+            </select>
+        </div>
+
+        <!-- BookingPromoID -->
+        <div class="col-md-3 filter-field" data-mode="BookingPromoID">
+            <label class="form-label">Booking Promo ID</label>
+            <input type="number" class="form-control"
+                   name="bookingPromoId"
+                   value="@Context.Request.Query["bookingPromoId"]" />
+        </div>
+
+        <!-- BookingID -->
+        <div class="col-md-3 filter-field" data-mode="BookingID">
+            <label class="form-label">Booking ID</label>
+            <input type="number" class="form-control"
+                   name="bookingId"
+                   value="@Context.Request.Query["bookingId"]" />
+        </div>
+
+        <!-- BookingCodeID -->
+        <div class="col-md-3 filter-field" data-mode="BookingCodeID">
+            <label class="form-label">Booking Code ID</label>
+            <input type="number" class="form-control"
+                   name="bookingCodeId"
+                   value="@Context.Request.Query["bookingCodeId"]" />
+        </div>
+
+        <!-- Date Range -->
+        <div class="col-md-3 filter-field" data-mode="DateRange">
+            <label class="form-label">From Date</label>
+            <input type="date" class="form-control"
+                   name="fromDate"
+                   value="@Context.Request.Query["fromDate"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="DateRange">
+            <label class="form-label">To Date</label>
+            <input type="date" class="form-control"
+                   name="toDate"
+                   value="@Context.Request.Query["toDate"]" />
+        </div>
+
+        <!-- Search + Clear Buttons -->
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+            <a asp-action="Index" class="btn btn-secondary w-100">Clear</a>
+        </div>
+
+    </div>
+</form>
+
+<script>
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
+
+        function updateVisibility() {
+            const mode = modeSelect.value;
+
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                const matchingFields = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
+                matchingFields.forEach(f => f.classList.remove("d-none"));
+            }
+        }
+
+        // Preserve selected mode after search
+        const params = new URLSearchParams(window.location.search);
+        const savedMode = params.get("mode");
+        if (savedMode) modeSelect.value = savedMode;
+
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
+</script>
+
 <table class="table">
     <thead>
         <tr>
