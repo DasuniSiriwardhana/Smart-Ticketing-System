@@ -19,6 +19,39 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
+        //Search Bar
+        public async Task<IActionResult> Search(
+    string mode,
+    int? bookingItemId,
+    int? bookingId,
+    int? ticketTypeId,
+    int? quantity)
+        {
+            var query = _context.Set<BOOKING_ITEM>().AsQueryable();
+
+            if (mode == "BookingItemID" && bookingItemId.HasValue)
+                query = query.Where(x => x.BookingItemID == bookingItemId.Value);
+
+            else if (mode == "BookingID" && bookingId.HasValue)
+                query = query.Where(x => x.BookingID == bookingId.Value);
+
+            else if (mode == "TicketTypeID" && ticketTypeId.HasValue)
+                query = query.Where(x => x.TicketTypeID == ticketTypeId.Value);
+
+            else if (mode == "Quantity" && quantity.HasValue)
+                query = query.Where(x => x.Quantity == quantity.Value);
+
+            else if (mode == "Advanced")
+            {
+                if (bookingItemId.HasValue) query = query.Where(x => x.BookingItemID == bookingItemId.Value);
+                if (bookingId.HasValue) query = query.Where(x => x.BookingID == bookingId.Value);
+                if (ticketTypeId.HasValue) query = query.Where(x => x.TicketTypeID == ticketTypeId.Value);
+                if (quantity.HasValue) query = query.Where(x => x.Quantity == quantity.Value);
+            }
+
+            return View("Index", await query.ToListAsync());
+        }
+
         // GET: BOOKING_ITEM
         public async Task<IActionResult> Index()
         {

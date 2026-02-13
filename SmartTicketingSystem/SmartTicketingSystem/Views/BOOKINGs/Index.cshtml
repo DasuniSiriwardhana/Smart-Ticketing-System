@@ -9,6 +9,75 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+<form asp-action="Search" method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+
+        <div class="col-md-3">
+            <label class="form-label">Search Mode</label>
+            <select class="form-select" name="mode" id="modeSelect">
+                <option value="BookingID">Booking ID</option>
+                <option value="UserID">User ID</option>
+                <option value="EventID">Event ID</option>
+                <option value="BookingStatus">Booking Status</option>
+                <option value="PaymentStatus">Payment Status</option>
+                <option value="Reference">Booking Reference</option>
+                <option value="Advanced">Advanced</option>
+            </select>
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="BookingID">
+            <input type="number" class="form-control" name="bookingId" placeholder="Booking ID" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="UserID">
+            <input type="number" class="form-control" name="userId" placeholder="User ID" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="EventID">
+            <input type="number" class="form-control" name="eventId" placeholder="Event ID" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="BookingStatus">
+            <input type="text" class="form-control" name="bookingStatus" placeholder="Booking Status" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="PaymentStatus">
+            <input type="text" class="form-control" name="paymentStatus" placeholder="Payment Status" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="Reference">
+            <input type="text" class="form-control" name="bookingReference" placeholder="Booking Reference" />
+        </div>
+
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+    </div>
+
+</form>
+<script>
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = document.querySelectorAll(".filter-field");
+
+        function updateVisibility() {
+            const mode = modeSelect.value;
+
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                const target = document.querySelector(`.filter-field[data-mode="${mode}"]`);
+                if (target) target.classList.remove("d-none");
+            }
+        }
+
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
+</script>
+
+
 <table class="table">
     <thead>
         <tr>

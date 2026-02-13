@@ -9,6 +9,78 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+<form asp-action="Search" method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+
+        <div class="col-md-3">
+            <label class="form-label">Search Mode</label>
+            <select class="form-select" name="mode" id="modeSelect">
+                <option value="BookingItemID">Booking Item ID</option>
+                <option value="BookingID">Booking ID</option>
+                <option value="TicketTypeID">Ticket Type ID</option>
+                <option value="Quantity">Quantity</option>
+                <option value="Advanced">Advanced (Multiple)</option>
+            </select>
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="BookingItemID">
+            <label class="form-label">Booking Item ID</label>
+            <input type="number" class="form-control" name="bookingItemId"
+                   value="@Context.Request.Query["bookingItemId"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="BookingID">
+            <label class="form-label">Booking ID</label>
+            <input type="number" class="form-control" name="bookingId"
+                   value="@Context.Request.Query["bookingId"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="TicketTypeID">
+            <label class="form-label">Ticket Type ID</label>
+            <input type="number" class="form-control" name="ticketTypeId"
+                   value="@Context.Request.Query["ticketTypeId"]" />
+        </div>
+
+        <div class="col-md-3 filter-field" data-mode="Quantity">
+            <label class="form-label">Quantity</label>
+            <input type="number" class="form-control" name="quantity"
+                   value="@Context.Request.Query["quantity"]" />
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+            <a asp-action="Index" class="btn btn-secondary w-100">Clear</a>
+        </div>
+    </div>
+</form>
+
+<script>
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
+
+        function updateVisibility() {
+            const mode = modeSelect.value;
+
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                const target = document.querySelector(`.filter-field[data-mode="${mode}"]`);
+                if (target) target.classList.remove("d-none");
+            }
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const savedMode = params.get("mode");
+        if (savedMode) modeSelect.value = savedMode;
+
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
+</script>
+
+
 <table class="table">
     <thead>
         <tr>

@@ -19,6 +19,52 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
+        //Search Bar
+        public async Task<IActionResult> Search(
+    string mode,
+    int? bookingId,
+    int? userId,
+    int? eventId,
+    string bookingStatus,
+    string paymentStatus,
+    string bookingReference)
+        {
+            var query = _context.Set<BOOKING>().AsQueryable();
+
+            if (mode == "BookingID" && bookingId.HasValue)
+                query = query.Where(b => b.BookingID == bookingId.Value);
+
+            else if (mode == "UserID" && userId.HasValue)
+                query = query.Where(b => b.UserID == userId.Value);
+
+            else if (mode == "EventID" && eventId.HasValue)
+                query = query.Where(b => b.EventID == eventId.Value);
+
+            else if (mode == "BookingStatus" && !string.IsNullOrWhiteSpace(bookingStatus))
+                query = query.Where(b => (b.BookingStatus ?? "").Contains(bookingStatus));
+
+            else if (mode == "PaymentStatus" && !string.IsNullOrWhiteSpace(paymentStatus))
+                query = query.Where(b => (b.PaymentStatus ?? "").Contains(paymentStatus));
+
+            else if (mode == "Reference" && !string.IsNullOrWhiteSpace(bookingReference))
+                query = query.Where(b => (b.BookingReference ?? "").Contains(bookingReference));
+
+            else if (mode == "Advanced")
+            {
+                if (bookingId.HasValue) query = query.Where(b => b.BookingID == bookingId.Value);
+                if (userId.HasValue) query = query.Where(b => b.UserID == userId.Value);
+                if (eventId.HasValue) query = query.Where(b => b.EventID == eventId.Value);
+                if (!string.IsNullOrWhiteSpace(bookingStatus))
+                    query = query.Where(b => (b.BookingStatus ?? "").Contains(bookingStatus));
+                if (!string.IsNullOrWhiteSpace(paymentStatus))
+                    query = query.Where(b => (b.PaymentStatus ?? "").Contains(paymentStatus));
+                if (!string.IsNullOrWhiteSpace(bookingReference))
+                    query = query.Where(b => (b.BookingReference ?? "").Contains(bookingReference));
+            }
+
+            return View("Index", await query.ToListAsync());
+        }
+
         // GET: BOOKINGs
         public async Task<IActionResult> Index()
         {
