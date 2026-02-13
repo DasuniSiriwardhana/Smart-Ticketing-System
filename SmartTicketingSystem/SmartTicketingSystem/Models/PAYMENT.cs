@@ -10,7 +10,7 @@ namespace SmartTicketingSystem.Models
         public int BookingID { get; set; }
         public string PaymentMethod { get; set; }
         public string TransactionReference { get; set; }
-        [Column(TypeName = "decimal(10,2)")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
         public DateTime PaidAt { get; set; } 
     }
