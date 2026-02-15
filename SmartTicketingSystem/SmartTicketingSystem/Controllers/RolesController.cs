@@ -19,8 +19,53 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: Roles
-        public async Task<IActionResult> Index()
+        //Adding Serach BAr Option 
+
+public async Task<IActionResult> Search(
+    string mode,
+    int? roleId,
+    string rolename,
+    DateTime? fromDate,
+    DateTime? toDate)
+    {
+        var query = _context.Set<Role>().AsQueryable();
+
+        if (mode == "RoleID" && roleId.HasValue)
+            query = query.Where(r => r.RoleId == roleId.Value);
+
+        else if (mode == "RoleName" && !string.IsNullOrWhiteSpace(rolename))
+            query = query.Where(r => (r.rolename ?? "").Contains(rolename));
+
+        else if (mode == "DateRange")
+        {
+            if (fromDate.HasValue)
+                query = query.Where(r => r.createdAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(r => r.createdAt < toDate.Value.AddDays(1));
+        }
+
+        else if (mode == "Advanced")
+        {
+            if (roleId.HasValue)
+                query = query.Where(r => r.RoleId == roleId.Value);
+
+            if (!string.IsNullOrWhiteSpace(rolename))
+                query = query.Where(r => (r.rolename ?? "").Contains(rolename));
+
+            if (fromDate.HasValue)
+                query = query.Where(r => r.createdAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(r => r.createdAt < toDate.Value.AddDays(1));
+        }
+
+        return View("Index", await query.ToListAsync());
+    }
+
+
+    // GET: Roles
+    public async Task<IActionResult> Index()
         {
             return View(await _context.Role.ToListAsync());
         }
