@@ -19,8 +19,83 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: PAYMENTs
-        public async Task<IActionResult> Index()
+        //Search Bar
+            public async Task<IActionResult> Search(
+            string mode,
+            int? paymentId,
+            int? bookingId,
+            string paymentMethod,
+            string transactionReference,
+            decimal? minAmount,
+            decimal? maxAmount,
+            DateTime? fromDate,
+            DateTime? toDate)
+    {
+        var query = _context.Set<PAYMENT>().AsQueryable();
+
+        if (mode == "PaymentID" && paymentId.HasValue)
+            query = query.Where(p => p.PaymentID == paymentId.Value);
+
+        else if (mode == "BookingID" && bookingId.HasValue)
+            query = query.Where(p => p.BookingID == bookingId.Value);
+
+        else if (mode == "PaymentMethod" && !string.IsNullOrWhiteSpace(paymentMethod))
+            query = query.Where(p => (p.PaymentMethod ?? "").Contains(paymentMethod));
+
+        else if (mode == "TransactionReference" && !string.IsNullOrWhiteSpace(transactionReference))
+            query = query.Where(p => (p.TransactionReference ?? "").Contains(transactionReference));
+
+        else if (mode == "AmountRange")
+        {
+            if (minAmount.HasValue)
+                query = query.Where(p => p.Amount >= minAmount.Value);
+
+            if (maxAmount.HasValue)
+                query = query.Where(p => p.Amount <= maxAmount.Value);
+        }
+
+        else if (mode == "DateRange")
+        {
+            if (fromDate.HasValue)
+                query = query.Where(p => p.PaidAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(p => p.PaidAt < toDate.Value.AddDays(1));
+        }
+
+        else if (mode == "Advanced")
+        {
+            if (paymentId.HasValue)
+                query = query.Where(p => p.PaymentID == paymentId.Value);
+
+            if (bookingId.HasValue)
+                query = query.Where(p => p.BookingID == bookingId.Value);
+
+            if (!string.IsNullOrWhiteSpace(paymentMethod))
+                query = query.Where(p => (p.PaymentMethod ?? "").Contains(paymentMethod));
+
+            if (!string.IsNullOrWhiteSpace(transactionReference))
+                query = query.Where(p => (p.TransactionReference ?? "").Contains(transactionReference));
+
+            if (minAmount.HasValue)
+                query = query.Where(p => p.Amount >= minAmount.Value);
+
+            if (maxAmount.HasValue)
+                query = query.Where(p => p.Amount <= maxAmount.Value);
+
+            if (fromDate.HasValue)
+                query = query.Where(p => p.PaidAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(p => p.PaidAt < toDate.Value.AddDays(1));
+        }
+
+        return View("Index", await query.ToListAsync());
+    }
+
+
+    // GET: PAYMENTs
+    public async Task<IActionResult> Index()
         {
             return View(await _context.PAYMENT.ToListAsync());
         }
