@@ -19,8 +19,96 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: PUBLIC_EVENT_REQUEST
-        public async Task<IActionResult> Index()
+        //Search Bar
+        
+        public async Task<IActionResult> Search(
+            string mode,
+            int? requestId,
+            int? reviewedByUserId,
+            string requestFullName,
+            string requestEmail,
+            string eventTitle,
+            string venueOrMode,
+            string status,
+            DateTime? createdFrom,
+            DateTime? createdTo,
+            DateTime? proposedFrom,
+            DateTime? proposedTo)
+    {
+        var query = _context.Set<PUBLIC_EVENT_REQUEST>().AsQueryable();
+
+        if (mode == "RequestID" && requestId.HasValue)
+            query = query.Where(r => r.requestID == requestId.Value);
+
+        else if (mode == "ReviewedByUserID" && reviewedByUserId.HasValue)
+            query = query.Where(r => r.ReviewedByUserID == reviewedByUserId.Value);
+
+        else if (mode == "FullName" && !string.IsNullOrWhiteSpace(requestFullName))
+            query = query.Where(r => (r.requestFullName ?? "").Contains(requestFullName));
+
+        else if (mode == "Email" && !string.IsNullOrWhiteSpace(requestEmail))
+            query = query.Where(r => (r.RequestEmail ?? "").Contains(requestEmail));
+
+        else if (mode == "EventTitle" && !string.IsNullOrWhiteSpace(eventTitle))
+            query = query.Where(r => (r.eventTitle ?? "").Contains(eventTitle));
+
+        else if (mode == "VenueOrMode" && !string.IsNullOrWhiteSpace(venueOrMode))
+            query = query.Where(r => (r.VenueorMode ?? "").Contains(venueOrMode));
+
+        else if (mode == "Status" && !string.IsNullOrWhiteSpace(status))
+            query = query.Where(r => r.status == status);
+
+        else if (mode == "CreatedDateRange")
+        {
+            if (createdFrom.HasValue)
+                query = query.Where(r => r.CreatedAt >= createdFrom.Value);
+
+            if (createdTo.HasValue)
+                query = query.Where(r => r.CreatedAt < createdTo.Value.AddDays(1));
+        }
+
+        else if (mode == "ProposedDateRange")
+        {
+            if (proposedFrom.HasValue)
+                query = query.Where(r => r.proposedDateTime >= proposedFrom.Value);
+
+            if (proposedTo.HasValue)
+                query = query.Where(r => r.proposedDateTime < proposedTo.Value.AddDays(1));
+        }
+
+        else if (mode == "Advanced")
+        {
+            if (requestId.HasValue) query = query.Where(r => r.requestID == requestId.Value);
+            if (reviewedByUserId.HasValue) query = query.Where(r => r.ReviewedByUserID == reviewedByUserId.Value);
+
+            if (!string.IsNullOrWhiteSpace(requestFullName))
+                query = query.Where(r => (r.requestFullName ?? "").Contains(requestFullName));
+
+            if (!string.IsNullOrWhiteSpace(requestEmail))
+                query = query.Where(r => (r.RequestEmail ?? "").Contains(requestEmail));
+
+            if (!string.IsNullOrWhiteSpace(eventTitle))
+                query = query.Where(r => (r.eventTitle ?? "").Contains(eventTitle));
+
+            if (!string.IsNullOrWhiteSpace(venueOrMode))
+                query = query.Where(r => (r.VenueorMode ?? "").Contains(venueOrMode));
+
+            if (!string.IsNullOrWhiteSpace(status))
+                query = query.Where(r => r.status == status);
+
+            if (createdFrom.HasValue) query = query.Where(r => r.CreatedAt >= createdFrom.Value);
+            if (createdTo.HasValue) query = query.Where(r => r.CreatedAt < createdTo.Value.AddDays(1));
+
+            if (proposedFrom.HasValue) query = query.Where(r => r.proposedDateTime >= proposedFrom.Value);
+            if (proposedTo.HasValue) query = query.Where(r => r.proposedDateTime < proposedTo.Value.AddDays(1));
+        }
+
+        return View("Index", await query.ToListAsync());
+    }
+
+
+    // GET: PUBLIC_EVENT_REQUEST
+    public async Task<IActionResult> Index()
         {
             return View(await _context.PUBLIC_EVENT_REQUEST.ToListAsync());
         }
