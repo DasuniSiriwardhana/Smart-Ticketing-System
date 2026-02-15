@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTicketingSystem.Models
 {
@@ -6,17 +7,51 @@ namespace SmartTicketingSystem.Models
     {
         [Key]
         public int member_id { get; set; }
-        [Required]
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string phone { get; set; }
-        public string passwordHash { get; set; }
-        public string userType { get; set; }
-        public string UniversityNumber { get; set; }
-        public char isverified { get; set; }
-        public string status { get; set; }
-        public DateTime createdAt { get; set; }
-        public int ApprovalID { get; set; }
 
+        [Required]
+        [StringLength(100)]
+        public string FullName { get; set; }
+
+        [Required]
+        [EmailAddress]
+        [StringLength(150)]
+        public string Email { get; set; }
+
+        [Required]
+        [StringLength(20)]
+        public string phone { get; set; }
+
+        [Required]
+        [StringLength(200)]
+        public string passwordHash { get; set; }
+
+        [Required]
+        [StringLength(30)]
+        public string userType { get; set; }
+
+        [Required]
+        [StringLength(30)]
+        public string UniversityNumber { get; set; }
+
+        [Required]
+        [RegularExpression("^[YN]$", ErrorMessage = "isverified must be Y or N.")]
+        public char isverified { get; set; }  // DB: 'Y' / 'N'
+
+        [NotMapped]
+        public bool IsVerifiedBool
+        {
+            get => isverified == 'Y';
+            set => isverified = value ? 'Y' : 'N';
+        }
+
+        [Required]
+        [StringLength(20)]
+        public string status { get; set; } // Active/Inactive
+
+        [Required]
+        [DataType(DataType.DateTime)]
+        public DateTime createdAt { get; set; }
+
+        public int ApprovalID { get; set; }
     }
 }
