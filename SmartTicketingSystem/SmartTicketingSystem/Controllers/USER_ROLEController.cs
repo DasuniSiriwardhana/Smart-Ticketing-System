@@ -19,8 +19,69 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: USER_ROLE
-        public async Task<IActionResult> Index()
+        //Adding Search Bar
+
+public async Task<IActionResult> Search(
+    string mode,
+    int? userRoleId,
+    int? roleId,
+    int? userId,
+    int? memberId,
+    DateTime? fromDate,
+    DateTime? toDate)
+    {
+        var query = _context.Set<USER_ROLE>().AsQueryable();
+
+        if (mode == "UserRoleID" && userRoleId.HasValue)
+            query = query.Where(x => x.UserRoleID == userRoleId.Value);
+
+        else if (mode == "RoleID" && roleId.HasValue)
+            query = query.Where(x => x.roleID == roleId.Value);
+
+        else if (mode == "UserID" && userId.HasValue)
+            query = query.Where(x => x.userID == userId.Value);
+
+        else if (mode == "MemberID" && memberId.HasValue)
+            query = query.Where(x => x.member_id == memberId.Value);
+
+        else if (mode == "DateRange")
+        {
+            if (fromDate.HasValue)
+                query = query.Where(x => x.AssignedAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(x => x.AssignedAt < toDate.Value.AddDays(1));
+        }
+
+        else if (mode == "Advanced")
+        {
+            if (userRoleId.HasValue)
+                query = query.Where(x => x.UserRoleID == userRoleId.Value);
+
+            if (roleId.HasValue)
+                query = query.Where(x => x.roleID == roleId.Value);
+
+            if (userId.HasValue)
+                query = query.Where(x => x.userID == userId.Value);
+
+            if (memberId.HasValue)
+                query = query.Where(x => x.member_id == memberId.Value);
+
+            if (fromDate.HasValue)
+                query = query.Where(x => x.AssignedAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(x => x.AssignedAt < toDate.Value.AddDays(1));
+        }
+
+        return View("Index", await query
+            .OrderByDescending(x => x.AssignedAt)
+            .ToListAsync());
+    }
+
+
+    // GET: USER_ROLE
+    public async Task<IActionResult> Index()
         {
             return View(await _context.USER_ROLE.ToListAsync());
         }
