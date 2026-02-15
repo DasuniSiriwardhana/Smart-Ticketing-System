@@ -19,8 +19,95 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: TICKET_TYPE
-        public async Task<IActionResult> Index()
+        //Search Bar Option
+
+public async Task<IActionResult> Search(
+    string mode,
+    int? ticketId,
+    int? eventId,
+    string typeName,
+    decimal? minPrice,
+    decimal? maxPrice,
+    int? minSeat,
+    int? maxSeat,
+    char? isActive,
+    DateTime? salesFrom,
+    DateTime? salesTo,
+    DateTime? createdFrom,
+    DateTime? createdTo)
+    {
+        var query = _context.Set<TICKET_TYPE>().AsQueryable();
+
+        if (mode == "TicketID" && ticketId.HasValue)
+            query = query.Where(t => t.TicketID == ticketId.Value);
+
+        else if (mode == "EventID" && eventId.HasValue)
+            query = query.Where(t => t.EventID == eventId.Value);
+
+        else if (mode == "TypeName" && !string.IsNullOrWhiteSpace(typeName))
+            query = query.Where(t => (t.TypeName ?? "").Contains(typeName));
+
+        else if (mode == "PriceRange")
+        {
+            if (minPrice.HasValue)
+                query = query.Where(t => t.Price >= minPrice.Value);
+
+            if (maxPrice.HasValue)
+                query = query.Where(t => t.Price <= maxPrice.Value);
+        }
+
+        else if (mode == "SeatRange")
+        {
+            if (minSeat.HasValue)
+                query = query.Where(t => t.seatLimit >= minSeat.Value);
+
+            if (maxSeat.HasValue)
+                query = query.Where(t => t.seatLimit <= maxSeat.Value);
+        }
+
+        else if (mode == "SalesDateRange")
+        {
+            if (salesFrom.HasValue)
+                query = query.Where(t => t.salesStartAt >= salesFrom.Value);
+
+            if (salesTo.HasValue)
+                query = query.Where(t => t.salesEndAt <= salesTo.Value);
+        }
+
+        else if (mode == "Status" && isActive.HasValue)
+            query = query.Where(t => t.isActive == isActive.Value);
+
+        else if (mode == "Advanced")
+        {
+            if (ticketId.HasValue) query = query.Where(t => t.TicketID == ticketId.Value);
+            if (eventId.HasValue) query = query.Where(t => t.EventID == eventId.Value);
+
+            if (!string.IsNullOrWhiteSpace(typeName))
+                query = query.Where(t => (t.TypeName ?? "").Contains(typeName));
+
+            if (minPrice.HasValue) query = query.Where(t => t.Price >= minPrice.Value);
+            if (maxPrice.HasValue) query = query.Where(t => t.Price <= maxPrice.Value);
+
+            if (minSeat.HasValue) query = query.Where(t => t.seatLimit >= minSeat.Value);
+            if (maxSeat.HasValue) query = query.Where(t => t.seatLimit <= maxSeat.Value);
+
+            if (isActive.HasValue) query = query.Where(t => t.isActive == isActive.Value);
+
+            if (salesFrom.HasValue) query = query.Where(t => t.salesStartAt >= salesFrom.Value);
+            if (salesTo.HasValue) query = query.Where(t => t.salesEndAt <= salesTo.Value);
+
+            if (createdFrom.HasValue) query = query.Where(t => t.createdAt >= createdFrom.Value);
+            if (createdTo.HasValue) query = query.Where(t => t.createdAt < createdTo.Value.AddDays(1));
+        }
+
+        return View("Index", await query
+            .OrderByDescending(t => t.createdAt)
+            .ToListAsync());
+    }
+
+
+    // GET: TICKET_TYPE
+    public async Task<IActionResult> Index()
         {
             return View(await _context.TICKET_TYPE.ToListAsync());
         }
