@@ -19,8 +19,96 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: INQUIRies
-        public async Task<IActionResult> Index()
+        //Search Bar
+public async Task<IActionResult> Search(
+    string mode,
+    int? inquiryId,
+    int? handleByUserId,
+    string fullName,
+    string email,
+    string category,
+    string status,
+    string messageText,
+    string responseNote,
+    DateTime? fromDate,
+    DateTime? toDate)
+    {
+        var query = _context.Set<INQUIRY>().AsQueryable();
+
+        if (mode == "InquiryID" && inquiryId.HasValue)
+            query = query.Where(i => i.InquiryID == inquiryId.Value);
+
+        else if (mode == "HandleByUserID" && handleByUserId.HasValue)
+            query = query.Where(i => i.HandleByUserID == handleByUserId.Value);
+
+        else if (mode == "FullName" && !string.IsNullOrWhiteSpace(fullName))
+            query = query.Where(i => (i.FullName ?? "").Contains(fullName));
+
+        else if (mode == "Email" && !string.IsNullOrWhiteSpace(email))
+            query = query.Where(i => (i.Email ?? "").Contains(email));
+
+        else if (mode == "Category" && !string.IsNullOrWhiteSpace(category))
+            query = query.Where(i => (i.category ?? "").Contains(category));
+
+        // (dropdown)
+        else if (mode == "Status" && !string.IsNullOrWhiteSpace(status))
+            query = query.Where(i => i.status == status);
+
+        else if (mode == "Message" && !string.IsNullOrWhiteSpace(messageText))
+            query = query.Where(i => (i.message ?? "").Contains(messageText));
+
+        else if (mode == "ResponseNote" && !string.IsNullOrWhiteSpace(responseNote))
+            query = query.Where(i => (i.ResponseNote ?? "").Contains(responseNote));
+
+        else if (mode == "CreatedDateRange")
+        {
+            if (fromDate.HasValue)
+                query = query.Where(i => i.createdAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(i => i.createdAt < toDate.Value.AddDays(1));
+        }
+
+        else if (mode == "Advanced")
+        {
+            if (inquiryId.HasValue)
+                query = query.Where(i => i.InquiryID == inquiryId.Value);
+
+            if (handleByUserId.HasValue)
+                query = query.Where(i => i.HandleByUserID == handleByUserId.Value);
+
+            if (!string.IsNullOrWhiteSpace(fullName))
+                query = query.Where(i => (i.FullName ?? "").Contains(fullName));
+
+            if (!string.IsNullOrWhiteSpace(email))
+                query = query.Where(i => (i.Email ?? "").Contains(email));
+
+            if (!string.IsNullOrWhiteSpace(category))
+                query = query.Where(i => (i.category ?? "").Contains(category));
+
+            // ✅ Status exact match (dropdown)
+            if (!string.IsNullOrWhiteSpace(status))
+                query = query.Where(i => i.status == status);
+
+            if (!string.IsNullOrWhiteSpace(messageText))
+                query = query.Where(i => (i.message ?? "").Contains(messageText));
+
+            if (!string.IsNullOrWhiteSpace(responseNote))
+                query = query.Where(i => (i.ResponseNote ?? "").Contains(responseNote));
+
+            if (fromDate.HasValue)
+                query = query.Where(i => i.createdAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(i => i.createdAt < toDate.Value.AddDays(1));
+        }
+
+        return View("Index", await query.ToListAsync());
+    }
+
+
+    // GET: INQUIRies
+    public async Task<IActionResult> Index()
         {
             return View(await _context.INQUIRY.ToListAsync());
         }
