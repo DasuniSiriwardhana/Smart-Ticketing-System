@@ -19,8 +19,85 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: REVIEWs
-        public async Task<IActionResult> Index()
+        //Search Bar
+
+        public async Task<IActionResult> Search(
+            string mode,
+            int? reviewId,
+            int? eventId,
+            int? userId,
+            int? minRating,
+            int? maxRating,
+            char? isVerifiedAttendee,
+            string reviewStatus,
+            string commentsText,
+            DateTime? fromDate,
+            DateTime? toDate)
+    {
+        var query = _context.Set<REVIEW>().AsQueryable();
+
+        if (mode == "ReviewID" && reviewId.HasValue)
+            query = query.Where(r => r.ReviewID == reviewId.Value);
+
+        else if (mode == "EventID" && eventId.HasValue)
+            query = query.Where(r => r.eventID == eventId.Value);
+
+        else if (mode == "UserID" && userId.HasValue)
+            query = query.Where(r => r.userID == userId.Value);
+
+        else if (mode == "RatingRange")
+        {
+            if (minRating.HasValue)
+                query = query.Where(r => r.Ratings >= minRating.Value);
+
+            if (maxRating.HasValue)
+                query = query.Where(r => r.Ratings <= maxRating.Value);
+        }
+
+        else if (mode == "Verified" && isVerifiedAttendee.HasValue)
+            query = query.Where(r => r.isVerifiedAttendee == isVerifiedAttendee.Value);
+
+        else if (mode == "ReviewStatus" && !string.IsNullOrWhiteSpace(reviewStatus))
+            query = query.Where(r => r.ReviewStatus == reviewStatus);
+
+        else if (mode == "Comments" && !string.IsNullOrWhiteSpace(commentsText))
+            query = query.Where(r => (r.Comments ?? "").Contains(commentsText));
+
+        else if (mode == "DateRange")
+        {
+            if (fromDate.HasValue)
+                query = query.Where(r => r.createdAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(r => r.createdAt < toDate.Value.AddDays(1));
+        }
+
+        else if (mode == "Advanced")
+        {
+            if (reviewId.HasValue) query = query.Where(r => r.ReviewID == reviewId.Value);
+            if (eventId.HasValue) query = query.Where(r => r.eventID == eventId.Value);
+            if (userId.HasValue) query = query.Where(r => r.userID == userId.Value);
+
+            if (minRating.HasValue) query = query.Where(r => r.Ratings >= minRating.Value);
+            if (maxRating.HasValue) query = query.Where(r => r.Ratings <= maxRating.Value);
+
+            if (isVerifiedAttendee.HasValue) query = query.Where(r => r.isVerifiedAttendee == isVerifiedAttendee.Value);
+
+            if (!string.IsNullOrWhiteSpace(reviewStatus))
+                query = query.Where(r => r.ReviewStatus == reviewStatus);
+
+            if (!string.IsNullOrWhiteSpace(commentsText))
+                query = query.Where(r => (r.Comments ?? "").Contains(commentsText));
+
+            if (fromDate.HasValue) query = query.Where(r => r.createdAt >= fromDate.Value);
+            if (toDate.HasValue) query = query.Where(r => r.createdAt < toDate.Value.AddDays(1));
+        }
+
+        return View("Index", await query.ToListAsync());
+    }
+
+    // GET: REVIEWs
+    public async Task<IActionResult> Index()
         {
             return View(await _context.REVIEW.ToListAsync());
         }
