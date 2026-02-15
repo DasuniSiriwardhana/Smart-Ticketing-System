@@ -19,8 +19,96 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: USERs
-        public async Task<IActionResult> Index()
+        //Search Bar Option 
+
+public async Task<IActionResult> Search(
+    string mode,
+    int? memberId,
+    string fullName,
+    string email,
+    string phone,
+    string universityNumber,
+    string userType,
+    char? isVerified,
+    string status,
+    DateTime? fromDate,
+    DateTime? toDate)
+    {
+        var query = _context.Set<USER>().AsQueryable();
+
+        if (mode == "MemberID" && memberId.HasValue)
+            query = query.Where(u => u.member_id == memberId.Value);
+
+        else if (mode == "UniversityNumber" && !string.IsNullOrWhiteSpace(universityNumber))
+            query = query.Where(u => (u.UniversityNumber ?? "").Contains(universityNumber));
+
+        else if (mode == "FullName" && !string.IsNullOrWhiteSpace(fullName))
+            query = query.Where(u => (u.FullName ?? "").Contains(fullName));
+
+        else if (mode == "Email" && !string.IsNullOrWhiteSpace(email))
+            query = query.Where(u => (u.Email ?? "").Contains(email));
+
+        else if (mode == "Phone" && !string.IsNullOrWhiteSpace(phone))
+            query = query.Where(u => (u.phone ?? "").Contains(phone));
+
+        else if (mode == "UserType" && !string.IsNullOrWhiteSpace(userType))
+            query = query.Where(u => u.userType == userType);
+
+        else if (mode == "Verified" && isVerified.HasValue)
+            query = query.Where(u => u.isverified == isVerified.Value);
+
+        else if (mode == "Status" && !string.IsNullOrWhiteSpace(status))
+            query = query.Where(u => u.status == status);
+
+        else if (mode == "DateRange")
+        {
+            if (fromDate.HasValue)
+                query = query.Where(u => u.createdAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(u => u.createdAt < toDate.Value.AddDays(1));
+        }
+
+        else if (mode == "Advanced")
+        {
+            if (memberId.HasValue) query = query.Where(u => u.member_id == memberId.Value);
+
+            if (!string.IsNullOrWhiteSpace(universityNumber))
+                query = query.Where(u => (u.UniversityNumber ?? "").Contains(universityNumber));
+
+            if (!string.IsNullOrWhiteSpace(fullName))
+                query = query.Where(u => (u.FullName ?? "").Contains(fullName));
+
+            if (!string.IsNullOrWhiteSpace(email))
+                query = query.Where(u => (u.Email ?? "").Contains(email));
+
+            if (!string.IsNullOrWhiteSpace(phone))
+                query = query.Where(u => (u.phone ?? "").Contains(phone));
+
+            if (!string.IsNullOrWhiteSpace(userType))
+                query = query.Where(u => u.userType == userType);
+
+            if (isVerified.HasValue)
+                query = query.Where(u => u.isverified == isVerified.Value);
+
+            if (!string.IsNullOrWhiteSpace(status))
+                query = query.Where(u => u.status == status);
+
+            if (fromDate.HasValue)
+                query = query.Where(u => u.createdAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(u => u.createdAt < toDate.Value.AddDays(1));
+        }
+
+        return View("Index", await query
+            .OrderByDescending(u => u.createdAt) // newest users first
+            .ToListAsync());
+    }
+
+
+    // GET: USERs
+    public async Task<IActionResult> Index()
         {
             return View(await _context.USER.ToListAsync());
         }
