@@ -18,9 +18,65 @@ namespace SmartTicketingSystem.Controllers
         {
             _context = context;
         }
+        //Search BAr Option 
+public async Task<IActionResult> Search(
+    string mode,
+    int? reportId,
+    int? reviewId,
+    int? reportedByUserId,
+    string reportReason,
+    string reportDetail,
+    DateTime? fromDate,
+    DateTime? toDate)
+    {
+        var query = _context.Set<REVIEW_REPORT>().AsQueryable();
 
-        // GET: REVIEW_REPORT
-        public async Task<IActionResult> Index()
+        if (mode == "ReportID" && reportId.HasValue)
+            query = query.Where(r => r.RportID == reportId.Value);
+
+        else if (mode == "ReviewID" && reviewId.HasValue)
+            query = query.Where(r => r.ReviewID == reviewId.Value);
+
+        else if (mode == "ReportedByUserID" && reportedByUserId.HasValue)
+            query = query.Where(r => r.ReportedByUserID == reportedByUserId.Value);
+
+        else if (mode == "ReportReason" && !string.IsNullOrWhiteSpace(reportReason))
+            query = query.Where(r => (r.ReportReason ?? "").Contains(reportReason));
+
+        else if (mode == "ReportDetail" && !string.IsNullOrWhiteSpace(reportDetail))
+            query = query.Where(r => (r.ReportDetail ?? "").Contains(reportDetail));
+
+        else if (mode == "DateRange")
+        {
+            if (fromDate.HasValue)
+                query = query.Where(r => r.ReportedAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(r => r.ReportedAt < toDate.Value.AddDays(1));
+        }
+
+        else if (mode == "Advanced")
+        {
+            if (reportId.HasValue) query = query.Where(r => r.RportID == reportId.Value);
+            if (reviewId.HasValue) query = query.Where(r => r.ReviewID == reviewId.Value);
+            if (reportedByUserId.HasValue) query = query.Where(r => r.ReportedByUserID == reportedByUserId.Value);
+
+            if (!string.IsNullOrWhiteSpace(reportReason))
+                query = query.Where(r => (r.ReportReason ?? "").Contains(reportReason));
+
+            if (!string.IsNullOrWhiteSpace(reportDetail))
+                query = query.Where(r => (r.ReportDetail ?? "").Contains(reportDetail));
+
+            if (fromDate.HasValue) query = query.Where(r => r.ReportedAt >= fromDate.Value);
+            if (toDate.HasValue) query = query.Where(r => r.ReportedAt < toDate.Value.AddDays(1));
+        }
+
+        return View("Index", await query.ToListAsync());
+    }
+
+
+    // GET: REVIEW_REPORT
+    public async Task<IActionResult> Index()
         {
             return View(await _context.REVIEW_REPORT.ToListAsync());
         }
