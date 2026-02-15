@@ -19,8 +19,68 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: WAITING_LIST
-        public async Task<IActionResult> Index()
+        //Search Bar
+public async Task<IActionResult> Search(
+    string mode,
+    int? waitingListId,
+    int? eventId,
+    int? userId,
+    string status,
+    DateTime? fromDate,
+    DateTime? toDate)
+    {
+        var query = _context.Set<WAITING_LIST>().AsQueryable();
+
+        if (mode == "WaitingListID" && waitingListId.HasValue)
+            query = query.Where(w => w.WaitingListID == waitingListId.Value);
+
+        else if (mode == "EventID" && eventId.HasValue)
+            query = query.Where(w => w.EventID == eventId.Value);
+
+        else if (mode == "UserID" && userId.HasValue)
+            query = query.Where(w => w.UserID == userId.Value);
+
+        else if (mode == "Status" && !string.IsNullOrWhiteSpace(status))
+            query = query.Where(w => w.Status == status);
+
+        else if (mode == "DateRange")
+        {
+            if (fromDate.HasValue)
+                query = query.Where(w => w.AddedAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(w => w.AddedAt < toDate.Value.AddDays(1));
+        }
+
+        else if (mode == "Advanced")
+        {
+            if (waitingListId.HasValue)
+                query = query.Where(w => w.WaitingListID == waitingListId.Value);
+
+            if (eventId.HasValue)
+                query = query.Where(w => w.EventID == eventId.Value);
+
+            if (userId.HasValue)
+                query = query.Where(w => w.UserID == userId.Value);
+
+            if (!string.IsNullOrWhiteSpace(status))
+                query = query.Where(w => w.Status == status);
+
+            if (fromDate.HasValue)
+                query = query.Where(w => w.AddedAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(w => w.AddedAt < toDate.Value.AddDays(1));
+        }
+
+        return View("Index", await query
+            .OrderByDescending(w => w.AddedAt)
+            .ToListAsync());
+    }
+
+
+    // GET: WAITING_LIST
+    public async Task<IActionResult> Index()
         {
             return View(await _context.WAITING_LIST.ToListAsync());
         }
