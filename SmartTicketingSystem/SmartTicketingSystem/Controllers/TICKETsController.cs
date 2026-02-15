@@ -19,8 +19,61 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // GET: TICKETs
-        public async Task<IActionResult> Index()
+        //Added Search BAr 
+    public async Task<IActionResult> Search(
+    string mode,
+    int? ticketId,
+    int? bookingId,
+    string qrCodeValue,
+    DateTime? fromDate,
+    DateTime? toDate)
+    {
+        var query = _context.Set<TICKET>().AsQueryable();
+
+        if (mode == "TicketID" && ticketId.HasValue)
+            query = query.Where(t => t.TicketID == ticketId.Value);
+
+        else if (mode == "BookingID" && bookingId.HasValue)
+            query = query.Where(t => t.BookingID == bookingId.Value);
+
+        else if (mode == "QRCode" && !string.IsNullOrWhiteSpace(qrCodeValue))
+            query = query.Where(t => (t.QRcodevalue ?? "").Contains(qrCodeValue));
+
+        else if (mode == "DateRange")
+        {
+            if (fromDate.HasValue)
+                query = query.Where(t => t.issuedAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(t => t.issuedAt < toDate.Value.AddDays(1));
+        }
+
+        else if (mode == "Advanced")
+        {
+            if (ticketId.HasValue)
+                query = query.Where(t => t.TicketID == ticketId.Value);
+
+            if (bookingId.HasValue)
+                query = query.Where(t => t.BookingID == bookingId.Value);
+
+            if (!string.IsNullOrWhiteSpace(qrCodeValue))
+                query = query.Where(t => (t.QRcodevalue ?? "").Contains(qrCodeValue));
+
+            if (fromDate.HasValue)
+                query = query.Where(t => t.issuedAt >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(t => t.issuedAt < toDate.Value.AddDays(1));
+        }
+
+        return View("Index", await query
+            .OrderByDescending(t => t.issuedAt)   // Professional: newest tickets first
+            .ToListAsync());
+    }
+
+
+    // GET: TICKETs
+    public async Task<IActionResult> Index()
         {
             return View(await _context.TICKET.ToListAsync());
         }
