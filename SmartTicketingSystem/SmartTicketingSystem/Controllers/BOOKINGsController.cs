@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartTicketingSystem.Data;
 using SmartTicketingSystem.Models;
@@ -19,23 +17,23 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        //Search Bar
+        // SEARCH
         public async Task<IActionResult> Search(
-    string mode,
-    int? bookingId,
-    int? userId,
-    int? eventId,
-    string bookingStatus,
-    string paymentStatus,
-    string bookingReference)
+            string mode,
+            int? bookingId,
+            int? member_id,
+            int? eventId,
+            string bookingStatus,
+            string paymentStatus,
+            string bookingReference)
         {
             var query = _context.Set<BOOKING>().AsQueryable();
 
             if (mode == "BookingID" && bookingId.HasValue)
                 query = query.Where(b => b.BookingID == bookingId.Value);
 
-            else if (mode == "UserID" && userId.HasValue)
-                query = query.Where(b => b.UserID == userId.Value);
+            else if (mode == "MemberID" && member_id.HasValue)
+                query = query.Where(b => b.member_id == member_id.Value);
 
             else if (mode == "EventID" && eventId.HasValue)
                 query = query.Where(b => b.EventID == eventId.Value);
@@ -51,13 +49,21 @@ namespace SmartTicketingSystem.Controllers
 
             else if (mode == "Advanced")
             {
-                if (bookingId.HasValue) query = query.Where(b => b.BookingID == bookingId.Value);
-                if (userId.HasValue) query = query.Where(b => b.UserID == userId.Value);
-                if (eventId.HasValue) query = query.Where(b => b.EventID == eventId.Value);
+                if (bookingId.HasValue)
+                    query = query.Where(b => b.BookingID == bookingId.Value);
+
+                if (member_id.HasValue)
+                    query = query.Where(b => b.member_id == member_id.Value);
+
+                if (eventId.HasValue)
+                    query = query.Where(b => b.EventID == eventId.Value);
+
                 if (!string.IsNullOrWhiteSpace(bookingStatus))
                     query = query.Where(b => (b.BookingStatus ?? "").Contains(bookingStatus));
+
                 if (!string.IsNullOrWhiteSpace(paymentStatus))
                     query = query.Where(b => (b.PaymentStatus ?? "").Contains(paymentStatus));
+
                 if (!string.IsNullOrWhiteSpace(bookingReference))
                     query = query.Where(b => (b.BookingReference ?? "").Contains(bookingReference));
             }
@@ -75,18 +81,15 @@ namespace SmartTicketingSystem.Controllers
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var bOOKING = await _context.BOOKING
+            var booking = await _context.BOOKING
                 .FirstOrDefaultAsync(m => m.BookingID == id);
-            if (bOOKING == null)
-            {
-                return NotFound();
-            }
 
-            return View(bOOKING);
+            if (booking == null)
+                return NotFound();
+
+            return View(booking);
         }
 
         // GET: BOOKINGs/Create
@@ -96,88 +99,77 @@ namespace SmartTicketingSystem.Controllers
         }
 
         // POST: BOOKINGs/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("BookingID,BookingReference,UserID,EventID,BookingDateTime,BookingStatus,TotalAmount,PaymentStatus,CancellationReason,CancelledAt,createdAt")] BOOKING bOOKING)
+        public async Task<IActionResult> Create(
+            [Bind("BookingID,BookingReference,member_id,EventID,BookingDateTime,BookingStatus,TotalAmount,PaymentStatus,CancellationReason,CancelledAt,createdAt")] BOOKING booking)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(bOOKING);
+                _context.Add(booking);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(bOOKING);
+            return View(booking);
         }
 
         // GET: BOOKINGs/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var bOOKING = await _context.BOOKING.FindAsync(id);
-            if (bOOKING == null)
-            {
+            var booking = await _context.BOOKING.FindAsync(id);
+
+            if (booking == null)
                 return NotFound();
-            }
-            return View(bOOKING);
+
+            return View(booking);
         }
 
         // POST: BOOKINGs/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("BookingID,BookingReference,UserID,EventID,BookingDateTime,BookingStatus,TotalAmount,PaymentStatus,CancellationReason,CancelledAt,createdAt")] BOOKING bOOKING)
+        public async Task<IActionResult> Edit(int id,
+            [Bind("BookingID,BookingReference,member_id,EventID,BookingDateTime,BookingStatus,TotalAmount,PaymentStatus,CancellationReason,CancelledAt,createdAt")] BOOKING booking)
         {
-            if (id != bOOKING.BookingID)
-            {
+            if (id != booking.BookingID)
                 return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(bOOKING);
+                    _context.Update(booking);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!BOOKINGExists(bOOKING.BookingID))
-                    {
+                    if (!BOOKINGExists(booking.BookingID))
                         return NotFound();
-                    }
                     else
-                    {
                         throw;
-                    }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(bOOKING);
+
+            return View(booking);
         }
 
         // GET: BOOKINGs/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var bOOKING = await _context.BOOKING
+            var booking = await _context.BOOKING
                 .FirstOrDefaultAsync(m => m.BookingID == id);
-            if (bOOKING == null)
-            {
-                return NotFound();
-            }
 
-            return View(bOOKING);
+            if (booking == null)
+                return NotFound();
+
+            return View(booking);
         }
 
         // POST: BOOKINGs/Delete/5
@@ -185,11 +177,10 @@ namespace SmartTicketingSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var bOOKING = await _context.BOOKING.FindAsync(id);
-            if (bOOKING != null)
-            {
-                _context.BOOKING.Remove(bOOKING);
-            }
+            var booking = await _context.BOOKING.FindAsync(id);
+
+            if (booking != null)
+                _context.BOOKING.Remove(booking);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

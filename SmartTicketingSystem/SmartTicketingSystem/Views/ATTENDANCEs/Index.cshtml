@@ -21,7 +21,7 @@
         </div>
 
         <div class="col-md-2">
-            <input type="number" name="userId" class="form-control" placeholder="User ID" />
+            <input type="number" name="member_id" class="form-control" placeholder="User ID" />
         </div>
 
         <div class="col-md-2">
@@ -46,7 +46,7 @@
                 @Html.DisplayNameFor(model => model.EventID)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.UserID)
+                @Html.DisplayNameFor(model => model.member_id)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.TicketID)
@@ -67,7 +67,7 @@
                 @Html.DisplayFor(modelItem => item.EventID)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.UserID)
+                    @Html.DisplayFor(modelItem => item.member_id)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.TicketID)

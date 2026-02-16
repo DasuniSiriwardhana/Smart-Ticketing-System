@@ -18,7 +18,7 @@
             <select class="form-select" name="mode" id="modeSelect">
                 <option value="UserRoleID">UserRole ID</option>
                 <option value="RoleID">Role ID</option>
-                <option value="UserID">User ID</option>
+                <option value="member_id">Member ID</option>
                 <option value="MemberID">Member ID</option>
                 <option value="DateRange">Assigned Date Range</option>
                 <option value="Advanced">Advanced (Multiple)</option>
@@ -37,10 +37,10 @@
                    value="@Context.Request.Query["roleId"]" />
         </div>
 
-        <div class="col-md-3 filter-field" data-mode="UserID">
-            <label class="form-label">User ID</label>
-            <input type="number" name="userId" class="form-control"
-                   value="@Context.Request.Query["userId"]" />
+        <div class="col-md-3 filter-field" data-mode="member_id">
+            <label class="form-label">Member ID</label>
+            <input type="number" name="member_id" class="form-control"
+                   value="@Context.Request.Query["member_id"]" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="MemberID">
@@ -74,7 +74,6 @@
         <tr>
             <th>UserRoleID</th>
             <th>RoleID</th>
-            <th>UserID</th>
             <th>MemberID</th>
             <th>Assigned At</th>
             <th></th>
@@ -86,7 +85,6 @@
             <tr>
                 <td>@item.UserRoleID</td>
                 <td>@item.roleID</td>
-                <td>@item.userID</td>
                 <td>@item.member_id</td>
                 <td>@item.AssignedAt</td>
                 <td>

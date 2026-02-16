@@ -7,7 +7,7 @@ namespace SmartTicketingSystem.Models
         [Key]
         public int BookingID { get; set; }
         public string BookingReference { get; set; }
-        public int UserID { get; set; }
+        public int member_id { get; set; }
         public int EventID { get; set; }
         public DateTime BookingDateTime { get; set; }
         public string BookingStatus { get; set; }

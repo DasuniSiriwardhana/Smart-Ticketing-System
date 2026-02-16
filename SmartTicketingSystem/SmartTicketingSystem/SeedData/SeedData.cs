@@ -63,7 +63,6 @@ namespace SmartTicketingSystem.SeedData
                         FullName = "System Admin",
                         Email = "admin@university.lk",
                         phone = "+94770000000",
-                        passwordHash = "DEMO_HASH",
                         userType = "Admin",
                         UniversityNumber = "U0001",
                         status = "Active",

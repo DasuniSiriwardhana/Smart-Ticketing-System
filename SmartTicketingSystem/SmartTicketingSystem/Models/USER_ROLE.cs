@@ -7,7 +7,6 @@ namespace SmartTicketingSystem.Models
         [Key]
         public int UserRoleID { get; set; }
         public int roleID { get; set; }
-        public int userID { get; set; }
         public DateTime AssignedAt { get; set; }
         public int member_id { get; set; }
 

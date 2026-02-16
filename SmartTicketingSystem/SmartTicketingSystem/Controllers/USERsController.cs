@@ -142,7 +142,7 @@ public async Task<IActionResult> Search(
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("member_id,FullName,Email,phone,passwordHash,userType,UniversityNumber,isverified,status,createdAt,ApprovalID")] USER uSER)
+        public async Task<IActionResult> Create([Bind("member_id,FullName,Email,phone,userType,UniversityNumber,isverified,status,createdAt,ApprovalID")] USER uSER)
         {
             if (ModelState.IsValid)
             {
@@ -175,7 +175,7 @@ public async Task<IActionResult> Search(
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("member_id,FullName,Email,phone,passwordHash,userType,UniversityNumber,isverified,status,createdAt,ApprovalID")] USER uSER)
+        public async Task<IActionResult> Edit(int id, [Bind("member_id,FullName,Email,phone,userType,UniversityNumber,isverified,status,createdAt,ApprovalID")] USER uSER)
         {
             if (id != uSER.member_id)
             {

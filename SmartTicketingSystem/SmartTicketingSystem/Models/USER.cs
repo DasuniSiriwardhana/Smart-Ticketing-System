@@ -22,10 +22,6 @@ namespace SmartTicketingSystem.Models
         public string phone { get; set; }
 
         [Required]
-        [StringLength(200)]
-        public string passwordHash { get; set; }
-
-        [Required]
         [StringLength(30)]
         public string userType { get; set; }
 

@@ -18,7 +18,7 @@
             <select class="form-select" name="mode" id="modeSelect">
                 <option value="WaitingListID">WaitingList ID</option>
                 <option value="EventID">Event ID</option>
-                <option value="UserID">User ID</option>
+                <option value="member_id">Member ID</option>
                 <option value="Status">Status</option>
                 <option value="DateRange">Added Date Range</option>
                 <option value="Advanced">Advanced (Multiple)</option>
@@ -37,10 +37,10 @@
                    value="@Context.Request.Query["eventId"]" />
         </div>
 
-        <div class="col-md-3 filter-field" data-mode="UserID">
-            <label class="form-label">User ID</label>
-            <input type="number" class="form-control" name="userId"
-                   value="@Context.Request.Query["userId"]" />
+        <div class="col-md-3 filter-field" data-mode="member_id">
+            <label class="form-label">Member ID</label>
+            <input type="number" class="form-control" name="member_id"
+                   value="@Context.Request.Query["member_id"]" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="Status">
@@ -90,7 +90,7 @@
             <tr>
                 <td>@item.WaitingListID</td>
                 <td>@item.EventID</td>
-                <td>@item.UserID</td>
+                <td>@item.member_id</td>
                 <td>@item.AddedAt</td>
                 <td>@item.Status</td>
                 <td>

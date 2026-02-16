@@ -12,7 +12,7 @@ namespace SmartTicketingSystem.Models
         public int eventID { get; set; }
 
         [Required]
-        public int userID { get; set; }
+        public int member_id { get; set; }
 
         [Required]
         [Range(1, 5)]
