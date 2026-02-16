@@ -1,18 +1,6 @@
 ﻿@model IEnumerable<SmartTicketingSystem.Models.PUBLIC_EVENT_REQUEST>
 
 @{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-
-@model IEnumerable<SmartTicketingSystem.Models.PUBLIC_EVENT_REQUEST>
-
-@{
     ViewData["Title"] = "PUBLIC EVENT REQUESTS";
 }
 
@@ -135,136 +123,51 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model)
-{
-        <tr>
-            <td>@item.requestID</td>
-            <td>@item.requestFullName</td>
-            <td>@item.RequestEmail</td>
-            <td>@item.phoneNumber</td>
-            <td>@item.eventTitle</td>
-            <td>@item.proposedDateTime</td>
-            <td>@item.VenueorMode</td>
-            <td>@item.status</td>
-            <td>@item.ReviewedByUserID</td>
-            <td>@item.CreatedAt</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.requestID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.requestID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.requestID">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.requestID</td>
+                <td>@item.requestFullName</td>
+                <td>@item.RequestEmail</td>
+                <td>@item.phoneNumber</td>
+                <td>@item.eventTitle</td>
+                <td>@item.proposedDateTime</td>
+                <td>@item.VenueorMode</td>
+                <td>@item.status</td>
+                <td>@item.ReviewedByUserID</td>
+                <td>@item.CreatedAt</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.requestID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.requestID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.requestID">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 
 <script>
-(function () {
-    const modeSelect = document.getElementById("modeSelect");
-    const fields = Array.from(document.querySelectorAll(".filter-field"));
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
 
-    function updateVisibility() {
-        const mode = modeSelect.value;
+        function updateVisibility() {
+            const mode = modeSelect.value;
 
-        if (mode === "Advanced") {
-            fields.forEach(f => f.classList.remove("d-none"));
-        } else {
-            fields.forEach(f => f.classList.add("d-none"));
-            const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
-            matching.forEach(f => f.classList.remove("d-none"));
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                document.querySelectorAll(`.filter-field[data-mode="${mode}"]`)
+                    .forEach(f => f.classList.remove("d-none"));
+            }
         }
-    }
 
-    const params = new URLSearchParams(window.location.search);
-    const savedMode = params.get("mode");
-    if (savedMode) modeSelect.value = savedMode;
+        const params = new URLSearchParams(window.location.search);
+        const savedMode = params.get("mode");
+        if (savedMode) modeSelect.value = savedMode;
 
-    modeSelect.addEventListener("change", updateVisibility);
-    updateVisibility();
-})();
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
 </script>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.requestFullName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RequestEmail)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.phoneNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.eventTitle)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.proposedDateTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.VenueorMode)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.reviewedNote)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReviewedByUserID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.requestFullName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RequestEmail)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.phoneNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.eventTitle)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.proposedDateTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.VenueorMode)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.reviewedNote)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReviewedByUserID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.requestID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.requestID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.requestID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>

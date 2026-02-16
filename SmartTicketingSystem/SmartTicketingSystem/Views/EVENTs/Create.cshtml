@@ -1,128 +1,165 @@
 ﻿@model SmartTicketingSystem.Models.EVENT
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Event";
 }
 
-<h1>Create</h1>
+<h1>Create Event</h1>
 
-<h4>EVENT</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="title" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="title" class="form-label"></label>
                 <input asp-for="title" class="form-control" />
                 <span asp-validation-for="title" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="StartDateTime" class="control-label"></label>
-                <input asp-for="StartDateTime" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="StartDateTime" class="form-label"></label>
+                <input asp-for="StartDateTime" class="form-control" type="datetime-local" />
                 <span asp-validation-for="StartDateTime" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="endDateTime" class="control-label"></label>
-                <input asp-for="endDateTime" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="endDateTime" class="form-label"></label>
+                <input asp-for="endDateTime" class="form-control" type="datetime-local" />
                 <span asp-validation-for="endDateTime" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="venue" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="venue" class="form-label"></label>
                 <input asp-for="venue" class="form-control" />
                 <span asp-validation-for="venue" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="IsOnline" class="control-label"></label>
-                <input asp-for="IsOnline" class="form-control" />
-                <span asp-validation-for="IsOnline" class="text-danger"></span>
+
+            <div class="form-check mb-3">
+                <input asp-for="IsOnlineBool" class="form-check-input" type="checkbox" id="isOnlineChk" />
+                <label class="form-check-label" for="isOnlineChk">Online Event</label>
+                <span asp-validation-for="IsOnlineBool" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="onlineLink" class="control-label"></label>
+
+            <div class="mb-3" id="onlineLinkGroup">
+                <label asp-for="onlineLink" class="form-label"></label>
                 <input asp-for="onlineLink" class="form-control" />
                 <span asp-validation-for="onlineLink" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="AccessibilityInfo" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="AccessibilityInfo" class="form-label"></label>
                 <input asp-for="AccessibilityInfo" class="form-control" />
                 <span asp-validation-for="AccessibilityInfo" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="capacity" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="capacity" class="form-label"></label>
                 <input asp-for="capacity" class="form-control" />
                 <span asp-validation-for="capacity" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="visibility" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="visibility" class="form-label"></label>
                 <input asp-for="visibility" class="form-control" />
                 <span asp-validation-for="visibility" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="status" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="status" class="form-label"></label>
                 <input asp-for="status" class="form-control" />
                 <span asp-validation-for="status" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="organizerInfo" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="organizerInfo" class="form-label"></label>
                 <input asp-for="organizerInfo" class="form-control" />
                 <span asp-validation-for="organizerInfo" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Agenda" class="control-label"></label>
-                <input asp-for="Agenda" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="Agenda" class="form-label"></label>
+                <textarea asp-for="Agenda" class="form-control" rows="3"></textarea>
                 <span asp-validation-for="Agenda" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="maplink" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="maplink" class="form-label"></label>
                 <input asp-for="maplink" class="form-control" />
                 <span asp-validation-for="maplink" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="createdByUserID" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="createdByUserID" class="form-label"></label>
                 <input asp-for="createdByUserID" class="form-control" />
                 <span asp-validation-for="createdByUserID" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="organizerUnitID" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="organizerUnitID" class="form-label"></label>
                 <input asp-for="organizerUnitID" class="form-control" />
                 <span asp-validation-for="organizerUnitID" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="categoryID" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="categoryID" class="form-label"></label>
                 <input asp-for="categoryID" class="form-control" />
                 <span asp-validation-for="categoryID" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="createdAt" class="control-label"></label>
-                <input asp-for="createdAt" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="createdAt" class="form-label"></label>
+                <input asp-for="createdAt" class="form-control" type="datetime-local" />
                 <span asp-validation-for="createdAt" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="updatedAt" class="control-label"></label>
-                <input asp-for="updatedAt" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="updatedAt" class="form-label"></label>
+                <input asp-for="updatedAt" class="form-control" type="datetime-local" />
                 <span asp-validation-for="updatedAt" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ApprovalID" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="ApprovalID" class="form-label"></label>
                 <input asp-for="ApprovalID" class="form-control" />
                 <span asp-validation-for="ApprovalID" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Back</a>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        (function () {
+            const chk = document.getElementById("isOnlineChk");
+            const group = document.getElementById("onlineLinkGroup");
+            const linkInput = document.querySelector('[name="onlineLink"]');
+
+            function refresh() {
+                if (chk.checked) {
+                    group.style.display = "";
+                } else {
+                    group.style.display = "none";
+                    if (linkInput) linkInput.value = "";
+                }
+            }
+
+            chk.addEventListener("change", refresh);
+            refresh();
+        })();
+    </script>
 }

@@ -124,6 +124,8 @@ public async Task<IActionResult> Search(
         {
             if (ModelState.IsValid)
             {
+                // to get a value all the time on createdAt
+                oRGANIZER_UNIT.CreatedAt = DateTime.Now;
                 _context.Add(oRGANIZER_UNIT);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

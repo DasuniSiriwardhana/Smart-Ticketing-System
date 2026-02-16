@@ -1,17 +1,6 @@
 ﻿@model IEnumerable<SmartTicketingSystem.Models.REVIEW>
 
 @{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-@model IEnumerable<SmartTicketingSystem.Models.REVIEW>
-
-@{
     ViewData["Title"] = "REVIEWS";
 }
 
@@ -128,110 +117,49 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model)
-{
-        <tr>
-            <td>@item.ReviewID</td>
-            <td>@item.eventID</td>
-            <td>@item.userID</td>
-            <td>@item.Ratings</td>
-            <td>@item.Comments</td>
-            <td>@(item.isVerifiedAttendee == 'Y' ? "Yes" : "No")</td>
-            <td>@item.ReviewStatus</td>
-            <td>@item.createdAt</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ReviewID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ReviewID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ReviewID">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ReviewID</td>
+                <td>@item.eventID</td>
+                <td>@item.userID</td>
+                <td>@item.Ratings</td>
+                <td>@item.Comments</td>
+                <td>@(item.isVerifiedAttendee == 'Y' ? "Yes" : "No")</td>
+                <td>@item.ReviewStatus</td>
+                <td>@item.createdAt</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.ReviewID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.ReviewID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ReviewID">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 
 <script>
-(function () {
-    const modeSelect = document.getElementById("modeSelect");
-    const fields = Array.from(document.querySelectorAll(".filter-field"));
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
 
-    function updateVisibility() {
-        const mode = modeSelect.value;
+        function updateVisibility() {
+            const mode = modeSelect.value;
 
-        if (mode === "Advanced") {
-            fields.forEach(f => f.classList.remove("d-none"));
-        } else {
-            fields.forEach(f => f.classList.add("d-none"));
-            const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
-            matching.forEach(f => f.classList.remove("d-none"));
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                document.querySelectorAll(`.filter-field[data-mode="${mode}"]`)
+                    .forEach(f => f.classList.remove("d-none"));
+            }
         }
-    }
 
-    const params = new URLSearchParams(window.location.search);
-    const savedMode = params.get("mode");
-    if (savedMode) modeSelect.value = savedMode;
+        const params = new URLSearchParams(window.location.search);
+        const savedMode = params.get("mode");
+        if (savedMode) modeSelect.value = savedMode;
 
-    modeSelect.addEventListener("change", updateVisibility);
-    updateVisibility();
-})();
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
 </script>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.eventID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.userID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Ratings)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Comments)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.isVerifiedAttendee)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReviewStatus)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.createdAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.eventID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.userID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Ratings)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Comments)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.isVerifiedAttendee)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReviewStatus)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.createdAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ReviewID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ReviewID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ReviewID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>

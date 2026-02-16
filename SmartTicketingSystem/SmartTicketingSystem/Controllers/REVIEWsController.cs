@@ -131,10 +131,12 @@ namespace SmartTicketingSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ReviewID,eventID,userID,Ratings,Comments,isVerifiedAttendee,ReviewStatus,createdAt")] REVIEW rEVIEW)
+        public async Task<IActionResult> Create([Bind("ReviewID,eventID,userID,Ratings,Comments,isVerifiedAttendee,ReviewStatus")] REVIEW rEVIEW)
         {
             if (ModelState.IsValid)
             {
+                //autoset datetime in here
+                rEVIEW.createdAt = DateTime.Now;
                 _context.Add(rEVIEW);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

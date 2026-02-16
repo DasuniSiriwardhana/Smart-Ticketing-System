@@ -1,79 +1,96 @@
 ﻿@model SmartTicketingSystem.Models.USER
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit User";
 }
 
-<h1>Edit</h1>
-
-<h4>USER</h4>
+<h1>Edit User</h1>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
+    <div class="col-md-5">
+        <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <input type="hidden" asp-for="member_id" />
-            <div class="form-group">
-                <label asp-for="FullName" class="control-label"></label>
-                <input asp-for="FullName" class="form-control" />
+            <input type="hidden" asp-for="createdAt" />
+
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" maxlength="100" />
                 <span asp-validation-for="FullName" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" maxlength="150" />
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="phone" class="control-label"></label>
-                <input asp-for="phone" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="phone" class="form-label"></label>
+                <input asp-for="phone" class="form-control" maxlength="20" />
                 <span asp-validation-for="phone" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="passwordHash" class="control-label"></label>
-                <input asp-for="passwordHash" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="passwordHash" class="form-label"></label>
+                <input asp-for="passwordHash" class="form-control" maxlength="200" />
                 <span asp-validation-for="passwordHash" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="userType" class="control-label"></label>
-                <input asp-for="userType" class="form-control" />
+
+            <!-- userType dropdown -->
+            <div class="mb-3">
+                <label asp-for="userType" class="form-label"></label>
+                <select asp-for="userType" class="form-select">
+                    <option value="">-- Select --</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Organizer">Organizer</option>
+                    <option value="Student">Student</option>
+                </select>
                 <span asp-validation-for="userType" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="UniversityNumber" class="control-label"></label>
-                <input asp-for="UniversityNumber" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="UniversityNumber" class="form-label"></label>
+                <input asp-for="UniversityNumber" class="form-control" maxlength="30" />
                 <span asp-validation-for="UniversityNumber" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="isverified" class="control-label"></label>
-                <input asp-for="isverified" class="form-control" />
-                <span asp-validation-for="isverified" class="text-danger"></span>
+
+            <!-- checkbox -->
+            <div class="mb-3 form-check">
+                <input asp-for="IsVerifiedBool" class="form-check-input" />
+                <label asp-for="IsVerifiedBool" class="form-check-label">Verified</label>
             </div>
-            <div class="form-group">
-                <label asp-for="status" class="control-label"></label>
-                <input asp-for="status" class="form-control" />
+            <span asp-validation-for="IsVerifiedBool" class="text-danger"></span>
+
+            <!-- status dropdown -->
+            <div class="mb-3">
+                <label asp-for="status" class="form-label"></label>
+                <select asp-for="status" class="form-select">
+                    <option value="">-- Select --</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
                 <span asp-validation-for="status" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="createdAt" class="control-label"></label>
-                <input asp-for="createdAt" class="form-control" />
-                <span asp-validation-for="createdAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ApprovalID" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="ApprovalID" class="form-label"></label>
                 <input asp-for="ApprovalID" class="form-control" />
                 <span asp-validation-for="ApprovalID" class="text-danger"></span>
             </div>
-            <div class="form-group">
+
+            <div class="d-flex gap-2">
                 <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

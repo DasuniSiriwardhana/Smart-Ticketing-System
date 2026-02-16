@@ -14,7 +14,7 @@ namespace SmartTicketingSystem.Models
 
         [Required]
         [StringLength(20)]
-        public string DiscountType { get; set; } // Percentage/Fixed
+        public string DiscountType { get; set; } 
 
         [Required]
         [Range(0.01, 999999)]
@@ -29,9 +29,10 @@ namespace SmartTicketingSystem.Models
         [DataType(DataType.Date)]
         public DateTime endDate { get; set; }
 
+        // setting checkboxes for this 
         [Required]
         [RegularExpression("^[YN]$", ErrorMessage = "isActive must be Y or N.")]
-        public char isActive { get; set; } // DB: 'Y' / 'N'
+        public char isActive { get; set; } 
 
         [NotMapped]
         public bool IsActiveBool

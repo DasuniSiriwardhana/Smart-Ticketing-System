@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartTicketingSystem.Data;
 using SmartTicketingSystem.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace SmartTicketingSystem.Controllers
 {

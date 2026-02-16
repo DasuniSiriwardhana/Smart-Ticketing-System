@@ -1,18 +1,6 @@
 ﻿@model IEnumerable<SmartTicketingSystem.Models.REVIEW_REPORT>
 
 @{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-
-@model IEnumerable<SmartTicketingSystem.Models.REVIEW_REPORT>
-
-@{
     ViewData["Title"] = "REVIEW REPORTS";
 }
 
@@ -100,96 +88,47 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model)
-{
-        <tr>
-            <td>@item.RportID</td>
-            <td>@item.ReviewID</td>
-            <td>@item.ReportedByUserID</td>
-            <td>@item.ReportReason</td>
-            <td>@item.ReportDetail</td>
-            <td>@item.ReportedAt</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.RportID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.RportID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.RportID">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.RportID</td>
+                <td>@item.ReviewID</td>
+                <td>@item.ReportedByUserID</td>
+                <td>@item.ReportReason</td>
+                <td>@item.ReportDetail</td>
+                <td>@item.ReportedAt</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.RportID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.RportID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.RportID">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 
 <script>
-(function () {
-    const modeSelect = document.getElementById("modeSelect");
-    const fields = Array.from(document.querySelectorAll(".filter-field"));
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
 
-    function updateVisibility() {
-        const mode = modeSelect.value;
+        function updateVisibility() {
+            const mode = modeSelect.value;
 
-        if (mode === "Advanced") {
-            fields.forEach(f => f.classList.remove("d-none"));
-        } else {
-            fields.forEach(f => f.classList.add("d-none"));
-            const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
-            matching.forEach(f => f.classList.remove("d-none"));
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                document.querySelectorAll(`.filter-field[data-mode="${mode}"]`)
+                    .forEach(f => f.classList.remove("d-none"));
+            }
         }
-    }
 
-    const params = new URLSearchParams(window.location.search);
-    const savedMode = params.get("mode");
-    if (savedMode) modeSelect.value = savedMode;
+        const params = new URLSearchParams(window.location.search);
+        const savedMode = params.get("mode");
+        if (savedMode) modeSelect.value = savedMode;
 
-    modeSelect.addEventListener("change", updateVisibility);
-    updateVisibility();
-})();
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
 </script>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ReviewID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReportedByUserID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReportReason)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReportDetail)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReportedAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReviewID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReportedByUserID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReportReason)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReportDetail)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReportedAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.RportID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.RportID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.RportID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>

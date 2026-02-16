@@ -1,17 +1,6 @@
 ﻿@model IEnumerable<SmartTicketingSystem.Models.PROMO_CODE>
 
 @{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-@model IEnumerable<SmartTicketingSystem.Models.PROMO_CODE>
-
-@{
     ViewData["Title"] = "PROMO CODES";
 }
 
@@ -111,112 +100,49 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model)
-{
-        <tr>
-            <td>@item.PromoCodeID</td>
-            <td>@item.code</td>
-            <td>@item.DiscountType</td>
-            <td>@item.DiscountValue</td>
-            <td>@item.startDate</td>
-            <td>@item.endDate</td>
-            <td>
-                @(item.isActive == 'Y' ? "Active" : "Inactive")
-            </td>
-            <td>@item.createdAt</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.PromoCodeID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.PromoCodeID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.PromoCodeID">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.PromoCodeID</td>
+                <td>@item.code</td>
+                <td>@item.DiscountType</td>
+                <td>@item.DiscountValue</td>
+                <td>@item.startDate</td>
+                <td>@item.endDate</td>
+                <td>@(item.isActive == 'Y' ? "Active" : "Inactive")</td>
+                <td>@item.createdAt</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.PromoCodeID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.PromoCodeID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.PromoCodeID">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 
 <script>
-(function () {
-    const modeSelect = document.getElementById("modeSelect");
-    const fields = Array.from(document.querySelectorAll(".filter-field"));
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
 
-    function updateVisibility() {
-        const mode = modeSelect.value;
+        function updateVisibility() {
+            const mode = modeSelect.value;
 
-        if (mode === "Advanced") {
-            fields.forEach(f => f.classList.remove("d-none"));
-        } else {
-            fields.forEach(f => f.classList.add("d-none"));
-            const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
-            matching.forEach(f => f.classList.remove("d-none"));
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                document.querySelectorAll(`.filter-field[data-mode="${mode}"]`)
+                    .forEach(f => f.classList.remove("d-none"));
+            }
         }
-    }
 
-    const params = new URLSearchParams(window.location.search);
-    const savedMode = params.get("mode");
-    if (savedMode) modeSelect.value = savedMode;
+        const params = new URLSearchParams(window.location.search);
+        const savedMode = params.get("mode");
+        if (savedMode) modeSelect.value = savedMode;
 
-    modeSelect.addEventListener("change", updateVisibility);
-    updateVisibility();
-})();
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
 </script>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.code)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DiscountType)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DiscountValue)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.startDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.endDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.isActive)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.createdAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.code)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DiscountType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DiscountValue)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.startDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.endDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.isActive)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.createdAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.PromoCodeID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.PromoCodeID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.PromoCodeID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>

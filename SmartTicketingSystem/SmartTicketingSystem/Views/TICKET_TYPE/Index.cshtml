@@ -1,17 +1,6 @@
 ﻿@model IEnumerable<SmartTicketingSystem.Models.TICKET_TYPE>
 
 @{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-@model IEnumerable<SmartTicketingSystem.Models.TICKET_TYPE>
-
-@{
     ViewData["Title"] = "TICKET TYPES";
 }
 
@@ -32,7 +21,6 @@
                 <option value="TypeName">Type Name</option>
                 <option value="PriceRange">Price Range</option>
                 <option value="SeatRange">Seat Limit Range</option>
-                <option value="SalesDateRange">Sales Date Range</option>
                 <option value="Status">Active Status</option>
                 <option value="Advanced">Advanced (Multiple)</option>
             </select>
@@ -40,52 +28,45 @@
 
         <div class="col-md-3 filter-field" data-mode="TicketID">
             <label>Ticket ID</label>
-            <input type="number" class="form-control" name="ticketId"
-                   value="@Context.Request.Query["ticketId"]" />
+            <input type="number" class="form-control" name="ticketId" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="EventID">
             <label>Event ID</label>
-            <input type="number" class="form-control" name="eventId"
-                   value="@Context.Request.Query["eventId"]" />
+            <input type="number" class="form-control" name="eventId" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="TypeName">
             <label>Type Name</label>
-            <input type="text" class="form-control" name="typeName"
-                   value="@Context.Request.Query["typeName"]" />
+            <input type="text" class="form-control" name="typeName" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="PriceRange">
             <label>Min Price</label>
-            <input type="number" step="0.01" class="form-control" name="minPrice"
-                   value="@Context.Request.Query["minPrice"]" />
+            <input type="number" step="0.01" class="form-control" name="minPrice" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="PriceRange">
             <label>Max Price</label>
-            <input type="number" step="0.01" class="form-control" name="maxPrice"
-                   value="@Context.Request.Query["maxPrice"]" />
+            <input type="number" step="0.01" class="form-control" name="maxPrice" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="SeatRange">
             <label>Min Seats</label>
-            <input type="number" class="form-control" name="minSeat"
-                   value="@Context.Request.Query["minSeat"]" />
+            <input type="number" class="form-control" name="minSeat" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="SeatRange">
             <label>Max Seats</label>
-            <input type="number" class="form-control" name="maxSeat"
-                   value="@Context.Request.Query["maxSeat"]" />
+            <input type="number" class="form-control" name="maxSeat" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="Status">
             <label>Status</label>
             <select class="form-select" name="isActive">
                 <option value="">Select</option>
-                <option value="Y" selected="@(Context.Request.Query["isActive"] == "Y")">Active</option>
-                <option value="N" selected="@(Context.Request.Query["isActive"] == "N")">Inactive</option>
+                <option value="Y">Active</option>
+                <option value="N">Inactive</option>
             </select>
         </div>
 
@@ -113,113 +94,46 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model)
-{
-        <tr>
-            <td>@item.TicketID</td>
-            <td>@item.EventID</td>
-            <td>@item.TypeName</td>
-            <td>@item.Price.ToString("0.00")</td>
-            <td>@item.seatLimit</td>
-            <td>@item.salesStartAt</td>
-            <td>@item.salesEndAt</td>
-            <td>@(item.isActive == 'Y' ? "Active" : "Inactive")</td>
-            <td>@item.createdAt</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.TicketID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.TicketID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.TicketID">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.TicketID</td>
+                <td>@item.EventID</td>
+                <td>@item.TypeName</td>
+                <td>@item.Price.ToString("0.00")</td>
+                <td>@item.seatLimit</td>
+                <td>@item.salesStartAt</td>
+                <td>@item.salesEndAt</td>
+                <td>@(item.isActive == 'Y' ? "Active" : "Inactive")</td>
+                <td>@item.createdAt</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.TicketID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.TicketID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.TicketID">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 
 <script>
-(function () {
-    const modeSelect = document.getElementById("modeSelect");
-    const fields = Array.from(document.querySelectorAll(".filter-field"));
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
 
-    function updateVisibility() {
-        const mode = modeSelect.value;
+        function updateVisibility() {
+            const mode = modeSelect.value;
 
-        if (mode === "Advanced") {
-            fields.forEach(f => f.classList.remove("d-none"));
-        } else {
-            fields.forEach(f => f.classList.add("d-none"));
-            const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
-            matching.forEach(f => f.classList.remove("d-none"));
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
+                matching.forEach(f => f.classList.remove("d-none"));
+            }
         }
-    }
 
-    modeSelect.addEventListener("change", updateVisibility);
-    updateVisibility();
-})();
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
 </script>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.EventID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TypeName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.seatLimit)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.salesStartAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.salesEndAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.isActive)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.createdAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.EventID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TypeName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.seatLimit)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.salesStartAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.salesEndAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.isActive)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.createdAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.TicketID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.TicketID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.TicketID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>

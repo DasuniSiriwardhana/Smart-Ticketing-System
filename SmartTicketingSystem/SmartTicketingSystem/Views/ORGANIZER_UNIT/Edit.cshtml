@@ -1,59 +1,61 @@
 ﻿@model SmartTicketingSystem.Models.ORGANIZER_UNIT
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Organizer Unit";
 }
 
-<h1>Edit</h1>
-
-<h4>ORGANIZER_UNIT</h4>
+<h1>Edit Organizer Unit</h1>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
+    <div class="col-md-5">
+        <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <input type="hidden" asp-for="OrganizerID" />
-            <div class="form-group">
-                <label asp-for="unitTime" class="control-label"></label>
-                <input asp-for="unitTime" class="form-control" />
+            <input type="hidden" asp-for="CreatedAt" />
+
+            <div class="mb-3">
+                <label asp-for="unitTime" class="form-label"></label>
+                <input asp-for="unitTime" class="form-control" maxlength="100" />
                 <span asp-validation-for="unitTime" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="UnitType" class="control-label"></label>
-                <input asp-for="UnitType" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="UnitType" class="form-label"></label>
+                <input asp-for="UnitType" class="form-control" maxlength="80" />
                 <span asp-validation-for="UnitType" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ContactEmail" class="control-label"></label>
-                <input asp-for="ContactEmail" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="ContactEmail" class="form-label"></label>
+                <input asp-for="ContactEmail" class="form-control" maxlength="150" />
                 <span asp-validation-for="ContactEmail" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ContactPhone" class="control-label"></label>
-                <input asp-for="ContactPhone" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="ContactPhone" class="form-label"></label>
+                <input asp-for="ContactPhone" class="form-control" maxlength="20" />
                 <span asp-validation-for="ContactPhone" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="status" class="control-label"></label>
-                <input asp-for="status" class="form-control" />
-                <span asp-validation-for="status" class="text-danger"></span>
+
+            <!-- checkbox -->
+            <div class="mb-3 form-check">
+                <input asp-for="StatusBool" class="form-check-input" />
+                <label asp-for="StatusBool" class="form-check-label">Active</label>
             </div>
-            <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
+            <span asp-validation-for="StatusBool" class="text-danger"></span>
+
+            <div class="d-flex gap-2">
                 <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

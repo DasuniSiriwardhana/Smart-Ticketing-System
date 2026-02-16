@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using SmartTicketingSystem.Data;
 using SmartTicketingSystem.Models;
 
@@ -142,6 +143,7 @@ namespace SmartTicketingSystem.Controllers
         {
             if (ModelState.IsValid)
             {
+                pROMO_CODE.createdAt = DateTime.Now;
                 _context.Add(pROMO_CODE);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

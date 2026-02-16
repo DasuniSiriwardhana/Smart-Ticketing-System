@@ -5,60 +5,74 @@
 }
 
 <h1>Edit</h1>
-
 <h4>REVIEW</h4>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
+    <div class="col-md-5">
+        <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <input type="hidden" asp-for="ReviewID" />
-            <div class="form-group">
-                <label asp-for="eventID" class="control-label"></label>
+            <input type="hidden" asp-for="createdAt" />
+
+            <div class="mb-3">
+                <label asp-for="eventID" class="form-label"></label>
                 <input asp-for="eventID" class="form-control" />
                 <span asp-validation-for="eventID" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="userID" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="userID" class="form-label"></label>
                 <input asp-for="userID" class="form-control" />
                 <span asp-validation-for="userID" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Ratings" class="control-label"></label>
-                <input asp-for="Ratings" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="Ratings" class="form-label"></label>
+                <select asp-for="Ratings" class="form-select">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
                 <span asp-validation-for="Ratings" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Comments" class="control-label"></label>
-                <input asp-for="Comments" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="Comments" class="form-label"></label>
+                <textarea asp-for="Comments" class="form-control" rows="3" maxlength="500"></textarea>
                 <span asp-validation-for="Comments" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="isVerifiedAttendee" class="control-label"></label>
-                <input asp-for="isVerifiedAttendee" class="form-control" />
-                <span asp-validation-for="isVerifiedAttendee" class="text-danger"></span>
+
+            <!-- char(Y/N) -> checkbox -->
+            <div class="mb-3 form-check">
+                <input asp-for="IsVerifiedAttendeeBool" class="form-check-input" />
+                <label asp-for="IsVerifiedAttendeeBool" class="form-check-label">Verified Attendee</label>
             </div>
-            <div class="form-group">
-                <label asp-for="ReviewStatus" class="control-label"></label>
-                <input asp-for="ReviewStatus" class="form-control" />
+            <span asp-validation-for="IsVerifiedAttendeeBool" class="text-danger"></span>
+
+            <div class="mb-3">
+                <label asp-for="ReviewStatus" class="form-label"></label>
+                <select asp-for="ReviewStatus" class="form-select">
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
                 <span asp-validation-for="ReviewStatus" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="createdAt" class="control-label"></label>
-                <input asp-for="createdAt" class="form-control" />
-                <span asp-validation-for="createdAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
+
+            <div class="d-flex gap-2">
                 <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

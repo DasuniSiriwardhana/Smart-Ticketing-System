@@ -1,17 +1,6 @@
 ﻿@model IEnumerable<SmartTicketingSystem.Models.USER>
 
 @{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-@model IEnumerable<SmartTicketingSystem.Models.USER>
-
-@{
     ViewData["Title"] = "USERS";
 }
 
@@ -41,73 +30,71 @@
         </div>
 
         <div class="col-md-3 filter-field" data-mode="MemberID">
-            <label class="form-label">Member ID</label>
+            <label>Member ID</label>
             <input type="number" class="form-control" name="memberId"
                    value="@Context.Request.Query["memberId"]" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="UniversityNumber">
-            <label class="form-label">University Number</label>
+            <label>University Number</label>
             <input type="text" class="form-control" name="universityNumber"
                    value="@Context.Request.Query["universityNumber"]" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="FullName">
-            <label class="form-label">Full Name</label>
+            <label>Full Name</label>
             <input type="text" class="form-control" name="fullName"
                    value="@Context.Request.Query["fullName"]" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="Email">
-            <label class="form-label">Email</label>
+            <label>Email</label>
             <input type="text" class="form-control" name="email"
                    value="@Context.Request.Query["email"]" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="Phone">
-            <label class="form-label">Phone</label>
+            <label>Phone</label>
             <input type="text" class="form-control" name="phone"
                    value="@Context.Request.Query["phone"]" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="UserType">
-            <label class="form-label">User Type</label>
+            <label>User Type</label>
             <select class="form-select" name="userType">
                 <option value="">Select</option>
-                <option value="Admin" selected="@(Context.Request.Query["userType"] == "Admin")">Admin</option>
-                <option value="Organizer" selected="@(Context.Request.Query["userType"] == "Organizer")">Organizer</option>
-                <option value="Student" selected="@(Context.Request.Query["userType"] == "Student")">Student</option>
+                <option value="Admin">Admin</option>
+                <option value="Organizer">Organizer</option>
+                <option value="Student">Student</option>
             </select>
         </div>
 
         <div class="col-md-3 filter-field" data-mode="Verified">
-            <label class="form-label">Verified</label>
+            <label>Verified</label>
             <select class="form-select" name="isVerified">
                 <option value="">Select</option>
-                <option value="Y" selected="@(Context.Request.Query["isVerified"] == "Y")">Yes</option>
-                <option value="N" selected="@(Context.Request.Query["isVerified"] == "N")">No</option>
+                <option value="Y">Yes</option>
+                <option value="N">No</option>
             </select>
         </div>
 
         <div class="col-md-3 filter-field" data-mode="Status">
-            <label class="form-label">Status</label>
+            <label>Status</label>
             <select class="form-select" name="status">
                 <option value="">Select</option>
-                <option value="Active" selected="@(Context.Request.Query["status"] == "Active")">Active</option>
-                <option value="Inactive" selected="@(Context.Request.Query["status"] == "Inactive")">Inactive</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
             </select>
         </div>
 
         <div class="col-md-3 filter-field" data-mode="DateRange">
-            <label class="form-label">From</label>
-            <input type="date" class="form-control" name="fromDate"
-                   value="@Context.Request.Query["fromDate"]" />
+            <label>From</label>
+            <input type="date" class="form-control" name="fromDate" />
         </div>
 
         <div class="col-md-3 filter-field" data-mode="DateRange">
-            <label class="form-label">To</label>
-            <input type="date" class="form-control" name="toDate"
-                   value="@Context.Request.Query["toDate"]" />
+            <label>To</label>
+            <input type="date" class="form-control" name="toDate" />
         </div>
 
         <div class="col-md-3 d-flex gap-2">
@@ -134,130 +121,47 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model)
-{
-        <tr>
-            <td>@item.member_id</td>
-            <td>@item.FullName</td>
-            <td>@item.Email</td>
-            <td>@item.phone</td>
-            <td>@item.userType</td>
-            <td>@item.UniversityNumber</td>
-            <td>@(item.isverified == 'Y' ? "Yes" : "No")</td>
-            <td>@item.status</td>
-            <td>@item.createdAt</td>
-            <td>@item.ApprovalID</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.member_id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.member_id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.member_id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.member_id</td>
+                <td>@item.FullName</td>
+                <td>@item.Email</td>
+                <td>@item.phone</td>
+                <td>@item.userType</td>
+                <td>@item.UniversityNumber</td>
+                <td>@(item.isverified == 'Y' ? "Yes" : "No")</td>
+                <td>@item.status</td>
+                <td>@item.createdAt</td>
+                <td>@item.ApprovalID</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.member_id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.member_id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.member_id">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 
 <script>
-(function () {
-    const modeSelect = document.getElementById("modeSelect");
-    const fields = Array.from(document.querySelectorAll(".filter-field"));
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
 
-    function updateVisibility() {
-        const mode = modeSelect.value;
+        function updateVisibility() {
+            const mode = modeSelect.value;
 
-        if (mode === "Advanced") {
-            fields.forEach(f => f.classList.remove("d-none"));
-        } else {
-            fields.forEach(f => f.classList.add("d-none"));
-            const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
-            matching.forEach(f => f.classList.remove("d-none"));
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
+                matching.forEach(f => f.classList.remove("d-none"));
+            }
         }
-    }
 
-    const params = new URLSearchParams(window.location.search);
-    const savedMode = params.get("mode");
-    if (savedMode) modeSelect.value = savedMode;
-
-    modeSelect.addEventListener("change", updateVisibility);
-    updateVisibility();
-})();
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
 </script>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.FullName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.phone)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.passwordHash)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.userType)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UniversityNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.isverified)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.createdAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApprovalID)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.FullName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.phone)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.passwordHash)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.userType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UniversityNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.isverified)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.createdAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ApprovalID)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.member_id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.member_id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.member_id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>

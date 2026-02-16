@@ -1,18 +1,6 @@
 ﻿@model IEnumerable<SmartTicketingSystem.Models.ORGANIZER_UNIT>
 
 @{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-
-@model IEnumerable<SmartTicketingSystem.Models.ORGANIZER_UNIT>
-
-@{
     ViewData["Title"] = "ORGANIZER UNIT";
 }
 
@@ -105,105 +93,48 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model)
-{
-        <tr>
-            <td>@item.OrganizerID</td>
-            <td>@item.unitTime</td>
-            <td>@item.UnitType</td>
-            <td>@item.ContactEmail</td>
-            <td>@item.ContactPhone</td>
-            <td>
-                @(item.status == 'A' ? "Active" : "Inactive")
-            </td>
-            <td>@item.CreatedAt</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.OrganizerID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.OrganizerID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.OrganizerID">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.OrganizerID</td>
+                <td>@item.unitTime</td>
+                <td>@item.UnitType</td>
+                <td>@item.ContactEmail</td>
+                <td>@item.ContactPhone</td>
+                <td>@(item.status == 'A' ? "Active" : "Inactive")</td>
+                <td>@item.CreatedAt</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.OrganizerID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.OrganizerID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.OrganizerID">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 
 <script>
-(function () {
-    const modeSelect = document.getElementById("modeSelect");
-    const fields = Array.from(document.querySelectorAll(".filter-field"));
+    (function () {
+        const modeSelect = document.getElementById("modeSelect");
+        const fields = Array.from(document.querySelectorAll(".filter-field"));
 
-    function updateVisibility() {
-        const mode = modeSelect.value;
+        function updateVisibility() {
+            const mode = modeSelect.value;
 
-        if (mode === "Advanced") {
-            fields.forEach(f => f.classList.remove("d-none"));
-        } else {
-            fields.forEach(f => f.classList.add("d-none"));
-            const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
-            matching.forEach(f => f.classList.remove("d-none"));
+            if (mode === "Advanced") {
+                fields.forEach(f => f.classList.remove("d-none"));
+            } else {
+                fields.forEach(f => f.classList.add("d-none"));
+                const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
+                matching.forEach(f => f.classList.remove("d-none"));
+            }
         }
-    }
 
-    const params = new URLSearchParams(window.location.search);
-    const savedMode = params.get("mode");
-    if (savedMode) modeSelect.value = savedMode;
+        const params = new URLSearchParams(window.location.search);
+        const savedMode = params.get("mode");
+        if (savedMode) modeSelect.value = savedMode;
 
-    modeSelect.addEventListener("change", updateVisibility);
-    updateVisibility();
-})();
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
+    })();
 </script>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.unitTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UnitType)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ContactEmail)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ContactPhone)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.unitTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UnitType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ContactEmail)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ContactPhone)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.OrganizerID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.OrganizerID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.OrganizerID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>

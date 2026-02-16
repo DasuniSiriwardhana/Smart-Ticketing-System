@@ -1,64 +1,71 @@
 ﻿@model SmartTicketingSystem.Models.PROMO_CODE
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Promo Code";
 }
 
-<h1>Edit</h1>
-
-<h4>PROMO_CODE</h4>
+<h1>Edit Promo Code</h1>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
+    <div class="col-md-5">
+        <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <input type="hidden" asp-for="PromoCodeID" />
-            <div class="form-group">
-                <label asp-for="code" class="control-label"></label>
-                <input asp-for="code" class="form-control" />
+            <input type="hidden" asp-for="createdAt" />
+
+            <div class="mb-3">
+                <label asp-for="code" class="form-label"></label>
+                <input asp-for="code" class="form-control" maxlength="30" />
                 <span asp-validation-for="code" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="DiscountType" class="control-label"></label>
-                <input asp-for="DiscountType" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="DiscountType" class="form-label"></label>
+                <select asp-for="DiscountType" class="form-select">
+                    <option value="">Select Type</option>
+                    <option value="Percentage">Percentage</option>
+                    <option value="Fixed">Fixed</option>
+                </select>
                 <span asp-validation-for="DiscountType" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="DiscountValue" class="control-label"></label>
-                <input asp-for="DiscountValue" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="DiscountValue" class="form-label"></label>
+                <input asp-for="DiscountValue" class="form-control" step="0.01" />
                 <span asp-validation-for="DiscountValue" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="startDate" class="control-label"></label>
-                <input asp-for="startDate" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="startDate" class="form-label"></label>
+                <input asp-for="startDate" class="form-control" type="date" />
                 <span asp-validation-for="startDate" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="endDate" class="control-label"></label>
-                <input asp-for="endDate" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="endDate" class="form-label"></label>
+                <input asp-for="endDate" class="form-control" type="date" />
                 <span asp-validation-for="endDate" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="isActive" class="control-label"></label>
-                <input asp-for="isActive" class="form-control" />
-                <span asp-validation-for="isActive" class="text-danger"></span>
+
+            <!--  checkbox -->
+            <div class="mb-3 form-check">
+                <input asp-for="IsActiveBool" class="form-check-input" />
+                <label asp-for="IsActiveBool" class="form-check-label">Active</label>
             </div>
-            <div class="form-group">
-                <label asp-for="createdAt" class="control-label"></label>
-                <input asp-for="createdAt" class="form-control" />
-                <span asp-validation-for="createdAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
+            <span asp-validation-for="IsActiveBool" class="text-danger"></span>
+
+            <div class="d-flex gap-2">
                 <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

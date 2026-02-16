@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTicketingSystem.Models
 {
-    public class EVENT
+    public class EVENT : IValidatableObject
     {
         [Key]
         public int eventID { get; set; }
@@ -82,5 +82,38 @@ namespace SmartTicketingSystem.Models
         public DateTime updatedAt { get; set; }
 
         public int ApprovalID { get; set; }
+
+        
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (IsOnlineBool)
+            {
+                if (string.IsNullOrWhiteSpace(onlineLink))
+                {
+                    yield return new ValidationResult(
+                        "Online link is required when the event is online.",
+                        new[] { nameof(onlineLink) }
+                    );
+                }
+            }
+            else
+            {
+               //if the event is offline no need to fill the online link field
+                if (!string.IsNullOrWhiteSpace(onlineLink))
+                {
+                    yield return new ValidationResult(
+                        "Online link should be empty when the event is not online.",
+                        new[] { nameof(onlineLink) }
+                    );
+                }
+            }
+            if (endDateTime != default && endDateTime < StartDateTime)
+            {
+                yield return new ValidationResult(
+                    "End date/time must be after Start date/time.",
+                    new[] { nameof(endDateTime) }
+                );
+            }
+        }
     }
 }

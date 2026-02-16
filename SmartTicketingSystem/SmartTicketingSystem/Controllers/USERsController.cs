@@ -146,6 +146,7 @@ public async Task<IActionResult> Search(
         {
             if (ModelState.IsValid)
             {
+                uSER.createdAt = DateTime.Now;
                 _context.Add(uSER);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
