@@ -5,6 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartTicketingSystem.Data;
 using SmartTicketingSystem.Models;
+using Microsoft.AspNetCore.Authorization;
+
+//Handling Authorizations  
+[Authorize(Policy = "AdminOnly")]
+public class RoleController : Controller
+{
+    public IActionResult Index() => View();
+}
 
 namespace SmartTicketingSystem.Controllers
 {

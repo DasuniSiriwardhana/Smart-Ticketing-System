@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SmartTicketingSystem.Authorization;
 using SmartTicketingSystem.Data;
 using SmartTicketingSystem.SeedData;
 
@@ -9,11 +11,36 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddControllersWithViews();
+builder.Services
+    .AddIdentity<IdentityUser, IdentityRole>(options =>
+    {
+        options.SignIn.RequireConfirmedAccount = false;
+    })
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<IAuthorizationHandler, HasAppRoleHandler>();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly",
+        policy => policy.Requirements.Add(new HasAppRoleRequirement("Admin")));
+
+    options.AddPolicy("OrganizerOnly",
+        policy => policy.Requirements.Add(new HasAppRoleRequirement("Organizer")));
+
+    options.AddPolicy("ExternalMemberOnly",
+        policy => policy.Requirements.Add(new HasAppRoleRequirement("External Member")));
+    
+    options.AddPolicy("UniversityMemberOnly",
+       policy => policy.Requirements.Add(new HasAppRoleRequirement("University Member")));
+
+
+});
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
@@ -39,7 +66,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
