@@ -7,15 +7,11 @@ using SmartTicketingSystem.Data;
 using SmartTicketingSystem.Models;
 using Microsoft.AspNetCore.Authorization;
 
-//Handling Authorizations  
-[Authorize(Policy = "AdminOnly")]
-public class RoleController : Controller
-{
-    public IActionResult Index() => View();
-}
 
 namespace SmartTicketingSystem.Controllers
 {
+    //Giving permission only for the Admin and Organizer
+    [Authorize(Policy = "AdminOrOrganizer")]
     public class ATTENDANCEsController : Controller
     {
         private readonly ApplicationDbContext _context;

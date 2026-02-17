@@ -1,15 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartTicketingSystem.Data;
 using SmartTicketingSystem.Models;
 
 namespace SmartTicketingSystem.Controllers
 {
+    [Authorize(Policy = "MemberOnly")]
     public class BOOKING_ITEMController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -19,15 +20,69 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        //Search Bar
-        public async Task<IActionResult> Search(
-    string mode,
-    int? bookingItemId,
-    int? bookingId,
-    int? ticketTypeId,
-    int? quantity)
+        // ================= HELPER METHODS =================
+
+        private string? GetIdentityUserId()
         {
-            var query = _context.Set<BOOKING_ITEM>().AsQueryable();
+            return User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        private async Task<int?> GetCurrentMemberIdAsync()
+        {
+            var identityUserId = GetIdentityUserId();
+            if (string.IsNullOrEmpty(identityUserId))
+                return null;
+
+            return await _context.USER
+                .Where(u => u.IdentityUserId == identityUserId)
+                .Select(u => (int?)u.member_id)
+                .FirstOrDefaultAsync();
+        }
+
+        private bool IsAdmin()
+        {
+            return User.IsInRole("Admin");
+        }
+
+        private async Task<bool> IsOwnerAsync(int bookingItemId)
+        {
+            var memberId = await GetCurrentMemberIdAsync();
+            if (!memberId.HasValue)
+                return false;
+
+            return await _context.BOOKING_ITEM
+                .Join(_context.BOOKING,
+                      bi => bi.BookingID,
+                      b => b.BookingID,
+                      (bi, b) => new { bi.BookingItemID, b.member_id })
+                .AnyAsync(x => x.BookingItemID == bookingItemId &&
+                               x.member_id == memberId.Value);
+        }
+
+        // ================= SEARCH =================
+
+        public async Task<IActionResult> Search(
+            string mode,
+            int? bookingItemId,
+            int? bookingId,
+            int? ticketTypeId,
+            int? quantity)
+        {
+            var query = _context.BOOKING_ITEM.AsQueryable();
+
+            if (!IsAdmin())
+            {
+                var memberId = await GetCurrentMemberIdAsync();
+                if (!memberId.HasValue)
+                    return Forbid();
+
+                query = query.Join(_context.BOOKING,
+                    bi => bi.BookingID,
+                    b => b.BookingID,
+                    (bi, b) => new { bi, b })
+                    .Where(x => x.b.member_id == memberId.Value)
+                    .Select(x => x.bi);
+            }
 
             if (mode == "BookingItemID" && bookingItemId.HasValue)
                 query = query.Where(x => x.BookingItemID == bookingItemId.Value);
@@ -41,150 +96,165 @@ namespace SmartTicketingSystem.Controllers
             else if (mode == "Quantity" && quantity.HasValue)
                 query = query.Where(x => x.Quantity == quantity.Value);
 
-            else if (mode == "Advanced")
-            {
-                if (bookingItemId.HasValue) query = query.Where(x => x.BookingItemID == bookingItemId.Value);
-                if (bookingId.HasValue) query = query.Where(x => x.BookingID == bookingId.Value);
-                if (ticketTypeId.HasValue) query = query.Where(x => x.TicketTypeID == ticketTypeId.Value);
-                if (quantity.HasValue) query = query.Where(x => x.Quantity == quantity.Value);
-            }
-
             return View("Index", await query.ToListAsync());
         }
 
-        // GET: BOOKING_ITEM
+        // ================= INDEX =================
+
         public async Task<IActionResult> Index()
         {
-            return View(await _context.BOOKING_ITEM.ToListAsync());
+            var query = _context.BOOKING_ITEM.AsQueryable();
+
+            if (!IsAdmin())
+            {
+                var memberId = await GetCurrentMemberIdAsync();
+                if (!memberId.HasValue)
+                    return Forbid();
+
+                query = query.Join(_context.BOOKING,
+                    bi => bi.BookingID,
+                    b => b.BookingID,
+                    (bi, b) => new { bi, b })
+                    .Where(x => x.b.member_id == memberId.Value)
+                    .Select(x => x.bi);
+            }
+
+            return View(await query.ToListAsync());
         }
 
-        // GET: BOOKING_ITEM/Details/5
+        // ================= DETAILS =================
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var bOOKING_ITEM = await _context.BOOKING_ITEM
+            if (!IsAdmin() && !await IsOwnerAsync(id.Value))
+                return Forbid();
+
+            var item = await _context.BOOKING_ITEM
                 .FirstOrDefaultAsync(m => m.BookingItemID == id);
-            if (bOOKING_ITEM == null)
-            {
-                return NotFound();
-            }
 
-            return View(bOOKING_ITEM);
+            if (item == null)
+                return NotFound();
+
+            return View(item);
         }
 
-        // GET: BOOKING_ITEM/Create
+        // ================= CREATE =================
+
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: BOOKING_ITEM/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("BookingItemID,BookingID,TicketTypeID,Quantity,UnitPrice,LineTotal")] BOOKING_ITEM bOOKING_ITEM)
+        public async Task<IActionResult> Create(
+            [Bind("BookingItemID,BookingID,TicketTypeID,Quantity,UnitPrice,LineTotal")] BOOKING_ITEM item)
         {
+            if (!IsAdmin())
+            {
+                var memberId = await GetCurrentMemberIdAsync();
+                var booking = await _context.BOOKING
+                    .FirstOrDefaultAsync(b => b.BookingID == item.BookingID);
+
+                if (booking == null || booking.member_id != memberId)
+                    return Forbid();
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(bOOKING_ITEM);
+                _context.Add(item);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(bOOKING_ITEM);
+
+            return View(item);
         }
 
-        // GET: BOOKING_ITEM/Edit/5
+        // ================= EDIT =================
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var bOOKING_ITEM = await _context.BOOKING_ITEM.FindAsync(id);
-            if (bOOKING_ITEM == null)
-            {
+            if (!IsAdmin() && !await IsOwnerAsync(id.Value))
+                return Forbid();
+
+            var item = await _context.BOOKING_ITEM.FindAsync(id);
+            if (item == null)
                 return NotFound();
-            }
-            return View(bOOKING_ITEM);
+
+            return View(item);
         }
 
-        // POST: BOOKING_ITEM/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("BookingItemID,BookingID,TicketTypeID,Quantity,UnitPrice,LineTotal")] BOOKING_ITEM bOOKING_ITEM)
+        public async Task<IActionResult> Edit(int id,
+            [Bind("BookingItemID,BookingID,TicketTypeID,Quantity,UnitPrice,LineTotal")] BOOKING_ITEM item)
         {
-            if (id != bOOKING_ITEM.BookingItemID)
-            {
+            if (id != item.BookingItemID)
                 return NotFound();
-            }
+
+            if (!IsAdmin() && !await IsOwnerAsync(id))
+                return Forbid();
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(bOOKING_ITEM);
+                    _context.Update(item);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!BOOKING_ITEMExists(bOOKING_ITEM.BookingItemID))
-                    {
+                    if (!_context.BOOKING_ITEM.Any(e => e.BookingItemID == id))
                         return NotFound();
-                    }
                     else
-                    {
                         throw;
-                    }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(bOOKING_ITEM);
+
+            return View(item);
         }
 
-        // GET: BOOKING_ITEM/Delete/5
+        // ================= DELETE =================
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var bOOKING_ITEM = await _context.BOOKING_ITEM
+            if (!IsAdmin() && !await IsOwnerAsync(id.Value))
+                return Forbid();
+
+            var item = await _context.BOOKING_ITEM
                 .FirstOrDefaultAsync(m => m.BookingItemID == id);
-            if (bOOKING_ITEM == null)
-            {
-                return NotFound();
-            }
 
-            return View(bOOKING_ITEM);
+            if (item == null)
+                return NotFound();
+
+            return View(item);
         }
 
-        // POST: BOOKING_ITEM/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var bOOKING_ITEM = await _context.BOOKING_ITEM.FindAsync(id);
-            if (bOOKING_ITEM != null)
-            {
-                _context.BOOKING_ITEM.Remove(bOOKING_ITEM);
-            }
+            if (!IsAdmin() && !await IsOwnerAsync(id))
+                return Forbid();
+
+            var item = await _context.BOOKING_ITEM.FindAsync(id);
+
+            if (item != null)
+                _context.BOOKING_ITEM.Remove(item);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool BOOKING_ITEMExists(int id)
-        {
-            return _context.BOOKING_ITEM.Any(e => e.BookingItemID == id);
         }
     }
 }
