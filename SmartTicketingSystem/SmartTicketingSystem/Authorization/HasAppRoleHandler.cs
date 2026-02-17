@@ -23,29 +23,29 @@ namespace SmartTicketingSystem.Authorization
             if (context.User?.Identity?.IsAuthenticated != true)
                 return;
 
-            // Identity UserId
-            var identityUserId = _userManager.GetUserId(context.User);
-            if (string.IsNullOrWhiteSpace(identityUserId))
+            // Identity user (logged in)
+            var identityUser = await _userManager.GetUserAsync(context.User);
+            if (identityUser == null)
                 return;
 
-            // Find your USER row
-            var appUser = await _context.USER
-                .FirstOrDefaultAsync(u => u.IdentityUserId == identityUserId);
-
+            // Find your USER row by email (since your USER table uses member_id)
+            var appUser = await _context.USER.FirstOrDefaultAsync(u => u.Email == identityUser.Email);
             if (appUser == null)
                 return;
 
-            // Check role mapping (USER_ROLE -> Role)
-            var hasRole = await (
+            // Get role names assigned to this member_id
+            var userRoleNames = await (
                 from ur in _context.USER_ROLE
                 join r in _context.Role on ur.roleID equals r.RoleId
                 where ur.member_id == appUser.member_id
-                      && r.rolename == requirement.RoleName
-                select ur.UserRoleID
-            ).AnyAsync();
+                select r.rolename
+            ).ToListAsync();
 
-            if (hasRole)
+            // Check if user has ANY allowed role
+            if (userRoleNames.Any(rn => requirement.AllowedRoles.Contains(rn)))
+            {
                 context.Succeed(requirement);
+            }
         }
     }
 }

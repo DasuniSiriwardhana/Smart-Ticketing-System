@@ -8,7 +8,9 @@ namespace SmartTicketingSystem.Models
         [Key]
         public int member_id { get; set; }
 
+        [StringLength(450)]
         public string IdentityUserId { get; set; }
+
 
 
         [Required]
