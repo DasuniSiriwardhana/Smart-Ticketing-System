@@ -1,64 +1,251 @@
-﻿@{
+﻿@using System.Text.Json
+
+@{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Admin Dashboard";
+
+    var bookingLabels = ViewData["BookingMonthLabels"] as List<string> ?? new List<string>();
+    var bookingCounts = ViewData["BookingCounts"] as List<int> ?? new List<int>();
+
+    var categoryLabels = ViewData["CategoryLabels"] as List<string> ?? new List<string>();
+    var categoryCounts = ViewData["CategoryCounts"] as List<int> ?? new List<int>();
+
+    var bookingLabelsJson = JsonSerializer.Serialize(bookingLabels);
+    var bookingCountsJson = JsonSerializer.Serialize(bookingCounts);
+
+    var categoryLabelsJson = JsonSerializer.Serialize(categoryLabels);
+    var categoryCountsJson = JsonSerializer.Serialize(categoryCounts);
+
+    // these are anonymous object lists coming from controller
+    var latestBookings = ViewData["LatestBookings"];
+    var latestPayments = ViewData["LatestPayments"];
+    var latestRequests = ViewData["LatestRequests"];
 }
 
-<h2 class="mb-4">Admin Dashboard</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Admin Dashboard</h2>
+
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-controller="EVENT_APPROVAL" asp-action="Index">Approvals</a>
+        <a class="btn btn-outline-primary" asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index">Requests</a>
+        <a class="btn btn-outline-primary" asp-controller="USERs" asp-action="Index">Users</a>
+        <a class="btn btn-outline-primary" asp-controller="EVENTs" asp-action="Index">Events</a>
+    </div>
+</div>
 
 <div class="row g-4">
 
     <div class="col-md-4">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm h-100">
             <div class="card-body">
-                <h5>Total Users</h5>
-                <h2>@ViewBag.TotalUsers</h2>
+                <div class="text-muted">Total Users</div>
+                <div class="display-6">@ViewBag.TotalUsers</div>
+                <a class="btn btn-sm btn-primary mt-2" asp-controller="USERs" asp-action="Index">Manage</a>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm h-100">
             <div class="card-body">
-                <h5>Total Events</h5>
-                <h2>@ViewBag.TotalEvents</h2>
+                <div class="text-muted">Total Events</div>
+                <div class="display-6">@ViewBag.TotalEvents</div>
+                <a class="btn btn-sm btn-primary mt-2" asp-controller="EVENTs" asp-action="Index">View</a>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm h-100">
             <div class="card-body">
-                <h5>Total Bookings</h5>
-                <h2>@ViewBag.TotalBookings</h2>
+                <div class="text-muted">Total Bookings</div>
+                <div class="display-6">@ViewBag.TotalBookings</div>
+                <a class="btn btn-sm btn-primary mt-2" asp-controller="BOOKINGs" asp-action="Index">View</a>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm h-100">
             <div class="card-body">
-                <h5>Total Payments</h5>
-                <h2>@ViewBag.TotalPayments</h2>
+                <div class="text-muted">Total Payments</div>
+                <div class="display-6">@ViewBag.TotalPayments</div>
+                <a class="btn btn-sm btn-primary mt-2" asp-controller="PAYMENTs" asp-action="Index">View</a>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="card shadow-sm border-warning">
+        <div class="card shadow-sm border-warning h-100">
             <div class="card-body">
-                <h5>Pending Approvals</h5>
-                <h2>@ViewBag.PendingApprovals</h2>
+                <div class="text-muted">Pending Approvals</div>
+                <div class="display-6">@ViewBag.PendingApprovals</div>
+                <a class="btn btn-sm btn-warning mt-2" asp-controller="EVENT_APPROVAL" asp-action="Index">Review</a>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="card shadow-sm border-danger">
+        <div class="card shadow-sm border-danger h-100">
             <div class="card-body">
-                <h5>Public Event Requests</h5>
-                <h2>@ViewBag.PendingPublicRequests</h2>
+                <div class="text-muted">Public Requests</div>
+                <div class="display-6">@ViewBag.PendingPublicRequests</div>
+                <a class="btn btn-sm btn-danger mt-2" asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index">Open</a>
             </div>
         </div>
     </div>
 
 </div>
+
+<hr class="my-4" />
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="mb-3">Bookings per Month</h5>
+                <canvas id="bookingChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="mb-3">Events by Category</h5>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-4" />
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="mb-3">Latest Bookings</h5>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ref</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (dynamic b in (IEnumerable<dynamic>)latestBookings)
+                            {
+                                <tr>
+                                    <td>@b.BookingID</td>
+                                    <td>@(b.BookingReference ?? "")</td>
+                                    <td class="text-end">@b.TotalAmount</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <a class="btn btn-sm btn-outline-primary" asp-controller="BOOKINGs" asp-action="Index">View all</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="mb-3">Latest Payments</h5>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Booking</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (dynamic p in (IEnumerable<dynamic>)latestPayments)
+                            {
+                                <tr>
+                                    <td>@p.PaymentID</td>
+                                    <td>@p.BookingID</td>
+                                    <td class="text-end">@p.Amount</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <a class="btn btn-sm btn-outline-primary" asp-controller="PAYMENTs" asp-action="Index">View all</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="mb-3">Latest Requests</h5>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (dynamic r in (IEnumerable<dynamic>)latestRequests)
+                            {
+                                <tr>
+                                    <td>@r.requestID</td>
+                                    <td>@r.requestFullName</td>
+                                    <td>@r.status</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <a class="btn btn-sm btn-outline-primary" asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index">View all</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Bookings line chart
+    new Chart(document.getElementById('bookingChart'), {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(bookingLabelsJson),
+            datasets: [{
+                label: 'Bookings',
+                data: @Html.Raw(bookingCountsJson),
+                borderColor: 'blue',
+                fill: false,
+                tension: 0.3
+            }]
+        }
+    });
+
+    // Category pie chart
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'pie',
+        data: {
+            labels: @Html.Raw(categoryLabelsJson),
+            datasets: [{
+                label: 'Events',
+                data: @Html.Raw(categoryCountsJson)
+            }]
+        }
+    });
+</script>
