@@ -87,7 +87,7 @@ namespace SmartTicketingSystem.Controllers
                 return View(payment);
             }
 
-            // ✅ Use a transaction so payment + tickets succeed together
+            //  Use a transaction so payment + tickets succeed together
             using var tx = await _context.Database.BeginTransactionAsync();
 
             try

@@ -1,22 +1,26 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartTicketingSystem.Data;
 
-namespace SmartTicketingSystem.Controllers
+[Authorize(Policy = "AdminOnly")]
+public class AdminController : Controller
 {
-    [Authorize(Policy = "AdminOnly")]
-    public class AdminController : Controller
-    {
-        public IActionResult Dashboard() => View();
+    private readonly ApplicationDbContext _context;
 
-        public IActionResult Users() => View();
-        public IActionResult Events() => View();
-        public IActionResult Bookings() => View();
-        public IActionResult Tickets() => View();
-        public IActionResult Payments() => View();
-        public IActionResult Approvals() => View();
-        public IActionResult Promotions() => View();
-        public IActionResult Inquiries() => View();
-        public IActionResult Reviews() => View();
-        public IActionResult Reports() => View();
+    public AdminController(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public IActionResult Dashboard()
+    {
+        ViewBag.TotalUsers = _context.USER.Count();
+        ViewBag.TotalEvents = _context.EVENT.Count();
+        ViewBag.TotalBookings = _context.BOOKING.Count();
+        ViewBag.TotalPayments = _context.PAYMENT.Count();
+        ViewBag.PendingApprovals =_context.EVENT_APPROVAL.Count(e => e.Decision == 'P');
+        ViewBag.PendingPublicRequests = _context.PUBLIC_EVENT_REQUEST.Count(p => p.status == "Pending");
+
+        return View();
     }
 }

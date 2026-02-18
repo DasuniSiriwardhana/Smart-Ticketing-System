@@ -2,9 +2,127 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+        color: white;
+        padding: 80px 0;
+        border-radius: 0 0 50px 50px;
+        margin-bottom: 50px;
+    }
+
+    .feature-card {
+        border: none;
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        background: #e3f2fd;
+        color: #0d47a1;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .btn-university {
+        background-color: #ffca28;
+        color: #1a237e;
+        font-weight: bold;
+        border-radius: 30px;
+        padding: 10px 30px;
+        border: none;
+    }
+
+        .btn-university:hover {
+            background-color: #ffd54f;
+            color: #1a237e;
+        }
+</style>
+
+<div class="container-fluid p-0">
+    <header class="hero-section text-center">
+        <div class="container">
+            <h1 class="display-3 fw-bold">Smart Ticketing System</h1>
+            <p class="lead mb-4">University Event Access & Attendance Management Made Simple.</p>
+            @if (!User.Identity.IsAuthenticated)
+            {
+                <a class="btn btn-university btn-lg" asp-area="Identity" asp-page="/Account/Login">Get Started</a>
+            }
+            else
+            {
+                <a class="btn btn-university btn-lg" asp-controller="ATTENDANCEs" asp-action="Index">View My Attendance</a>
+            }
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row text-center g-4">
+            <div class="col-md-4">
+                <div class="card feature-card p-4 h-100">
+                    <div class="icon-box mx-auto">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <h3>Campus Events</h3>
+                    <p class="text-muted">Browse upcoming seminars, workshops, and student union gatherings.</p>
+                    <a href="#" class="btn btn-outline-primary mt-auto">Explore Events</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card feature-card p-4 h-100">
+                    <div class="icon-box mx-auto">
+                        <i class="bi bi-qr-code-scan"></i>
+                    </div>
+                    <h3>Digital Tickets</h3>
+                    <p class="text-muted">No more paper. Generate your unique ticket and scan at the entrance.</p>
+                    <a href="#" class="btn btn-outline-primary mt-auto">My Tickets</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card feature-card p-4 h-100">
+                    <div class="icon-box mx-auto">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h3>Real-time Tracking</h3>
+                    <p class="text-muted">Admins and Organizers can track attendance instantly as students check in.</p>
+                    <a asp-controller="ATTENDANCEs" asp-action="Index" class="btn btn-outline-primary mt-auto">Track Records</a>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-5" />
+
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6">
+                <h2 class="fw-bold">Designed for our Campus</h2>
+                <p class="text-muted">
+                    Whether you are a student attending a career fair or an administrator managing graduation,
+                    this system integrates directly with your University ID.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check2-all text-success"></i> Secure Role-Based Access</li>
+                    <li><i class="bi bi-check2-all text-success"></i> Integrated Oracle/SSMS Database</li>
+                    <li><i class="bi bi-check2-all text-success"></i> Instant Validation Logic</li>
+                </ul>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="https://via.placeholder.com/500x300" class="img-fluid rounded shadow" alt="University Logo" />
+            </div>
+        </div>
+    </div>
 </div>
-
-

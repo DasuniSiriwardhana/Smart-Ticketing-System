@@ -1,13 +1,14 @@
-﻿@{
+﻿
+@{
     Layout = null;
 }
 
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8" />
     <title>@ViewData["Title"] - Admin Panel</title>
 
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 </head>
 <body>
@@ -15,57 +16,132 @@
     <div class="d-flex">
 
         <!-- Sidebar -->
-        <div class="bg-dark text-white p-3" style="width:250px; min-height:100vh;">
-            <h4>Admin Panel</h4>
+        <aside class="bg-dark text-white p-3" style="width:280px; min-height:100vh;">
+            <h4 class="mb-1">Admin Panel</h4>
+            <div class="text-white-50" style="font-size:0.9rem;">SmartTicketingSystem</div>
             <hr class="bg-light" />
 
-            <ul class="nav flex-column">
+            <div class="accordion accordion-flush" id="adminMenu">
 
-                <li class="nav-item">
-                    <a class="nav-link text-white"
-                       asp-controller="Admin"
-                       asp-action="Dashboard">
+                <div class="mb-2">
+                    <a class="btn btn-outline-light w-100 text-start"
+                       asp-controller="Admin" asp-action="Dashboard">
                         Dashboard
                     </a>
-                </li>
+                </div>
 
-                <li class="nav-item">
-                    <a class="nav-link text-white"
-                       asp-controller="Admin"
-                       asp-action="Users">
-                        Manage Users
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-white"
-                       asp-controller="EVENT"
-                       asp-action="Index">
-                        Events
-                    </a>
-                </li>
-
-                <li class="nav-item mt-4">
-                    <form asp-area="Identity"
-                          asp-page="/Account/Logout"
-                          method="post">
-                        <button class="btn btn-danger w-100">
-                            Logout
+                <!-- Users & Roles -->
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="headingUsers">
+                        <button class="accordion-button collapsed bg-dark text-white border-0"
+                                type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsers"
+                                aria-expanded="false" aria-controls="collapseUsers">
+                            Users & Roles
                         </button>
+                    </h2>
+                    <div id="collapseUsers" class="accordion-collapse collapse" aria-labelledby="headingUsers" data-bs-parent="#adminMenu">
+                        <div class="accordion-body py-2">
+                            <a class="nav-link text-white" asp-controller="USERs" asp-action="Index">Users</a>
+                            <a class="nav-link text-white" asp-controller="Roles" asp-action="Index">Roles</a>
+                            <a class="nav-link text-white" asp-controller="USER_ROLE" asp-action="Index">User Roles</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Events -->
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="headingEvents">
+                        <button class="accordion-button collapsed bg-dark text-white border-0"
+                                type="button" data-bs-toggle="collapse" data-bs-target="#collapseEvents"
+                                aria-expanded="false" aria-controls="collapseEvents">
+                            Events
+                        </button>
+                    </h2>
+                    <div id="collapseEvents" class="accordion-collapse collapse" aria-labelledby="headingEvents" data-bs-parent="#adminMenu">
+                        <div class="accordion-body py-2">
+                            <a class="nav-link text-white" asp-controller="EVENTs" asp-action="Index">Events</a>
+                            <a class="nav-link text-white" asp-controller="EVENT_CATEGORY" asp-action="Index">Event Categories</a>
+                            <a class="nav-link text-white" asp-controller="ORGANIZER_UNIT" asp-action="Index">Organizer Units</a>
+                            <a class="nav-link text-white" asp-controller="EVENT_APPROVAL" asp-action="Index">Event Approvals</a>
+                            <a class="nav-link text-white" asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index">Public Event Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bookings & Tickets -->
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="headingBookings">
+                        <button class="accordion-button collapsed bg-dark text-white border-0"
+                                type="button" data-bs-toggle="collapse" data-bs-target="#collapseBookings"
+                                aria-expanded="false" aria-controls="collapseBookings">
+                            Bookings & Tickets
+                        </button>
+                    </h2>
+                    <div id="collapseBookings" class="accordion-collapse collapse" aria-labelledby="headingBookings" data-bs-parent="#adminMenu">
+                        <div class="accordion-body py-2">
+                            <a class="nav-link text-white" asp-controller="BOOKINGs" asp-action="Index">Bookings</a>
+                            <a class="nav-link text-white" asp-controller="BOOKING_ITEM" asp-action="Index">Booking Items</a>
+                            <a class="nav-link text-white" asp-controller="TICKETs" asp-action="Index">Tickets</a>
+                            <a class="nav-link text-white" asp-controller="TICKET_TYPE" asp-action="Index">Ticket Types</a>
+                            <a class="nav-link text-white" asp-controller="WAITING_LIST" asp-action="Index">Waiting List</a>
+                            <a class="nav-link text-white" asp-controller="ATTENDANCEs" asp-action="Index">Attendance</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payments & Promos -->
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="headingPayments">
+                        <button class="accordion-button collapsed bg-dark text-white border-0"
+                                type="button" data-bs-toggle="collapse" data-bs-target="#collapsePayments"
+                                aria-expanded="false" aria-controls="collapsePayments">
+                            Payments & Promos
+                        </button>
+                    </h2>
+                    <div id="collapsePayments" class="accordion-collapse collapse" aria-labelledby="headingPayments" data-bs-parent="#adminMenu">
+                        <div class="accordion-body py-2">
+                            <a class="nav-link text-white" asp-controller="PAYMENTs" asp-action="Index">Payments</a>
+                            <a class="nav-link text-white" asp-controller="PROMO_CODE" asp-action="Index">Promo Codes</a>
+                            <a class="nav-link text-white" asp-controller="BOOKING_PROMO" asp-action="Index">Booking Promos</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support & Reviews -->
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="headingSupport">
+                        <button class="accordion-button collapsed bg-dark text-white border-0"
+                                type="button" data-bs-toggle="collapse" data-bs-target="#collapseSupport"
+                                aria-expanded="false" aria-controls="collapseSupport">
+                            Support & Reviews
+                        </button>
+                    </h2>
+                    <div id="collapseSupport" class="accordion-collapse collapse" aria-labelledby="headingSupport" data-bs-parent="#adminMenu">
+                        <div class="accordion-body py-2">
+                            <a class="nav-link text-white" asp-controller="INQUIRIEs" asp-action="Index">Inquiries</a>
+                            <a class="nav-link text-white" asp-controller="REVIEWs" asp-action="Index">Reviews</a>
+                            <a class="nav-link text-white" asp-controller="REVIEW_REPORT" asp-action="Index">Review Reports</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <form asp-area="Identity" asp-page="/Account/Logout" method="post">
+                        <button class="btn btn-danger w-100">Logout</button>
                     </form>
-                </li>
+                </div>
 
-            </ul>
-        </div>
+            </div>
+        </aside>
 
-        <!-- Main Content -->
-        <div class="flex-fill p-4">
+        <!-- Content -->
+        <main class="flex-fill p-4">
             @RenderBody()
-        </div>
+        </main>
 
     </div>
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
+

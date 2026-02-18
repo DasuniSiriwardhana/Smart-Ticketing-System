@@ -19,9 +19,7 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // ----------------------------
         // Helpers: dropdown loaders
-        // ----------------------------
         private async Task LoadDropDownsAsync(int? selectedCategoryId = null, int? selectedOrganizerUnitId = null)
         {
             var categories = await _context.EVENT_CATEGORY
@@ -96,17 +94,13 @@ namespace SmartTicketingSystem.Controllers
             return View("Index", await query.ToListAsync());
         }
 
-        // ----------------------------
         // GET: EVENTs
-        // ----------------------------
         public async Task<IActionResult> Index()
         {
             return View(await _context.EVENT.ToListAsync());
         }
 
-        // ----------------------------
         // GET: EVENTs/Details/5
-        // ----------------------------
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();

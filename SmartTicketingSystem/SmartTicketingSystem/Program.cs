@@ -64,34 +64,20 @@ builder.Services.AddSession(options =>
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// AUTHORIZATION HANDLER
-builder.Services.AddScoped<IAuthorizationHandler, HasAppRoleHandler>();
-
 // POLICIES
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly",
-        policy => policy.Requirements.Add(new HasAppRoleRequirement("Admin")));
+    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+    options.AddPolicy("OrganizerOnly", p => p.RequireRole("Organizer"));
+    options.AddPolicy("ExternalMemberOnly", p => p.RequireRole("ExternalMember"));
+    options.AddPolicy("UniversityMemberOnly", p => p.RequireRole("UniversityMember"));
 
-    options.AddPolicy("OrganizerOnly",
-        policy => policy.Requirements.Add(new HasAppRoleRequirement("Organizer")));
+    options.AddPolicy("AdminOrOrganizer", p => p.RequireRole("Admin", "Organizer"));
+    options.AddPolicy("AdminOrUniversityMember", p => p.RequireRole("Admin", "UniversityMember"));
 
-    options.AddPolicy("ExternalMemberOnly",
-        policy => policy.Requirements.Add(new HasAppRoleRequirement("ExternalMember")));
-
-    options.AddPolicy("UniversityMemberOnly",
-        policy => policy.Requirements.Add(new HasAppRoleRequirement("UniversityMember")));
-
-    options.AddPolicy("AdminOrOrganizer",
-        policy => policy.Requirements.Add(new HasAppRoleRequirement("Admin", "Organizer")));
-
-    options.AddPolicy("AdminOrUniversityMember",
-        policy => policy.Requirements.Add(new HasAppRoleRequirement("Admin", "UniversityMember")));
-
-    options.AddPolicy("MemberOnly",
-        policy => policy.Requirements.Add(
-            new HasAppRoleRequirement("ExternalMember", "UniversityMember", "Organizer", "Admin")));
+    options.AddPolicy("MemberOnly", p =>
+        p.RequireRole("ExternalMember", "UniversityMember", "Organizer", "Admin"));
 });
 
 var app = builder.Build();

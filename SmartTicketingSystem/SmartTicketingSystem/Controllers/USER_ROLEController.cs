@@ -9,7 +9,7 @@ using SmartTicketingSystem.Models;
 
 namespace SmartTicketingSystem.Controllers
 {
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Roles = "Admin")]
     public class USER_ROLEController : Controller
     {
         private readonly ApplicationDbContext _context;
