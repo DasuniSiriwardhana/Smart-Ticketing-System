@@ -29,8 +29,14 @@
             @Html.DisplayFor(model => model.issuedAt)
         </dd>
     </dl>
+    <h4>QR Code</h4>
+    <img src="@Url.Action("Qr", "TICKETs", new { id = Model.TicketID })"
+         alt="QR Code"
+         style="width:200px;height:200px;" />
+
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.TicketID">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+

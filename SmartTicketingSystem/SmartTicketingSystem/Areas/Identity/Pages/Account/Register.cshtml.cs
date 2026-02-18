@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
@@ -13,7 +11,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SmartTicketingSystem.Data;
@@ -64,6 +61,8 @@ namespace SmartTicketingSystem.Areas.Identity.Pages.Account
             [StringLength(20)]
             public string Phone { get; set; }
 
+            // IMPORTANT: This MUST match Identity role names you created:
+            // Admin, Organizer, UniversityMember, ExternalMember
             [Required]
             [StringLength(30)]
             public string UserType { get; set; }
@@ -100,7 +99,7 @@ namespace SmartTicketingSystem.Areas.Identity.Pages.Account
             if (!ModelState.IsValid)
                 return Page();
 
-            // 1️⃣ Create Identity user
+            // 1) Create Identity user
             var identityUser = new IdentityUser();
             await _userStore.SetUserNameAsync(identityUser, Input.Email, CancellationToken.None);
             await _emailStore.SetEmailAsync(identityUser, Input.Email, CancellationToken.None);
@@ -117,7 +116,7 @@ namespace SmartTicketingSystem.Areas.Identity.Pages.Account
 
             _logger.LogInformation("Identity user created.");
 
-            // 2️⃣ Insert into YOUR USER table
+            // 2) Insert into YOUR USER table
             var appUser = new USER
             {
                 IdentityUserId = identityUser.Id,
@@ -135,27 +134,37 @@ namespace SmartTicketingSystem.Areas.Identity.Pages.Account
             _context.USER.Add(appUser);
             await _context.SaveChangesAsync();
 
-            // 3️⃣ Assign role (SAFE way without EF expression error)
+            // 3) Assign Identity role (THIS FIXES AspNetUserRoles)
+            // Normalize Input.UserType to one of your Identity roles
+            string NormalizeKey(string s) => (s ?? "").Replace(" ", "").Trim().ToLower();
 
+            var key = NormalizeKey(Input.UserType);
+
+            // Map common inputs to exact Identity role names
+            string identityRole =
+                key == "admin" ? "Admin" :
+                key == "organizer" ? "Organizer" :
+                key == "universitymember" ? "UniversityMember" :
+                key == "externalmember" ? "ExternalMember" :
+                "ExternalMember"; // fallback
+
+            // IMPORTANT: roles must exist already (your seeding creates them)
+            await _userManager.AddToRoleAsync(identityUser, identityRole);
+
+            // 4) (Optional) Keep your custom USER_ROLE table in sync
+            // If your custom Role table uses different names (like "Sports Club President"),
+            // this will only match when rolename equals the selected user type.
             var roles = await _context.Role.ToListAsync();
 
-            string Normalize(string s)
-            {
-                return (s ?? "").Replace(" ", "").Trim().ToLower();
-            }
-
+            string Normalize(string s) => (s ?? "").Replace(" ", "").Trim().ToLower();
             var desiredKey = Normalize(Input.UserType);
 
-            var matchedRole = roles.FirstOrDefault(r =>
-                Normalize(r.rolename) == desiredKey
-            );
+            var matchedRole = roles.FirstOrDefault(r => Normalize(r.rolename) == desiredKey);
 
-            // fallback to ExternalMember
+            // fallback to ExternalMember (only works if your custom Role table has it)
             if (matchedRole == null)
             {
-                matchedRole = roles.FirstOrDefault(r =>
-                    Normalize(r.rolename) == "externalmember"
-                );
+                matchedRole = roles.FirstOrDefault(r => Normalize(r.rolename) == "externalmember");
             }
 
             if (matchedRole != null)
@@ -170,7 +179,7 @@ namespace SmartTicketingSystem.Areas.Identity.Pages.Account
                 await _context.SaveChangesAsync();
             }
 
-            // 4️⃣ Sign in directly
+            // 5) Sign in directly
             await _signInManager.SignInAsync(identityUser, isPersistent: false);
 
             return LocalRedirect(returnUrl);

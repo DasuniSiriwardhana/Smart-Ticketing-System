@@ -1,0 +1,55 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<h2 class="mb-4">Admin Dashboard</h2>
+
+<div class="row">
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Manage Users</h5>
+                <p class="card-text">View and manage system users.</p>
+                <a asp-controller="Admin"
+                   asp-action="Users"
+                   class="btn btn-primary">
+                    Open
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Manage Events</h5>
+                <p class="card-text">View and control all events.</p>
+                <a asp-controller="EVENT"
+                   asp-action="Index"
+                   class="btn btn-primary">
+                    Open
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Reports</h5>
+                <p class="card-text">System overview and reports.</p>
+                <a asp-controller="Admin"
+                   asp-action="Reports"
+                   class="btn btn-primary">
+                    Open
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>

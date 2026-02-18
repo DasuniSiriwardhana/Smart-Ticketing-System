@@ -1,0 +1,71 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"] - Admin Panel</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+<body>
+
+    <div class="d-flex">
+
+        <!-- Sidebar -->
+        <div class="bg-dark text-white p-3" style="width:250px; min-height:100vh;">
+            <h4>Admin Panel</h4>
+            <hr class="bg-light" />
+
+            <ul class="nav flex-column">
+
+                <li class="nav-item">
+                    <a class="nav-link text-white"
+                       asp-controller="Admin"
+                       asp-action="Dashboard">
+                        Dashboard
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white"
+                       asp-controller="Admin"
+                       asp-action="Users">
+                        Manage Users
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white"
+                       asp-controller="EVENT"
+                       asp-action="Index">
+                        Events
+                    </a>
+                </li>
+
+                <li class="nav-item mt-4">
+                    <form asp-area="Identity"
+                          asp-page="/Account/Logout"
+                          method="post">
+                        <button class="btn btn-danger w-100">
+                            Logout
+                        </button>
+                    </form>
+                </li>
+
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-fill p-4">
+            @RenderBody()
+        </div>
+
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

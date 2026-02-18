@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTicketingSystem.Models
 {
@@ -7,11 +6,24 @@ namespace SmartTicketingSystem.Models
     {
         [Key]
         public int PaymentID { get; set; }
+
+        [Required]
         public int BookingID { get; set; }
-        public string PaymentMethod { get; set; }
+
+        [Required]
+        [StringLength(20)]
+        public string PaymentType { get; set; }   
+
+        [Required]
+        [StringLength(30)]
+        public string PaymentMethod { get; set; } 
+
+        [StringLength(100)]
         public string TransactionReference { get; set; }
-        [Column(TypeName = "decimal(18,2)")]
+
+        [Range(0, 999999999)]
         public decimal Amount { get; set; }
-        public DateTime PaidAt { get; set; } 
+
+        public DateTime PaidAt { get; set; }
     }
 }

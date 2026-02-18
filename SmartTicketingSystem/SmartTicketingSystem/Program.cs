@@ -9,7 +9,7 @@ using SmartTicketingSystem.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DB
+// DATABASE PART
 var connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -19,30 +19,58 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// ✅ Identity (ONLY ONCE)
+// IDENTITY
 builder.Services
     .AddIdentity<IdentityUser, IdentityRole>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
-
-        })
+    })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
 // Fix Register page crash
 builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
 
-// MVC + Razor Pages (Identity UI uses Razor Pages)
+// AUTH COOKIE SETTINGS
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+
+    // Auto logout after inactivity
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+
+    // Refresh expiration while user is active
+    options.SlidingExpiration = true;
+
+    // Session cookie: removed when browser fully closes
+    options.Cookie.MaxAge = null;
+
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// SESSION CONFIGURATION (NOT FOR LOGIN; for app temporary data)
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// MVC + RAZOR PAGES
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Authorization Handler (your custom role check from YOUR tables)
+// AUTHORIZATION HANDLER
 builder.Services.AddScoped<IAuthorizationHandler, HasAppRoleHandler>();
 
-// Policies (MAKE SURE these strings match Role.rolename in your DB exactly)
+// POLICIES
+
 builder.Services.AddAuthorization(options =>
 {
-    // Single role
     options.AddPolicy("AdminOnly",
         policy => policy.Requirements.Add(new HasAppRoleRequirement("Admin")));
 
@@ -55,9 +83,11 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("UniversityMemberOnly",
         policy => policy.Requirements.Add(new HasAppRoleRequirement("UniversityMember")));
 
-    // Multiple roles
     options.AddPolicy("AdminOrOrganizer",
         policy => policy.Requirements.Add(new HasAppRoleRequirement("Admin", "Organizer")));
+
+    options.AddPolicy("AdminOrUniversityMember",
+        policy => policy.Requirements.Add(new HasAppRoleRequirement("Admin", "UniversityMember")));
 
     options.AddPolicy("MemberOnly",
         policy => policy.Requirements.Add(
@@ -66,14 +96,14 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
-// Seed roles + default data
+// SEED DATA
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     SeedData.Initialize(services);
 }
 
-// Pipeline
+// PIPELINE
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -89,9 +119,10 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Auth must come before Authorization
-app.UseAuthentication();
-app.UseAuthorization();
+
+app.UseSession();          // session features
+app.UseAuthentication();   // identity cookie auth
+app.UseAuthorization();    // policies/roles
 
 app.MapControllerRoute(
     name: "default",

@@ -15,8 +15,24 @@ namespace SmartTicketingSystem.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            if (User.Identity?.IsAuthenticated ?? false)
+            {
+                if (User.IsInRole("Admin"))
+                    return RedirectToAction("Dashboard", "Admin");
+
+                if (User.IsInRole("Organizer"))
+                    return RedirectToAction("Dashboard", "Organizer");
+
+                if (User.IsInRole("UniversityMember"))
+                    return RedirectToAction("Dashboard", "UniversityMember");
+
+                if (User.IsInRole("ExternalMember"))
+                    return RedirectToAction("Dashboard", "ExternalMember");
+            }
+
+            return View(); // guest homepage
         }
+
 
         public IActionResult Privacy()
         {

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartTicketingSystem.Data;
 using SmartTicketingSystem.Models;
@@ -19,13 +18,35 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        //Search Bar
+        // VIEW categories (members can see)
+        [Authorize(Policy = "MemberOnly")]
+        public async Task<IActionResult> Index()
+        {
+            return View(await _context.EVENT_CATEGORY.ToListAsync());
+        }
+
+        // VIEW category details (members can see)
+        [Authorize(Policy = "MemberOnly")]
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var category = await _context.EVENT_CATEGORY
+                .FirstOrDefaultAsync(m => m.categoryID == id);
+
+            if (category == null) return NotFound();
+
+            return View(category);
+        }
+
+        // SEARCH categories (members can see)
+        [Authorize(Policy = "MemberOnly")]
         public async Task<IActionResult> Search(
-    string mode,
-    int? categoryId,
-    string categoryName,
-    DateTime? fromDate,
-    DateTime? toDate)
+            string mode,
+            int? categoryId,
+            string categoryName,
+            DateTime? fromDate,
+            DateTime? toDate)
         {
             var query = _context.Set<EVENT_CATEGORY>().AsQueryable();
 
@@ -43,7 +64,6 @@ namespace SmartTicketingSystem.Controllers
                 if (toDate.HasValue)
                     query = query.Where(c => c.createdAt < toDate.Value.AddDays(1));
             }
-
             else if (mode == "Advanced")
             {
                 if (categoryId.HasValue)
@@ -62,131 +82,97 @@ namespace SmartTicketingSystem.Controllers
             return View("Index", await query.ToListAsync());
         }
 
-        // GET: EVENT_CATEGORY
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.EVENT_CATEGORY.ToListAsync());
-        }
-
-        // GET: EVENT_CATEGORY/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var eVENT_CATEGORY = await _context.EVENT_CATEGORY
-                .FirstOrDefaultAsync(m => m.categoryID == id);
-            if (eVENT_CATEGORY == null)
-            {
-                return NotFound();
-            }
-
-            return View(eVENT_CATEGORY);
-        }
-
-        // GET: EVENT_CATEGORY/Create
+        // ADMIN ONLY: Create category
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: EVENT_CATEGORY/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // ADMIN ONLY: Create category
+        [Authorize(Policy = "AdminOnly")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("categoryID,categoryName,createdAt")] EVENT_CATEGORY eVENT_CATEGORY)
+        public async Task<IActionResult> Create([Bind("categoryID,categoryName,createdAt")] EVENT_CATEGORY category)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(eVENT_CATEGORY);
+                // If your form doesn't enter date, auto-set it:
+                if (category.createdAt == default)
+                    category.createdAt = DateTime.Now;
+
+                _context.Add(category);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(eVENT_CATEGORY);
+
+            return View(category);
         }
 
-        // GET: EVENT_CATEGORY/Edit/5
+        //ADMIN ONLY: Edit category
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var eVENT_CATEGORY = await _context.EVENT_CATEGORY.FindAsync(id);
-            if (eVENT_CATEGORY == null)
-            {
-                return NotFound();
-            }
-            return View(eVENT_CATEGORY);
+            var category = await _context.EVENT_CATEGORY.FindAsync(id);
+            if (category == null) return NotFound();
+
+            return View(category);
         }
 
-        // POST: EVENT_CATEGORY/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // ADMIN ONLY: Edit category
+        [Authorize(Policy = "AdminOnly")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("categoryID,categoryName,createdAt")] EVENT_CATEGORY eVENT_CATEGORY)
+        public async Task<IActionResult> Edit(int id, [Bind("categoryID,categoryName,createdAt")] EVENT_CATEGORY category)
         {
-            if (id != eVENT_CATEGORY.categoryID)
-            {
-                return NotFound();
-            }
+            if (id != category.categoryID) return NotFound();
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(eVENT_CATEGORY);
+                    _context.Update(category);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!EVENT_CATEGORYExists(eVENT_CATEGORY.categoryID))
-                    {
+                    if (!EVENT_CATEGORYExists(category.categoryID))
                         return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(eVENT_CATEGORY);
+
+            return View(category);
         }
 
-        // GET: EVENT_CATEGORY/Delete/5
+        // ADMIN ONLY: Delete category
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var eVENT_CATEGORY = await _context.EVENT_CATEGORY
+            var category = await _context.EVENT_CATEGORY
                 .FirstOrDefaultAsync(m => m.categoryID == id);
-            if (eVENT_CATEGORY == null)
-            {
-                return NotFound();
-            }
 
-            return View(eVENT_CATEGORY);
+            if (category == null) return NotFound();
+
+            return View(category);
         }
 
-        // POST: EVENT_CATEGORY/Delete/5
+        //ADMIN ONLY: Delete category
+        [Authorize(Policy = "AdminOnly")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var eVENT_CATEGORY = await _context.EVENT_CATEGORY.FindAsync(id);
-            if (eVENT_CATEGORY != null)
-            {
-                _context.EVENT_CATEGORY.Remove(eVENT_CATEGORY);
-            }
+            var category = await _context.EVENT_CATEGORY.FindAsync(id);
+
+            if (category != null)
+                _context.EVENT_CATEGORY.Remove(category);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
