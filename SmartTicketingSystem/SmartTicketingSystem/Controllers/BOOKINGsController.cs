@@ -116,6 +116,41 @@ namespace SmartTicketingSystem.Controllers
                 .Where(b => b.member_id == myMemberId.Value)
                 .ToListAsync());
         }
+        // =========================
+        // CONFIRMATION PAGE
+        // =========================
+        public async Task<IActionResult> Confirmation(int id)
+        {
+            var booking = await _context.BOOKING.FirstOrDefaultAsync(b => b.BookingID == id);
+            if (booking == null) return NotFound();
+
+            // Admin check (your custom role system)
+            var isAdmin = await CurrentUserHasAnyRoleAsync("Admin");
+            if (!isAdmin)
+            {
+                var myMemberId = await GetCurrentMemberIdAsync();
+                if (myMemberId == null || booking.member_id != myMemberId.Value) return Forbid();
+            }
+
+            var items = await _context.BOOKING_ITEM
+                .Where(bi => bi.BookingID == booking.BookingID)
+                .Join(_context.TICKET_TYPE,
+                    bi => bi.TicketTypeID,
+                    tt => tt.TicketID,
+                    (bi, tt) => new
+                    {
+                        tt.TypeName,
+                        bi.Quantity,
+                        bi.UnitPrice,
+                        bi.LineTotal
+                    })
+                .ToListAsync();
+
+            ViewData["Items"] = items;
+
+            return View(booking);
+        }
+
 
         // DETAILS
         public async Task<IActionResult> Details(int? id)

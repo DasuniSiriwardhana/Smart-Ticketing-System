@@ -1,10 +1,169 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using System.Text.Json
+
 @{
+    Layout = "_Layout";   // website look
     ViewData["Title"] = "Organizer Dashboard";
+
+    var eventMonthLabels = ViewData["EventMonthLabels"] as List<string> ?? new List<string>();
+    var eventMonthCounts = ViewData["EventMonthCounts"] as List<int> ?? new List<int>();
+
+    var topTitles = ViewData["TopEventTitles"] as List<string> ?? new List<string>();
+    var topCounts = ViewData["TopEventBookingCounts"] as List<int> ?? new List<int>();
+
+    var eventMonthLabelsJson = JsonSerializer.Serialize(eventMonthLabels);
+    var eventMonthCountsJson = JsonSerializer.Serialize(eventMonthCounts);
+
+    var topTitlesJson = JsonSerializer.Serialize(topTitles);
+    var topCountsJson = JsonSerializer.Serialize(topCounts);
+
+    var myRecentEvents = ViewData["MyRecentEvents"] ?? new List<object>();
 }
 
-<h1>Organizer Dashboard</h1>
-<p>Organizer (and Admin) can access this page.</p>
+<div class="container py-4">
 
+    <!-- Header / Hero -->
+    <div class="p-4 rounded-4 bg-light border mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">Organizer Dashboard</h2>
+                <div class="text-muted">Create events, track bookings, and manage attendance.</div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <a class="btn btn-primary" asp-controller="EVENTs" asp-action="Create">+ Create Event</a>
+                <a class="btn btn-outline-secondary" asp-controller="EVENTs" asp-action="Index">My Events</a>
+                <a class="btn btn-outline-secondary" asp-controller="ATTENDANCEs" asp-action="Index">Attendance</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="text-muted">My Events</div>
+                    <div class="display-6">@ViewBag.TotalMyEvents</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="text-muted">Bookings (My Events)</div>
+                    <div class="display-6">@ViewBag.TotalBookingsForMyEvents</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="text-muted">Tickets Issued</div>
+                    <div class="display-6">@ViewBag.TotalTicketsIssued</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 rounded-4 border-success">
+                <div class="card-body">
+                    <div class="text-muted">Upcoming Events</div>
+                    <div class="display-6">@ViewBag.UpcomingEvents</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-lg-7">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5 class="mb-3">Events Created Per Month</h5>
+                    <canvas id="eventMonthChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5 class="mb-3">Top Events by Bookings</h5>
+                    <canvas id="topEventsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Recent Events -->
+    <div class="card shadow-sm rounded-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Recent Events</h5>
+                <a asp-controller="EVENTs" asp-action="Index" class="btn btn-sm btn-outline-primary">View all</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Start</th>
+                            <th>Status</th>
+                            <th class="text-end">Capacity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (dynamic e in (IEnumerable<dynamic>)myRecentEvents)
+                        {
+                            <tr>
+                                <td>@e.eventID</td>
+                                <td>@e.title</td>
+                                <td>@(((DateTime)e.StartDateTime).ToString("yyyy-MM-dd HH:mm"))</td>
+                                <td>@e.status</td>
+                                <td class="text-end">@e.capacity</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    new Chart(document.getElementById('eventMonthChart'), {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(eventMonthLabelsJson),
+            datasets: [{
+                label: 'Events',
+                data: @Html.Raw(eventMonthCountsJson),
+                borderColor: 'blue',
+                fill: false,
+                tension: 0.3
+            }]
+        }
+    });
+
+    new Chart(document.getElementById('topEventsChart'), {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(topTitlesJson),
+            datasets: [{
+                label: 'Bookings',
+                data: @Html.Raw(topCountsJson)
+            }]
+        }
+    });
+</script>

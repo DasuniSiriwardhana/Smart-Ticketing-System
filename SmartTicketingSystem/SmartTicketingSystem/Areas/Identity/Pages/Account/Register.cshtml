@@ -4,6 +4,8 @@
     ViewData["Title"] = "Register";
 }
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css" />
+
 <h1>@ViewData["Title"]</h1>
 
 <div class="row">
@@ -19,30 +21,30 @@
                 <span asp-validation-for="Input.FullName" class="text-danger"></span>
             </div>
 
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Phone" class="form-control" autocomplete="tel" aria-required="true" placeholder="07XXXXXXXX" />
-                <label asp-for="Input.Phone">Phone</label>
+            <div class="mb-3">
+                <label asp-for="Input.Phone" class="form-label">Contact Number</label>
+                <input asp-for="Input.Phone" class="form-control" id="phone" autocomplete="tel" placeholder="+94 77XXXXXXX" />
                 <span asp-validation-for="Input.Phone" class="text-danger"></span>
             </div>
 
+
             <div class="form-floating mb-3">
-                <input asp-for="Input.UniversityNumber" class="form-control" aria-required="true" placeholder="University Number" />
+                <input asp-for="Input.UniversityNumber" class="form-control" id="uniNo" placeholder="E12345" />
                 <label asp-for="Input.UniversityNumber">University Number</label>
                 <span asp-validation-for="Input.UniversityNumber" class="text-danger"></span>
             </div>
-                        
+
             <div class="form-floating mb-3">
                 <select asp-for="Input.UserType" class="form-select" aria-required="true">
                     <option value="">-- Select user type --</option>
-                    <option value="Guest">Guest</option>
-                    <option value="ExternalMember">ExternalMember</option>
-                    <option value="UniversityMember">UniversityMember</option>
-                    <option value="Organizer">Organizer</option>
+                    <option value="ExternalMember">External Member</option>
+                    <option value="UniversityMember">University Member</option>
+                    <option value="Organizer">Staff</option>
                 </select>
                 <label asp-for="Input.UserType">User Type</label>
                 <span asp-validation-for="Input.UserType" class="text-danger"></span>
             </div>
-                       
+
             <div class="form-floating mb-3">
                 <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                 <label asp-for="Input.Email">Email</label>
@@ -74,10 +76,8 @@
                 {
                     <div>
                         <p>
-                            There are no external authentication services configured. See this
-                            <a href="https://go.microsoft.com/fwlink/?LinkID=532715">
-                                article about setting up this ASP.NET application to support logging in via external services
-                            </a>.
+                            There are no external authentication services configured.
+                            See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article</a>.
                         </p>
                     </div>
                 }
@@ -102,6 +102,46 @@
     </div>
 </div>
 
+<style>
+    .iti {
+        width: 100%;
+    }
+
+        .iti input {
+            width: 100%;
+        }
+</style>
+
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
+    <script>
+        const phoneInput = document.querySelector("#phone");
+        const iti = window.intlTelInput(phoneInput, {
+            initialCountry: "lk",
+            separateDialCode: false,
+            nationalMode: false,
+            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js",
+        });
+
+        // Save as E.164 format (+94...) on submit
+        const form = phoneInput.closest("form");
+        form.addEventListener("submit", function () {
+            if (iti && iti.getNumber) {
+                phoneInput.value = iti.getNumber();
+            }
+        });
+                const uniNo = document.querySelector("#uniNo");
+        if (uniNo) {
+          uniNo.addEventListener("blur", function () {
+            const v = (uniNo.value || "").trim();
+            if (v.length > 0 && !v.toUpperCase().startsWith("E")) {
+              uniNo.value = "E" + v;
+            }
+          });
+        }
+
+    </script>
 }

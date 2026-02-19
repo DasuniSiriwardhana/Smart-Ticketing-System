@@ -78,6 +78,14 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy("MemberOnly", p =>
         p.RequireRole("ExternalMember", "UniversityMember", "Organizer", "Admin"));
+
+    // Organizer type policies 
+    options.AddPolicy("UniversityOrganizer", p =>
+        p.RequireRole("Organizer", "UniversityMember"));
+
+    options.AddPolicy("ExternalOrganizer", p =>
+        p.RequireRole("Organizer", "ExternalMember"));
+
 });
 
 var app = builder.Build();

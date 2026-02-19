@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +29,6 @@ namespace SmartTicketingSystem.Controllers
             else if (mode == "MemberID" && memberId.HasValue) query = query.Where(x => x.member_id == memberId.Value);
             else if (mode == "Decision" && decision.HasValue) query = query.Where(x => x.Decision == decision.Value);
             else if (mode == "DecisionNote" && !string.IsNullOrWhiteSpace(decisionNote)) query = query.Where(x => (x.DecisionNote ?? "").Contains(decisionNote));
-
             else if (mode == "DateRange")
             {
                 if (fromDate.HasValue) query = query.Where(x => x.DecisionDateTime >= fromDate.Value);
@@ -51,18 +51,23 @@ namespace SmartTicketingSystem.Controllers
 
         public IActionResult Create() => View();
 
+        // ===== START OF CHANGED CODE =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ApprovalID,EventID,ApprovedByUserID,Decision,DecisionNote,DecisionDateTime,member_id")] EVENT_APPROVAL item)
         {
             if (ModelState.IsValid)
             {
+                // Ensure non-nullable fields have values
+                item.DecisionNote = item.DecisionNote ?? "";
+
                 _context.Add(item);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(item);
         }
+        // ===== END OF CHANGED CODE =====
 
         public async Task<IActionResult> Edit(int? id)
         {
@@ -72,6 +77,7 @@ namespace SmartTicketingSystem.Controllers
             return View(item);
         }
 
+        // ===== START OF CHANGED CODE =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, EVENT_APPROVAL item)
@@ -80,12 +86,16 @@ namespace SmartTicketingSystem.Controllers
 
             if (ModelState.IsValid)
             {
+                // Ensure non-nullable fields have values
+                item.DecisionNote = item.DecisionNote ?? "";
+
                 _context.Update(item);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(item);
         }
+        // ===== END OF CHANGED CODE =====
 
         public async Task<IActionResult> Delete(int? id)
         {

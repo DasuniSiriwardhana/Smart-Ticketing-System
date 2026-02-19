@@ -1,235 +1,195 @@
 ﻿@model IEnumerable<SmartTicketingSystem.Models.EVENT>
+@if (User.IsInRole("Admin"))
+{
+    // show admin crud buttons
+}
+
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Events";
+    bool isAdmin = User.IsInRole("Admin");
+    bool isOrganizer = User.IsInRole("Organizer");
+    bool isUniMember = User.IsInRole("UniversityMember");
+    bool isExtMember = User.IsInRole("ExternalMember");
 }
 
-<h1>Index</h1>
+<div class="container py-4">
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
 
-<form asp-action="Search" method="get" class="mb-4">
-    <div class="row g-3 align-items-end">
-
-        <div class="col-md-3">
-            <label class="form-label">Search Mode</label>
-            <select class="form-select" name="mode" id="modeSelect">
-                <option value="EventID">Event ID</option>
-                <option value="Title">Title</option>
-                <option value="Venue">Venue</option>
-                <option value="Status">Status</option>
-                <option value="IsOnline">Online / Physical</option>
-                <option value="DateRange">Start Date Range</option>
-                <option value="Advanced">Advanced Search</option>
-            </select>
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h2 class="mb-0">Upcoming Events</h2>
+            <div class="text-muted">
+                @if (!User.Identity.IsAuthenticated)
+                {
+                    <span>Showing public events.</span>
+                }
+                else if (isUniMember)
+                {
+                    <span>Showing public + university events (including pending upcoming).</span>
+                }
+                else
+                {
+                    <span>Showing public events.</span>
+                }
+            </div>
         </div>
 
-        <!-- Event ID -->
-        <div class="col-md-3 filter-field" data-mode="EventID">
-            <input type="number" class="form-control" name="eventId" placeholder="Event ID" />
-        </div>
-
-        <!-- Title -->
-        <div class="col-md-3 filter-field" data-mode="Title">
-            <input type="text" class="form-control" name="title" placeholder="Title" />
-        </div>
-
-        <!-- Venue -->
-        <div class="col-md-3 filter-field" data-mode="Venue">
-            <input type="text" class="form-control" name="venue" placeholder="Venue" />
-        </div>
-
-        <!-- Status -->
-        <div class="col-md-3 filter-field" data-mode="Status">
-            <input type="text" class="form-control" name="status" placeholder="Status" />
-        </div>
-
-        <!-- IsOnline -->
-        <div class="col-md-3 filter-field" data-mode="IsOnline">
-            <select class="form-select" name="isOnline">
-                <option value="">Select</option>
-                <option value="Y">Online</option>
-                <option value="N">Physical</option>
-            </select>
-        </div>
-
-        <!-- Date Range -->
-        <div class="col-md-3 filter-field" data-mode="DateRange">
-            <label>From</label>
-            <input type="date" class="form-control" name="fromDate" />
-        </div>
-
-        <div class="col-md-3 filter-field" data-mode="DateRange">
-            <label>To</label>
-            <input type="date" class="form-control" name="toDate" />
-        </div>
-
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-primary w-100">Search</button>
-        </div>
-
-    </div>
-</form>
-<script>
-    (function () {
-        const modeSelect = document.getElementById("modeSelect");
-        const fields = Array.from(document.querySelectorAll(".filter-field"));
-
-        function updateVisibility() {
-            const mode = modeSelect.value;
-
-            if (mode === "Advanced") {
-                fields.forEach(f => f.classList.remove("d-none"));
-            } else {
-                fields.forEach(f => f.classList.add("d-none"));
-                const matching = document.querySelectorAll(`.filter-field[data-mode="${mode}"]`);
-                matching.forEach(f => f.classList.remove("d-none"));
-            }
+        @if (isAdmin || isOrganizer)
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                + Create Event
+            </a>
         }
+    </div>
 
-        modeSelect.addEventListener("change", updateVisibility);
-        updateVisibility();
-    })();
-</script>
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-warning">
+            No upcoming events found.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var e in Model)
+            {
+                // status badge style
+                string statusClass =
+                e.status == "Published" ? "bg-success"
+                : e.status == "PendingUpcoming" ? "bg-warning text-dark"
+                : e.status == "PendingApproval" ? "bg-secondary"
+                : e.status == "Draft" ? "bg-dark"
+                : "bg-secondary";
 
+                // visibility badge style
+                string visClass =
+                e.visibility == "Public" ? "bg-primary"
+                : "bg-info text-dark"; // University
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartDateTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.endDateTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.venue)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsOnline)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.onlineLink)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.AccessibilityInfo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.capacity)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.visibility)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.organizerInfo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Agenda)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.maplink)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.createdByUserID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.organizerUnitID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.categoryID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.createdAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.updatedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApprovalID)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartDateTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.endDateTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.venue)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsOnline)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.onlineLink)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AccessibilityInfo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.capacity)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.visibility)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.organizerInfo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Agenda)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.maplink)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.createdByUserID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.organizerUnitID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.categoryID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.createdAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.updatedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ApprovalID)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.eventID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.eventID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.eventID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+                <div class="col-12">
+                    <div class="card shadow-sm rounded-4">
+                        <div class="card-body p-4">
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                                <div class="me-2" style="min-width:260px;">
+                                    <div class="d-flex flex-wrap gap-2 mb-2">
+                                        <span class="badge @visClass">@e.visibility</span>
+                                        <span class="badge @statusClass">@e.status</span>
+
+                                        @if (e.IsOnline == 'Y')
+                                        {
+                                            <span class="badge bg-light text-dark border">Online</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark border">Onsite</span>
+                                        }
+                                    </div>
+
+                                    <h4 class="mb-1">@e.title</h4>
+
+                                    <div class="text-muted">
+                                        @e.StartDateTime.ToString("yyyy-MM-dd HH:mm")
+                                        @if (e.endDateTime != default(DateTime))
+                                        {
+                                            <span> - @e.endDateTime.ToString("yyyy-MM-dd HH:mm")</span>
+                                        }
+                                    </div>
+
+                                    <div class="mt-2">
+                                        <span class="fw-semibold">Venue:</span>
+                                        <span class="text-muted">@e.venue</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex-grow-1">
+                                    @if (!string.IsNullOrWhiteSpace(e.Description))
+                                    {
+                                        <p class="mb-2 text-muted" style="max-width:900px;">
+                                            @(e.Description.Length > 220 ? e.Description.Substring(0, 220) + "..." : e.Description)
+                                        </p>
+                                    }
+
+                                    <div class="d-flex flex-wrap gap-3 small text-muted">
+                                        <div><span class="fw-semibold">Capacity:</span> @e.capacity</div>
+
+                                        @if (!string.IsNullOrWhiteSpace(e.AccessibilityInfo))
+                                        {
+                                            <div><span class="fw-semibold">Accessibility:</span> Yes</div>
+                                        }
+                                        else
+                                        {
+                                            <div><span class="fw-semibold">Accessibility:</span> Not specified</div>
+                                        }
+
+                                        @if (e.IsOnline == 'Y' && !string.IsNullOrWhiteSpace(e.onlineLink))
+                                        {
+                                            <div>
+                                                <a href="@e.onlineLink" target="_blank" class="text-decoration-none">Online Link</a>
+                                            </div>
+                                        }
+
+                                        @if (e.IsOnline == 'N' && !string.IsNullOrWhiteSpace(e.maplink))
+                                        {
+                                            <div>
+                                                <a href="@e.maplink" target="_blank" class="text-decoration-none">Map</a>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="text-end" style="min-width:220px;">
+                                    <div class="d-grid gap-2">
+                                        <a asp-action="Details" asp-route-id="@e.eventID" class="btn btn-outline-secondary">
+                                            View Details
+                                        </a>
+
+                                        @* Organizer/Admin actions *@
+                                        @if (isAdmin || isOrganizer)
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@e.eventID" class="btn btn-outline-dark">
+                                                Edit
+                                            </a>
+                                        }
+
+                                        @* Submit for approval only when Draft and Organizer/Admin *@
+                                        @if ((isAdmin || isOrganizer) && e.status == "Draft")
+                                        {
+                                            <form asp-action="SubmitForApproval" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@e.eventID" />
+                                                <button type="submit" class="btn btn-primary w-100">
+                                                    Submit For Approval
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+
+                                    @* Note for members about pending status *@
+                                    @if (e.status == "PendingUpcoming" && isUniMember)
+                                    {
+                                        <div class="mt-2 small text-muted">
+                                            This event is pending approval (University).
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

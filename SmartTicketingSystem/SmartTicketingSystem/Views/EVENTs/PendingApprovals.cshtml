@@ -1,0 +1,82 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.EVENT>
+
+@{
+    ViewData["Title"] = "Pending Event Approvals";
+}
+
+<div class="container py-4">
+    <h2>Pending Event Approvals</h2>
+    <p class="text-muted mb-4">Approve or reject events. Only published events can be booked.</p>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">No pending events.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Visibility</th>
+                        <th>Status</th>
+                        <th>Start</th>
+                        <th>Venue</th>
+                        <th style="width: 380px;">Decision Note</th>
+                        <th style="width: 220px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@e.eventID">@e.title</a>
+                            </td>
+                            <td>@e.visibility</td>
+                            <td>
+                                <span class="badge bg-warning text-dark">@e.status</span>
+                            </td>
+                            <td>@e.StartDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@e.venue</td>
+
+                            <td>
+                                <form asp-action="ApproveEvent" method="post" class="d-flex gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@e.eventID" />
+                                    <input type="text" name="decisionNote" class="form-control" placeholder="Note (optional)" />
+                                    <button class="btn btn-success" type="submit">Approve</button>
+                                </form>
+
+                                <form asp-action="RejectEvent" method="post" class="d-flex gap-2 mt-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@e.eventID" />
+                                    <input type="text" name="decisionNote" class="form-control" placeholder="Reason (optional)" />
+                                    <button class="btn btn-danger" type="submit">Reject</button>
+                                </form>
+                            </td>
+
+                            <td>
+                                <a class="btn btn-outline-secondary btn-sm"
+                                   asp-action="Details"
+                                   asp-route-id="@e.eventID">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

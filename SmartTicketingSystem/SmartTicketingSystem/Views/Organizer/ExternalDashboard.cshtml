@@ -1,0 +1,51 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "External Organizer";
+}
+
+<div class="container py-4">
+    <div class="p-4 rounded-4 bg-light border mb-4">
+        <h2 class="mb-1">External Organizer</h2>
+        <div class="text-muted">
+            You can request events and browse public events. Admin will review and approve event requests.
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5>Request an Event</h5>
+                    <p class="text-muted mb-3">
+                        Submit a public event request for admin review.
+                    </p>
+
+                    <a class="btn btn-primary"
+                       asp-controller="PUBLIC_EVENT_REQUEST"
+                       asp-action="Create">
+                        Create Request
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5>Browse Public Events</h5>
+                    <p class="text-muted mb-3">
+                        View published public events.
+                    </p>
+
+                    <a class="btn btn-outline-primary"
+                       asp-controller="EVENTs"
+                       asp-action="Index">
+                        View Events
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

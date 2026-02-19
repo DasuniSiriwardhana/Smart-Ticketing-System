@@ -1,0 +1,54 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.EVENT>
+
+@{
+    ViewData["Title"] = "Events";
+    Layout = "_Layout";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0">Events</h2>
+            <div class="text-muted">Browse published events</div>
+        </div>
+
+        @if (User.IsInRole("Admin") || User.IsInRole("Organizer"))
+        {
+            <a class="btn btn-outline-dark" asp-controller="EVENTs" asp-action="MyEvents">
+                Manage My Events
+            </a>
+        }
+    </div>
+
+    <div class="row g-3">
+        @foreach (var e in Model)
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100 rounded-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <span class="badge @(e.visibility=="University" ? "bg-primary" : "bg-success")">
+                                @e.visibility
+                            </span>
+                            <small class="text-muted">@e.StartDateTime.ToString("yyyy-MM-dd HH:mm")</small>
+                        </div>
+
+                        <h5 class="mt-3">@e.title</h5>
+                        <div class="text-muted mb-2">@e.venue</div>
+
+                        <p class="text-muted" style="min-height:60px;">
+                            @(string.IsNullOrWhiteSpace(e.Description) ? "No description." : (e.Description.Length > 90 ? e.Description.Substring(0, 90) + "..." : e.Description))
+                        </p>
+
+                        <a class="btn btn-primary w-100"
+                           asp-controller="EVENTs"
+                           asp-action="Details"
+                           asp-route-id="@e.eventID">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

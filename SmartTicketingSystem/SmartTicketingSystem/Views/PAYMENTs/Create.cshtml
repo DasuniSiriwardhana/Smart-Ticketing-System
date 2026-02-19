@@ -18,9 +18,8 @@
             <!-- Booking Selection -->
             <div class="form-group mb-3">
                 <label asp-for="BookingID" class="form-label"></label>
-                <select asp-for="BookingID"
-                        class="form-control"
-                        asp-items="ViewBag.BookingID">
+                <select asp-for="BookingID" class="form-select" asp-items="ViewBag.BookingID">
+
                     <option value="">-- Select Booking --</option>
                 </select>
                 <span asp-validation-for="BookingID" class="text-danger"></span>

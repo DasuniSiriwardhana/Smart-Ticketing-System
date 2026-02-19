@@ -1,8 +1,168 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-    ViewData["Title"] = "External Member Dashboard";
-}
-<h1>External Member Dashboard</h1>
+﻿@using System.Text.Json
 
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "External Member Dashboard";
+
+    var bookingLabels = ViewData["BookingMonthLabels"] as List<string> ?? new List<string>();
+    var bookingCounts = ViewData["BookingMonthCounts"] as List<int> ?? new List<int>();
+    var labelsJson = JsonSerializer.Serialize(bookingLabels);
+    var countsJson = JsonSerializer.Serialize(bookingCounts);
+
+    var myRecentBookings = ViewData["MyRecentBookings"] ?? new List<object>();
+    var upcomingEvents = ViewData["UpcomingEvents"] ?? new List<object>();
+}
+
+<div class="container py-4">
+
+    <!-- Header / Hero -->
+    <div class="p-4 rounded-4 bg-light border mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">External Member Dashboard</h2>
+                <div class="text-muted">Browse public events and manage your bookings.</div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <a class="btn btn-primary" asp-controller="EVENTs" asp-action="Index">Browse Events</a>
+                <a class="btn btn-outline-secondary" asp-controller="BOOKINGs" asp-action="Index">My Bookings</a>
+                <a class="btn btn-outline-secondary" asp-controller="TICKETs" asp-action="Index">My Tickets</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="text-muted">My Bookings</div>
+                    <div class="display-6">@ViewBag.MyBookings</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="text-muted">My Tickets</div>
+                    <div class="display-6">@ViewBag.MyTickets</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 rounded-4 border-success">
+                <div class="card-body">
+                    <div class="text-muted">Upcoming Public Events</div>
+                    <div class="display-6">@ViewBag.UpcomingPublicEvents</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Upcoming Public Events -->
+    <div class="card shadow-sm rounded-4 mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Upcoming Public Events</h5>
+                <a asp-controller="EVENTs" asp-action="Index" class="btn btn-sm btn-outline-primary">View all</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Date</th>
+                            <th>Venue</th>
+                            <th>Mode</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (dynamic e in (IEnumerable<dynamic>)upcomingEvents)
+                        {
+                            <tr>
+                                <td>@e.eventID</td>
+                                <td>@e.title</td>
+                                <td>@(((DateTime)e.StartDateTime).ToString("yyyy-MM-dd HH:mm"))</td>
+                                <td>@e.venue</td>
+                                <td>@(((char)e.IsOnline) == 'Y' ? "Online" : "Physical")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart + Recent bookings -->
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5 class="mb-3">My Bookings Per Month</h5>
+                    <canvas id="bookingChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Recent Bookings</h5>
+                        <a asp-controller="BOOKINGs" asp-action="Index" class="btn btn-sm btn-outline-primary">View all</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Reference</th>
+                                    <th class="text-end">Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (dynamic b in (IEnumerable<dynamic>)myRecentBookings)
+                                {
+                                    <tr>
+                                        <td>@b.BookingID</td>
+                                        <td>@(b.BookingReference ?? "")</td>
+                                        <td class="text-end">@b.TotalAmount</td>
+                                        <td>@(b.PaymentStatus ?? b.BookingStatus)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    new Chart(document.getElementById('bookingChart'), {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(labelsJson),
+            datasets: [{
+                label: 'Bookings',
+                data: @Html.Raw(countsJson),
+                borderColor: 'blue',
+                fill: false,
+                tension: 0.3
+            }]
+        }
+    });
+</script>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartTicketingSystem.Data;
 
@@ -11,9 +12,11 @@ using SmartTicketingSystem.Data;
 namespace SmartTicketingSystem.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260219081924_FixIsOnlineNullable")]
+    partial class FixIsOnlineNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -359,14 +362,16 @@ namespace SmartTicketingSystem.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("eventID"));
 
                     b.Property<string>("AccessibilityInfo")
+                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("Agenda")
+                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<int?>("ApprovalID")
+                    b.Property<int>("ApprovalID")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
@@ -397,14 +402,17 @@ namespace SmartTicketingSystem.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("maplink")
+                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("onlineLink")
+                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("organizerInfo")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -435,10 +443,6 @@ namespace SmartTicketingSystem.Data.Migrations
                         .HasColumnType("nvarchar(30)");
 
                     b.HasKey("eventID");
-
-                    b.HasIndex("ApprovalID");
-
-                    b.HasIndex("createdByUserID");
 
                     b.ToTable("EVENT");
                 });
@@ -677,7 +681,7 @@ namespace SmartTicketingSystem.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ReviewedByUserID")
+                    b.Property<int>("ReviewedByUserID")
                         .HasColumnType("int");
 
                     b.Property<string>("VenueorMode")
@@ -708,8 +712,6 @@ namespace SmartTicketingSystem.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("requestID");
-
-                    b.HasIndex("ReviewedByUserID");
 
                     b.ToTable("PUBLIC_EVENT_REQUEST");
                 });
@@ -875,7 +877,7 @@ namespace SmartTicketingSystem.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("member_id"));
 
-                    b.Property<int?>("ApprovalID")
+                    b.Property<int>("ApprovalID")
                         .HasColumnType("int");
 
                     b.Property<string>("Email")
@@ -889,6 +891,7 @@ namespace SmartTicketingSystem.Data.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("IdentityUserId")
+                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
@@ -1021,28 +1024,6 @@ namespace SmartTicketingSystem.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("SmartTicketingSystem.Models.EVENT", b =>
-                {
-                    b.HasOne("SmartTicketingSystem.Models.EVENT_APPROVAL", null)
-                        .WithMany()
-                        .HasForeignKey("ApprovalID")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("SmartTicketingSystem.Models.USER", null)
-                        .WithMany()
-                        .HasForeignKey("createdByUserID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("SmartTicketingSystem.Models.PUBLIC_EVENT_REQUEST", b =>
-                {
-                    b.HasOne("SmartTicketingSystem.Models.USER", null)
-                        .WithMany()
-                        .HasForeignKey("ReviewedByUserID")
-                        .OnDelete(DeleteBehavior.Restrict);
                 });
 #pragma warning restore 612, 618
         }

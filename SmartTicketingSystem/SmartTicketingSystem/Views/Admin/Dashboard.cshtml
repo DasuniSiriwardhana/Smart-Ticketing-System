@@ -26,7 +26,7 @@
     <h2 class="mb-0">Admin Dashboard</h2>
 
     <div class="d-flex gap-2">
-        <a class="btn btn-outline-primary" asp-controller="EVENT_APPROVAL" asp-action="Index">Approvals</a>
+        <a class="btn btn-outline-primary" asp-controller="Admin" asp-action="Approvals">Approvals</a>
         <a class="btn btn-outline-primary" asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index">Requests</a>
         <a class="btn btn-outline-primary" asp-controller="USERs" asp-action="Index">Users</a>
         <a class="btn btn-outline-primary" asp-controller="EVENTs" asp-action="Index">Events</a>
@@ -80,7 +80,7 @@
             <div class="card-body">
                 <div class="text-muted">Pending Approvals</div>
                 <div class="display-6">@ViewBag.PendingApprovals</div>
-                <a class="btn btn-sm btn-warning mt-2" asp-controller="EVENT_APPROVAL" asp-action="Index">Review</a>
+                <a class="btn btn-sm btn-warning mt-2" asp-controller="Admin" asp-action="Approvals">Review</a>
             </div>
         </div>
     </div>

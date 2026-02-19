@@ -1,0 +1,84 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.EVENT>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Pending Approvals";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Pending Approvals</h2>
+        <a class="btn btn-outline-secondary" asp-action="Dashboard">Back</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No events waiting for approval.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Visibility</th>
+                        <th>Start</th>
+                        <th>Status</th>
+                        <th style="width:340px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@e.title</td>
+                            <td>@e.visibility</td>
+                            <td>@e.StartDateTime</td>
+                            <td><span class="badge bg-warning text-dark">@e.status</span></td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-2">
+
+                                    <a class="btn btn-outline-primary btn-sm"
+                                       asp-controller="EVENTs"
+                                       asp-action="Details"
+                                       asp-route-id="@e.eventID">
+                                        View
+                                    </a>
+
+                                    <form asp-action="ApproveEvent" method="post" class="d-flex gap-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@e.eventID" />
+                                        <input type="text" name="decisionNote" class="form-control form-control-sm"
+                                               placeholder="Note (optional)" style="width:160px;" />
+                                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                    </form>
+
+                                    <form asp-action="RejectEvent" method="post" class="d-flex gap-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@e.eventID" />
+                                        <input type="text" name="decisionNote" class="form-control form-control-sm"
+                                               placeholder="Reason (optional)" style="width:160px;" />
+                                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+</div>

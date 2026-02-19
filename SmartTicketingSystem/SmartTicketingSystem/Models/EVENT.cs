@@ -10,10 +10,10 @@ namespace SmartTicketingSystem.Models
 
         [Required]
         [StringLength(120)]
-        public string title { get; set; }
+        public string title { get; set; } = string.Empty;
 
         [StringLength(2000)]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [Required]
         [DataType(DataType.DateTime)]
@@ -24,11 +24,10 @@ namespace SmartTicketingSystem.Models
 
         [Required]
         [StringLength(150)]
-        public string venue { get; set; }
+        public string venue { get; set; } = string.Empty;
 
-        [Required]
         [RegularExpression("^[YN]$", ErrorMessage = "IsOnline must be Y or N.")]
-        public char IsOnline { get; set; }  // DB: 'Y' / 'N'
+        public char IsOnline { get; set; } = 'N';  // Default to 'N'
 
         [NotMapped]
         public bool IsOnlineBool
@@ -39,31 +38,30 @@ namespace SmartTicketingSystem.Models
 
         [Url]
         [StringLength(300)]
-        public string onlineLink { get; set; }
+        public string? onlineLink { get; set; }  // Make nullable
 
         [StringLength(300)]
-        public string AccessibilityInfo { get; set; }
+        public string? AccessibilityInfo { get; set; }  // Make nullable
 
         [Range(1, 100000)]
         public int capacity { get; set; }
 
         [Required]
         [StringLength(30)]
-        public string visibility { get; set; }
+        public string visibility { get; set; } = "University";
 
-        [Required]
         [StringLength(30)]
-        public string status { get; set; }
+        public string status { get; set; } = "PendingApproval";
 
         [StringLength(200)]
-        public string organizerInfo { get; set; }
+        public string? organizerInfo { get; set; }  // Make nullable
 
         [StringLength(2000)]
-        public string Agenda { get; set; }
+        public string? Agenda { get; set; }  // Make nullable
 
         [Url]
         [StringLength(300)]
-        public string maplink { get; set; }
+        public string? maplink { get; set; }  // Make nullable
 
         [Required]
         public int createdByUserID { get; set; }
@@ -81,9 +79,8 @@ namespace SmartTicketingSystem.Models
         [DataType(DataType.DateTime)]
         public DateTime updatedAt { get; set; }
 
-        public int ApprovalID { get; set; }
+        public int? ApprovalID { get; set; }  // CHANGE: Make nullable!
 
-        
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (IsOnlineBool)
@@ -98,7 +95,6 @@ namespace SmartTicketingSystem.Models
             }
             else
             {
-               //if the event is offline no need to fill the online link field
                 if (!string.IsNullOrWhiteSpace(onlineLink))
                 {
                     yield return new ValidationResult(

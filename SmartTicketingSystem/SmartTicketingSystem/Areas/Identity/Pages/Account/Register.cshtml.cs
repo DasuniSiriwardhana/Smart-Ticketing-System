@@ -61,15 +61,16 @@ namespace SmartTicketingSystem.Areas.Identity.Pages.Account
             [StringLength(20)]
             public string Phone { get; set; }
 
-            // IMPORTANT: This MUST match Identity role names you created:
-            // Admin, Organizer, UniversityMember, ExternalMember
+            // Must match Identity role names: Organizer, UniversityMember, ExternalMember
             [Required]
             [StringLength(30)]
             public string UserType { get; set; }
 
-            [Required]
+            // NOT required globally (required conditionally below)
             [StringLength(30)]
+            [RegularExpression(@"^E.*$", ErrorMessage = "University Number must start with 'E' (example: E12345).")]
             public string UniversityNumber { get; set; }
+
 
             [Required]
             [EmailAddress]
@@ -99,6 +100,18 @@ namespace SmartTicketingSystem.Areas.Identity.Pages.Account
             if (!ModelState.IsValid)
                 return Page();
 
+            // ✅ Conditional validation:
+            var userType = (Input.UserType ?? "").Trim();
+            bool isUniversityMember = string.Equals(userType, "UniversityMember", StringComparison.OrdinalIgnoreCase);
+            bool isOrganizer = string.Equals(userType, "Organizer", StringComparison.OrdinalIgnoreCase);
+            bool hasUniNumber = !string.IsNullOrWhiteSpace(Input.UniversityNumber);
+
+            if (isUniversityMember && !hasUniNumber)
+            {
+                ModelState.AddModelError("Input.UniversityNumber", "University Number is required for university members.");
+                return Page();
+            }
+
             // 1) Create Identity user
             var identityUser = new IdentityUser();
             await _userStore.SetUserNameAsync(identityUser, Input.Email, CancellationToken.None);
@@ -116,15 +129,43 @@ namespace SmartTicketingSystem.Areas.Identity.Pages.Account
 
             _logger.LogInformation("Identity user created.");
 
-            // 2) Insert into YOUR USER table
+            // 2) Assign Identity roles (this controls dashboards + policies)
+            if (isOrganizer)
+            {
+                // Everyone selecting Organizer gets Organizer role
+                await _userManager.AddToRoleAsync(identityUser, "Organizer");
+
+                // Organizer split:
+                // If has UniversityNumber => UniversityOrganizer (Organizer + UniversityMember)
+                // Else => ExternalOrganizer (Organizer + ExternalMember)
+                if (hasUniNumber)
+                    await _userManager.AddToRoleAsync(identityUser, "UniversityMember");
+                else
+                    await _userManager.AddToRoleAsync(identityUser, "ExternalMember");
+            }
+            else
+            {
+                // ExternalMember or UniversityMember
+                if (string.Equals(userType, "ExternalMember", StringComparison.OrdinalIgnoreCase))
+                    await _userManager.AddToRoleAsync(identityUser, "ExternalMember");
+                else if (string.Equals(userType, "UniversityMember", StringComparison.OrdinalIgnoreCase))
+                    await _userManager.AddToRoleAsync(identityUser, "UniversityMember");
+                else
+                    await _userManager.AddToRoleAsync(identityUser, "ExternalMember"); // fallback
+            }
+
+            // 3) Insert into YOUR USER table
+            // Store userType meaningfully:
+            // - Organizer stays Organizer
+            // - Member roles stay as selected
             var appUser = new USER
             {
                 IdentityUserId = identityUser.Id,
                 FullName = Input.FullName,
                 Email = Input.Email,
                 phone = Input.Phone,
-                userType = Input.UserType,
-                UniversityNumber = Input.UniversityNumber,
+                userType = userType,
+                UniversityNumber = hasUniNumber ? Input.UniversityNumber : null,
                 isverified = 'N',
                 status = "Active",
                 createdAt = DateTime.Now,
@@ -134,52 +175,7 @@ namespace SmartTicketingSystem.Areas.Identity.Pages.Account
             _context.USER.Add(appUser);
             await _context.SaveChangesAsync();
 
-            // 3) Assign Identity role (THIS FIXES AspNetUserRoles)
-            // Normalize Input.UserType to one of your Identity roles
-            string NormalizeKey(string s) => (s ?? "").Replace(" ", "").Trim().ToLower();
-
-            var key = NormalizeKey(Input.UserType);
-
-            // Map common inputs to exact Identity role names
-            string identityRole =
-                key == "admin" ? "Admin" :
-                key == "organizer" ? "Organizer" :
-                key == "universitymember" ? "UniversityMember" :
-                key == "externalmember" ? "ExternalMember" :
-                "ExternalMember"; // fallback
-
-            // IMPORTANT: roles must exist already (your seeding creates them)
-            await _userManager.AddToRoleAsync(identityUser, identityRole);
-
-            // 4) (Optional) Keep your custom USER_ROLE table in sync
-            // If your custom Role table uses different names (like "Sports Club President"),
-            // this will only match when rolename equals the selected user type.
-            var roles = await _context.Role.ToListAsync();
-
-            string Normalize(string s) => (s ?? "").Replace(" ", "").Trim().ToLower();
-            var desiredKey = Normalize(Input.UserType);
-
-            var matchedRole = roles.FirstOrDefault(r => Normalize(r.rolename) == desiredKey);
-
-            // fallback to ExternalMember (only works if your custom Role table has it)
-            if (matchedRole == null)
-            {
-                matchedRole = roles.FirstOrDefault(r => Normalize(r.rolename) == "externalmember");
-            }
-
-            if (matchedRole != null)
-            {
-                _context.USER_ROLE.Add(new USER_ROLE
-                {
-                    member_id = appUser.member_id,
-                    roleID = matchedRole.RoleId,
-                    AssignedAt = DateTime.Now
-                });
-
-                await _context.SaveChangesAsync();
-            }
-
-            // 5) Sign in directly
+            // 4) Sign in
             await _signInManager.SignInAsync(identityUser, isPersistent: false);
 
             return LocalRedirect(returnUrl);

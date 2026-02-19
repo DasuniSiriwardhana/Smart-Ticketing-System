@@ -94,7 +94,8 @@ namespace SmartTicketingSystem.Controllers
             return View();
         }
 
-        // Anyone can submit Create
+        // ===== START OF CHANGED CODE =====
+        // Anyone can submit Create - Updated to handle null values
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -108,14 +109,26 @@ namespace SmartTicketingSystem.Controllers
                 if (string.IsNullOrWhiteSpace(item.status))
                     item.status = "Pending";
 
+                // Ensure non-nullable fields have values
+                item.requestFullName = item.requestFullName ?? "";
+                item.RequestEmail = item.RequestEmail ?? "";
+                item.phoneNumber = item.phoneNumber ?? "";
+                item.eventTitle = item.eventTitle ?? "";
+                item.Description = item.Description ?? "";
+                item.VenueorMode = item.VenueorMode ?? "";
+                item.reviewedNote = item.reviewedNote ?? "";
+
                 _context.Add(item);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Create)); // or redirect to a ThankYou page if you want
+
+                TempData["Success"] = "Your public event request has been submitted successfully!";
+                return RedirectToAction("Index", "Home"); // Redirect to home page with success message
             }
             return View(item);
         }
+        // ===== END OF CHANGED CODE =====
 
-        // ✅ Only Admin/Organizer can edit (review + approve/reject)
+        // Only Admin/Organizer can edit (review + approve/reject)
         [Authorize(Policy = "AdminOrOrganizer")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -136,6 +149,15 @@ namespace SmartTicketingSystem.Controllers
 
             if (ModelState.IsValid)
             {
+                // Ensure non-nullable fields have values
+                item.requestFullName = item.requestFullName ?? "";
+                item.RequestEmail = item.RequestEmail ?? "";
+                item.phoneNumber = item.phoneNumber ?? "";
+                item.eventTitle = item.eventTitle ?? "";
+                item.Description = item.Description ?? "";
+                item.VenueorMode = item.VenueorMode ?? "";
+                item.reviewedNote = item.reviewedNote ?? "";
+
                 _context.Update(item);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

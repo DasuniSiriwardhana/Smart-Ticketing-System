@@ -31,11 +31,13 @@ namespace SmartTicketingSystem.Controllers
         }
 
         // GET: Create Payment
-        public async Task<IActionResult> Create()
+        // GET: Create Payment
+        public async Task<IActionResult> Create(int? bookingId = null)
         {
-            await PopulateDropdownsAsync();
-            return View();
+            await PopulateDropdownsAsync(bookingId);
+            return View(new PAYMENT { BookingID = bookingId ?? 0 });
         }
+
 
         // POST: Create Payment (secure + generates tickets)
         [HttpPost]
@@ -142,7 +144,7 @@ namespace SmartTicketingSystem.Controllers
             }
         }
 
-        private async Task PopulateDropdownsAsync()
+        private async Task PopulateDropdownsAsync(int? selectedBookingId = null)
         {
             var identityId = _userManager.GetUserId(User);
             var appUser = await _context.USER.FirstOrDefaultAsync(u => u.IdentityUserId == identityId);
@@ -159,7 +161,7 @@ namespace SmartTicketingSystem.Controllers
                     })
                     .ToListAsync();
 
-                ViewBag.BookingID = new SelectList(bookings, "BookingID", "Display");
+                ViewBag.BookingID = new SelectList(bookings, "BookingID", "Display", selectedBookingId);
             }
             else
             {
@@ -169,5 +171,6 @@ namespace SmartTicketingSystem.Controllers
             ViewBag.PaymentType = new SelectList(new[] { "Online", "Offline" });
             ViewBag.PaymentMethod = new SelectList(new[] { "Card", "Cash", "BankTransfer", "MobileMoney" });
         }
+
     }
 }

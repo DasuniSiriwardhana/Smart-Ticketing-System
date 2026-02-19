@@ -61,6 +61,14 @@ namespace SmartTicketingSystem.Areas.Identity.Pages.Account
             if (roles.Contains("Admin"))
                 return "/Admin/Dashboard";
 
+            // Organizer split
+            if (roles.Contains("Organizer") && roles.Contains("UniversityMember"))
+                return "/Organizer/Dashboard";
+
+            if (roles.Contains("Organizer") && roles.Contains("ExternalMember"))
+                return "/Organizer/ExternalDashboard";
+
+            // Fallback organizer 
             if (roles.Contains("Organizer"))
                 return "/Organizer/Dashboard";
 
