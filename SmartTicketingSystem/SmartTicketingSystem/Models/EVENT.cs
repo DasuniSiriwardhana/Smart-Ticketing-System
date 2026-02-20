@@ -27,7 +27,7 @@ namespace SmartTicketingSystem.Models
         public string venue { get; set; } = string.Empty;
 
         [RegularExpression("^[YN]$", ErrorMessage = "IsOnline must be Y or N.")]
-        public char IsOnline { get; set; } = 'N';  // Default to 'N'
+        public char IsOnline { get; set; } = 'N';
 
         [NotMapped]
         public bool IsOnlineBool

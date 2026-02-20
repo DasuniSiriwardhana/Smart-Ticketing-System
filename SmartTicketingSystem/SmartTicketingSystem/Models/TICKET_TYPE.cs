@@ -6,14 +6,14 @@ namespace SmartTicketingSystem.Models
     public class TICKET_TYPE
     {
         [Key]
-        public int TicketID { get; set; } // (later we can rename to TicketTypeID)
+        public int TicketID { get; set; }
 
         [Required]
         public int EventID { get; set; }
 
         [Required]
         [StringLength(60)]
-        public string TypeName { get; set; }
+        public string TypeName { get; set; } = string.Empty;
 
         [Required]
         [Range(0.00, 99999999)]
@@ -33,7 +33,7 @@ namespace SmartTicketingSystem.Models
 
         [Required]
         [RegularExpression("^[YN]$", ErrorMessage = "isActive must be Y or N.")]
-        public char isActive { get; set; } // DB: 'Y' / 'N'
+        public char isActive { get; set; } = 'Y';
 
         [NotMapped]
         public bool IsActiveBool
@@ -45,5 +45,8 @@ namespace SmartTicketingSystem.Models
         [Required]
         [DataType(DataType.DateTime)]
         public DateTime createdAt { get; set; }
+
+        // ===== ADD THIS NAVIGATION PROPERTY =====
+        public virtual ICollection<BOOKING_ITEM> BookingItems { get; set; } = new List<BOOKING_ITEM>();
     }
 }

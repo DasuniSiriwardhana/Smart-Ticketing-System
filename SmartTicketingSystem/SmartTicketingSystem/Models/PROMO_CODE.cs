@@ -9,31 +9,31 @@ namespace SmartTicketingSystem.Models
         public int PromoCodeID { get; set; }
 
         [Required]
-        [StringLength(30)]
-        public string code { get; set; }
+        [StringLength(50)]
+        public string code { get; set; } = string.Empty;
 
         [Required]
         [StringLength(20)]
-        public string DiscountType { get; set; } 
+        public string DiscountType { get; set; } = string.Empty; // "Percentage" or "Fixed"
 
         [Required]
-        [Range(0.01, 999999)]
-        [Column(TypeName = "decimal(18,2)")]
+        [Range(0, 100)]
         public decimal DiscountValue { get; set; }
 
         [Required]
-        [DataType(DataType.Date)]
         public DateTime startDate { get; set; }
 
         [Required]
-        [DataType(DataType.Date)]
         public DateTime endDate { get; set; }
 
-        // setting checkboxes for this 
         [Required]
         [RegularExpression("^[YN]$", ErrorMessage = "isActive must be Y or N.")]
-        public char isActive { get; set; } 
+        public char isActive { get; set; } = 'Y'; // DB stores 'Y' or 'N'
 
+        [Required]
+        public DateTime createdAt { get; set; }
+
+        // ===== ADD THIS NOTMAPPED PROPERTY FOR BOOLEAN USE =====
         [NotMapped]
         public bool IsActiveBool
         {
@@ -41,8 +41,7 @@ namespace SmartTicketingSystem.Models
             set => isActive = value ? 'Y' : 'N';
         }
 
-        [Required]
-        [DataType(DataType.DateTime)]
-        public DateTime createdAt { get; set; }
+        // Navigation Properties
+        public virtual ICollection<BOOKING_PROMO> BookingPromos { get; set; } = new List<BOOKING_PROMO>();
     }
 }

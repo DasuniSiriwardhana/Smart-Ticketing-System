@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTicketingSystem.Models
 {
@@ -11,5 +12,11 @@ namespace SmartTicketingSystem.Models
         public decimal DiscountedAmount { get; set; }
         public DateTime AppliedAt { get; set; }
 
+        // ===== ADD THESE NAVIGATION PROPERTIES =====
+        [ForeignKey("BookingID")]
+        public virtual BOOKING? Booking { get; set; }
+
+        [ForeignKey("BookingCodeID")]
+        public virtual PROMO_CODE? PromoCode { get; set; }
     }
 }

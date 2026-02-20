@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTicketingSystem.Models
 {
@@ -11,19 +12,20 @@ namespace SmartTicketingSystem.Models
         public int BookingID { get; set; }
 
         [Required]
-        [StringLength(20)]
-        public string PaymentType { get; set; }   
-
-        [Required]
         [StringLength(30)]
-        public string PaymentMethod { get; set; } 
+        public string PaymentMethod { get; set; } = string.Empty;
 
         [StringLength(100)]
-        public string TransactionReference { get; set; }
+        public string? TransactionReference { get; set; }
 
         [Range(0, 999999999)]
         public decimal Amount { get; set; }
 
+        [Required]
         public DateTime PaidAt { get; set; }
+
+        // Navigation Property - MUST use BookingID, NOT BookingID1
+        [ForeignKey("BookingID")]
+        public virtual BOOKING? Booking { get; set; }
     }
 }
