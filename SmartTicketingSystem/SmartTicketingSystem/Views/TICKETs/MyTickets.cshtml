@@ -1,0 +1,206 @@
+﻿@model SmartTicketingSystem.Models.ViewModels.MyTicketsVM
+@{
+    ViewData["Title"] = "My Tickets";
+    var returnUrl = Context.Request.Headers["Referer"].ToString();
+}
+
+<div class="container py-4">
+    <!-- Header with Back Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="@(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl)" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <div>
+                <h2 class="mb-1"><i class="fas fa-qrcode"></i> My Tickets</h2>
+                <p class="text-muted">View all your purchased tickets with QR codes</p>
+            </div>
+        </div>
+        <div>
+            <a asp-controller="EVENTs" asp-action="Index" class="btn btn-outline-primary">
+                <i class="fas fa-calendar-alt"></i> Browse Events
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Total Tickets</h6>
+                            <h2 class="mb-0">@Model.Stats.TotalTickets</h2>
+                        </div>
+                        <i class="fas fa-ticket-alt fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Upcoming Events</h6>
+                            <h2 class="mb-0">@Model.Stats.UpcomingEvents</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Past Events</h6>
+                            <h2 class="mb-0">@Model.Stats.PastEvents</h2>
+                        </div>
+                        <i class="fas fa-history fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.UpcomingTickets.Any() && !Model.PastTickets.Any())
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
+                <h4>No Tickets Found</h4>
+                <p class="text-muted">You haven't purchased any tickets yet.</p>
+                <a asp-controller="EVENTs" asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-calendar-alt"></i> Browse Events
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Upcoming Events Tickets -->
+        @if (Model.UpcomingTickets.Any())
+        {
+            <h3 class="mb-3"><i class="fas fa-calendar-alt text-success"></i> Upcoming Events</h3>
+            <div class="row g-4 mb-5">
+                @foreach (var group in Model.UpcomingTickets)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm ticket-group">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">@group.EventTitle</h5>
+                                <small>@group.EventDate.ToString("MMMM dd, yyyy - h:mm tt")</small>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2">
+                                    <i class="fas fa-map-marker-alt"></i> @group.EventVenue<br />
+                                    <i class="fas fa-ticket-alt"></i> @group.Tickets.Count tickets
+                                </p>
+
+                                <hr />
+
+                                <div class="row g-2">
+                                    @foreach (var ticket in group.Tickets)
+                                    {
+                                        <div class="col-6">
+                                            <div class="ticket-card text-center p-2 border rounded">
+                                                <img src="@Url.Action("Qr", "TICKETs", new { id = ticket.TicketId })"
+                                                     alt="QR Code"
+                                                     class="img-fluid mb-2"
+                                                     style="width: 120px; height: 120px;" />
+                                                <small class="d-block text-muted">Ticket #@ticket.TicketId</small>
+                                                <a href="@Url.Action("Download", "TICKETs", new { id = ticket.TicketId })"
+                                                   class="btn btn-sm btn-outline-primary mt-1">
+                                                    <i class="fas fa-download"></i> Download
+                                                </a>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Past Events Tickets -->
+        @if (Model.PastTickets.Any())
+        {
+            <h3 class="mb-3"><i class="fas fa-history text-secondary"></i> Past Events</h3>
+            <div class="row g-4">
+                @foreach (var group in Model.PastTickets)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm ticket-group opacity-75">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">@group.EventTitle</h5>
+                                <small>@group.EventDate.ToString("MMMM dd, yyyy")</small>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2">
+                                    <i class="fas fa-map-marker-alt"></i> @group.EventVenue<br />
+                                    <i class="fas fa-ticket-alt"></i> @group.Tickets.Count tickets
+                                </p>
+
+                                <hr />
+
+                                <div class="text-center">
+                                    <i class="fas fa-check-circle text-success fa-2x"></i>
+                                    <p class="mb-0">Event Completed</p>
+                                    <small class="text-muted">Tickets are for reference only</small>
+                                </div>
+
+                                <div class="text-center mt-2">
+                                    <a href="@Url.Action("Qr", "TICKETs", new { id = group.Tickets.First().TicketId })"
+                                       target="_blank" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-eye"></i> View Ticket
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+    <!-- Bottom Navigation -->
+    <div class="mt-4 d-flex justify-content-center gap-3">
+        <a href="javascript:history.back()" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Go Back
+        </a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-home"></i> Home
+        </a>
+    </div>
+</div>
+
+<style>
+    .ticket-group {
+        transition: transform 0.2s;
+    }
+
+        .ticket-group:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+
+    .ticket-card {
+        background: white;
+        transition: all 0.3s;
+    }
+
+        .ticket-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+    .opacity-50 {
+        opacity: 0.7;
+    }
+</style>
