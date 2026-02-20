@@ -1,0 +1,151 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.BOOKING>
+@{
+    ViewData["Title"] = "My Bookings";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-ticket-alt"></i> My Bookings</h2>
+        <a asp-controller="EVENTs" asp-action="Index" class="btn btn-primary">
+            <i class="fas fa-calendar-alt"></i> Browse Events
+        </a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
+                <h4>No Bookings Found</h4>
+                <p class="text-muted">You haven't made any bookings yet.</p>
+                <a asp-controller="EVENTs" asp-action="Index" class="btn btn-primary">
+                    Browse Events
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var booking in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm booking-card">
+                        <div class="card-header d-flex justify-content-between align-items-center
+                            @(booking.PaymentStatus == "Paid" ? "bg-success text-white" :
+                              booking.BookingStatus == "Cancelled" ? "bg-danger text-white" :
+                              "bg-warning")">
+                            <span class="fw-bold">@booking.BookingReference</span>
+                            <span class="badge bg-light text-dark">@booking.BookingStatus</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">@booking.Event?.title</h5>
+                            <p class="card-text">
+                                <i class="fas fa-calendar"></i> @booking.Event?.StartDateTime.ToString("MMM dd, yyyy - h:mm tt")<br />
+                                <i class="fas fa-map-marker-alt"></i> @booking.Event?.venue<br />
+                                <i class="fas fa-ticket-alt"></i> @booking.BookingItems?.Sum(bi => bi.Quantity) tickets
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">Rs. @booking.TotalAmount.ToString("N2")</h5>
+                                <span class="badge bg-@(booking.PaymentStatus == "Paid" ? "success" : "danger")">
+                                    @booking.PaymentStatus
+                                </span>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <a asp-action="Details" asp-route-id="@booking.BookingID"
+                                   class="btn btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+
+                                @if (booking.PaymentStatus != "Paid" && booking.BookingStatus != "Cancelled")
+                                {
+                                    <a asp-controller="PAYMENTs" asp-action="Create"
+                                       asp-route-bookingId="@booking.BookingID"
+                                       class="btn btn-success">
+                                        <i class="fas fa-credit-card"></i> Pay Now
+                                    </a>
+                                }
+
+                                @if (booking.PaymentStatus == "Paid" && booking.BookingStatus != "Cancelled")
+                                {
+                                    <a asp-action="Tickets" asp-route-id="@booking.BookingID"
+                                       class="btn btn-outline-info">
+                                        <i class="fas fa-qrcode"></i> View Tickets
+                                    </a>
+                                }
+
+                                @if (booking.BookingStatus != "Cancelled" && booking.PaymentStatus != "Paid")
+                                {
+                                    <button type="button" class="btn btn-outline-danger"
+                                            onclick="showCancelModal(@booking.BookingID, '@booking.BookingReference')">
+                                        <i class="fas fa-times"></i> Cancel Booking
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            Booked on: @booking.BookingDateTime.ToString("MMM dd, yyyy")
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Cancel Booking</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Cancel" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="cancelBookingId" />
+                <div class="modal-body">
+                    <p>Are you sure you want to cancel booking <strong id="cancelBookingRef"></strong>?</p>
+                    <div class="mb-3">
+                        <label class="form-label">Reason (optional)</label>
+                        <textarea name="cancellationReason" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showCancelModal(bookingId, bookingRef) {
+            $('#cancelBookingId').val(bookingId);
+            $('#cancelBookingRef').text(bookingRef);
+            $('#cancelModal').modal('show');
+        }
+    </script>
+}
+
+<style>
+    .booking-card {
+        transition: transform 0.2s;
+    }
+
+        .booking-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+</style>

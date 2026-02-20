@@ -1,0 +1,213 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.BOOKING>
+@{
+    ViewData["Title"] = "All Bookings - Admin";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-ticket-alt"></i> All Bookings (Admin View)</h2>
+        <a asp-action="MyBookings" class="btn btn-outline-primary">
+            <i class="fas fa-user"></i> My Personal Bookings
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50">Total Bookings</h6>
+                    <h3>@Model.Count()</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50">Paid Bookings</h6>
+                    <h3>@Model.Count(b => b.PaymentStatus == "Paid")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50">Pending Payments</h6>
+                    <h3>@Model.Count(b => b.PaymentStatus == "Unpaid")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50">Total Revenue</h6>
+                    <h3>Rs. @Model.Where(b => b.PaymentStatus == "Paid").Sum(b => b.TotalAmount).ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search/Filter Bar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="searchRef" class="form-control" placeholder="Search by Reference"
+                           value="@Context.Request.Query["searchRef"]" />
+                </div>
+                <div class="col-md-2">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="PendingPayment">Pending Payment</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="payment" class="form-select">
+                        <option value="">All Payments</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a asp-action="Index" class="btn btn-secondary w-100">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bookings Table - READ ONLY -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Reference</th>
+                            <th>User</th>
+                            <th>Event</th>
+                            <th>Booking Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.BookingID</td>
+                                <td class="fw-bold">@item.BookingReference</td>
+                                <td>@(item.User?.Email ?? "N/A")</td>
+                                <td>@(item.Event?.title ?? "N/A")</td>
+                                <td>@item.BookingDateTime.ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>Rs. @item.TotalAmount.ToString("N2")</td>
+                                <td>
+                                    @if (item.BookingStatus == "Confirmed")
+                                    {
+                                        <span class="badge bg-success">@item.BookingStatus</span>
+                                    }
+                                    else if (item.BookingStatus == "Cancelled")
+                                    {
+                                        <span class="badge bg-danger">@item.BookingStatus</span>
+                                    }
+                                    else if (item.BookingStatus == "PendingPayment")
+                                    {
+                                        <span class="badge bg-warning">@item.BookingStatus</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@item.BookingStatus</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.PaymentStatus == "Paid")
+                                    {
+                                        <span class="badge bg-success">Paid</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Unpaid</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@item.BookingID"
+                                       class="btn btn-sm btn-info" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if (item.PaymentStatus == "Paid")
+                                    {
+                                        <a asp-action="Tickets" asp-route-id="@item.BookingID"
+                                           class="btn btn-sm btn-success" title="View Tickets">
+                                            <i class="fas fa-qrcode"></i>
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options (Optional) -->
+    <div class="mt-3">
+        <button class="btn btn-outline-secondary" onclick="exportToExcel()">
+            <i class="fas fa-file-excel"></i> Export to Excel
+        </button>
+        <button class="btn btn-outline-secondary" onclick="printTable()">
+            <i class="fas fa-print"></i> Print
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Preserve filter values on page load
+        $(document).ready(function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            $('#status').val(urlParams.get('status') || '');
+            $('#payment').val(urlParams.get('payment') || '');
+        });
+
+        // Simple export to Excel (just for demo)
+        function exportToExcel() {
+            alert('Export functionality would be implemented here');
+        }
+
+        // Print table
+        function printTable() {
+            window.print();
+        }
+    </script>
+}
+
+<style media="print">
+    .btn, form, .card-header, .export-buttons {
+        display: none !important;
+    }
+
+    .table {
+        width: 100% !important;
+    }
+</style>
