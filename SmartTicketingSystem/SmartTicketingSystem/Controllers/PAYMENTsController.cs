@@ -23,127 +23,153 @@ namespace SmartTicketingSystem.Controllers
             _userManager = userManager;
         }
 
-        // Admin only
+        // =========================
+        // INDEX - Admin only
+        // =========================
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Index()
         {
             return View(await _context.PAYMENT.ToListAsync());
         }
 
-        // GET: Create Payment
-        // GET: Create Payment
+        // =========================
+        // CREATE (GET)
+        // =========================
         public async Task<IActionResult> Create(int? bookingId = null)
         {
             await PopulateDropdownsAsync(bookingId);
+
+            // Get booking details to display
+            if (bookingId.HasValue)
+            {
+                var identityId = _userManager.GetUserId(User);
+                var appUser = await _context.USER.FirstOrDefaultAsync(u => u.IdentityUserId == identityId);
+
+                if (appUser != null)
+                {
+                    var booking = await _context.BOOKING
+                        .FirstOrDefaultAsync(b => b.BookingID == bookingId && b.member_id == appUser.member_id);
+
+                    ViewBag.Booking = booking;
+                }
+            }
+
             return View(new PAYMENT { BookingID = bookingId ?? 0 });
         }
 
-
-        // POST: Create Payment (secure + generates tickets)
+        // =========================
+        // CREATE (POST) 
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("BookingID,PaymentType,PaymentMethod,TransactionReference")] PAYMENT payment)
+        public async Task<IActionResult> Create([Bind("BookingID,PaymentMethod,TransactionReference")] PAYMENT payment)
         {
-            // 1) Find current app user
-            var identityId = _userManager.GetUserId(User);
-            var appUser = await _context.USER.FirstOrDefaultAsync(u => u.IdentityUserId == identityId);
-            if (appUser == null)
-            {
-                ModelState.AddModelError("", "Cannot find your profile. Please contact admin.");
-                await PopulateDropdownsAsync();
-                return View(payment);
-            }
-
-            // 2) Ensure booking belongs to this member
-            var booking = await _context.BOOKING
-                .FirstOrDefaultAsync(b => b.BookingID == payment.BookingID && b.member_id == appUser.member_id);
-
-            if (booking == null)
-            {
-                ModelState.AddModelError("BookingID", "Invalid booking (not found or not yours).");
-                await PopulateDropdownsAsync();
-                return View(payment);
-            }
-
-            // 3) Prevent double payment
-            var alreadyPaid = await _context.PAYMENT.AnyAsync(p => p.BookingID == booking.BookingID);
-            if (alreadyPaid || string.Equals(booking.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase))
-            {
-                ModelState.AddModelError("", "This booking is already paid.");
-                await PopulateDropdownsAsync();
-                return View(payment);
-            }
-
-            // 4) Server-side payment values
-            payment.Amount = booking.TotalAmount;
-            payment.PaidAt = DateTime.Now;
-
-            if (string.IsNullOrWhiteSpace(payment.TransactionReference))
-            {
-                payment.TransactionReference = $"TXN-{Guid.NewGuid():N}".Substring(0, 14).ToUpper();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                await PopulateDropdownsAsync();
-                return View(payment);
-            }
-
-            //  Use a transaction so payment + tickets succeed together
-            using var tx = await _context.Database.BeginTransactionAsync();
-
             try
             {
-                // 5) Save payment
-                _context.PAYMENT.Add(payment);
-
-                // 6) Update booking status
-                booking.PaymentStatus = "Paid";
-                booking.BookingStatus = string.IsNullOrWhiteSpace(booking.BookingStatus) ? "Confirmed" : booking.BookingStatus;
-
-                _context.BOOKING.Update(booking);
-                await _context.SaveChangesAsync();
-
-                // 7) Create Ticket(s)
-                // If you want ONE ticket per booking, set ticketCount = 1
-                // If you want ONE ticket per seat, use BOOKING_ITEM quantity (recommended).
-                var ticketCount = await _context.BOOKING_ITEM
-                    .Where(bi => bi.BookingID == booking.BookingID)
-                    .SumAsync(bi => (int?)bi.Quantity) ?? 1;
-
-                for (int i = 0; i < ticketCount; i++)
+                var identityId = _userManager.GetUserId(User);
+                var appUser = await _context.USER.FirstOrDefaultAsync(u => u.IdentityUserId == identityId);
+                if (appUser == null)
                 {
-                    var qrValue = $"BOOK-{booking.BookingID}-MEM-{booking.member_id}-T-{Guid.NewGuid():N}";
-
-                    _context.TICKET.Add(new TICKET
-                    {
-                        BookingID = booking.BookingID,
-                        QRcodevalue = qrValue,
-                        issuedAt = DateTime.Now
-                    });
+                    ModelState.AddModelError("", "Cannot find your profile.");
+                    await PopulateDropdownsAsync(payment.BookingID);
+                    return View(payment);
                 }
 
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
+                var booking = await _context.BOOKING
+                    .Include(b => b.BookingItems)
+                    .FirstOrDefaultAsync(b => b.BookingID == payment.BookingID && b.member_id == appUser.member_id);
 
-                // 8) Redirect with success message
-                TempData["Success"] = "Payment successful! Your ticket QR code(s) have been generated.";
+                if (booking == null)
+                {
+                    ModelState.AddModelError("BookingID", "Invalid booking.");
+                    await PopulateDropdownsAsync(payment.BookingID);
+                    return View(payment);
+                }
 
-                // Option A: Redirect to booking details
-                return RedirectToAction("Details", "BOOKINGs", new { id = booking.BookingID });
+                if (booking.PaymentStatus == "Paid")
+                {
+                    ModelState.AddModelError("", "This booking is already paid.");
+                    await PopulateDropdownsAsync(payment.BookingID);
+                    return View(payment);
+                }
 
-                // Option B (if you prefer): Redirect to tickets list
-                // return RedirectToAction("Index", "TICKETs");
+                // Set payment details - DO NOT set Booking navigation property
+                payment.Amount = booking.TotalAmount;
+                payment.PaidAt = DateTime.Now;
+
+                if (string.IsNullOrWhiteSpace(payment.TransactionReference))
+                {
+                    payment.TransactionReference = $"TXN-{Guid.NewGuid():N}".Substring(0, 14).ToUpper();
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    await PopulateDropdownsAsync(payment.BookingID);
+                    return View(payment);
+                }
+
+                using var tx = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    // Save payment - ONLY the scalar properties, not navigation
+                    _context.PAYMENT.Add(payment);
+                    await _context.SaveChangesAsync();
+
+                    // Update booking
+                    booking.PaymentStatus = "Paid";
+                    booking.BookingStatus = "Confirmed";
+                    _context.BOOKING.Update(booking);
+                    await _context.SaveChangesAsync();
+
+                    // Generate tickets
+                    var bookingItems = await _context.BOOKING_ITEM
+                        .Where(bi => bi.BookingID == booking.BookingID)
+                        .ToListAsync();
+
+                    foreach (var item in bookingItems)
+                    {
+                        for (int i = 0; i < item.Quantity; i++)
+                        {
+                            _context.TICKET.Add(new TICKET
+                            {
+                                BookingID = booking.BookingID,  // Only set the FK, not navigation
+                                QRcodevalue = $"TICKET-{booking.BookingReference}-{Guid.NewGuid():N}",
+                                issuedAt = DateTime.Now
+                            });
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await tx.CommitAsync();
+
+                    TempData["Success"] = "Payment successful! Your tickets have been generated.";
+                    return RedirectToAction("Details", "BOOKINGs", new { id = booking.BookingID });
+                }
+                catch (Exception ex)
+                {
+                    await tx.RollbackAsync();
+
+                    var errorMessage = ex.Message;
+                    if (ex.InnerException != null)
+                        errorMessage += " | INNER: " + ex.InnerException.Message;
+
+                    ModelState.AddModelError("", $"Payment failed: {errorMessage}");
+                    await PopulateDropdownsAsync(payment.BookingID);
+                    return View(payment);
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                await tx.RollbackAsync();
-                ModelState.AddModelError("", "Payment failed. Please try again.");
-                await PopulateDropdownsAsync();
+                ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+                await PopulateDropdownsAsync(payment.BookingID);
                 return View(payment);
             }
         }
 
+
+        // =========================
+        // Populate Dropdowns Helper
+        // =========================
         private async Task PopulateDropdownsAsync(int? selectedBookingId = null)
         {
             var identityId = _userManager.GetUserId(User);
@@ -152,12 +178,12 @@ namespace SmartTicketingSystem.Controllers
             if (appUser != null)
             {
                 var bookings = await _context.BOOKING
-                    .Where(b => b.member_id == appUser.member_id && (b.PaymentStatus == null || b.PaymentStatus != "Paid"))
+                    .Where(b => b.member_id == appUser.member_id && b.PaymentStatus != "Paid")
                     .OrderByDescending(b => b.BookingDateTime)
                     .Select(b => new
                     {
                         b.BookingID,
-                        Display = "Booking #" + b.BookingID + " | " + (b.BookingReference ?? "") + " | Rs " + b.TotalAmount
+                        Display = $"Booking #{b.BookingID} | {b.BookingReference} | Rs. {b.TotalAmount:N2}"
                     })
                     .ToListAsync();
 
@@ -168,9 +194,12 @@ namespace SmartTicketingSystem.Controllers
                 ViewBag.BookingID = new SelectList(Enumerable.Empty<SelectListItem>());
             }
 
-            ViewBag.PaymentType = new SelectList(new[] { "Online", "Offline" });
-            ViewBag.PaymentMethod = new SelectList(new[] { "Card", "Cash", "BankTransfer", "MobileMoney" });
+            ViewBag.PaymentMethod = new SelectList(new[] {
+                "Card",
+                "Cash",
+                "BankTransfer",
+                "MobileMoney"
+            });
         }
-
     }
 }
