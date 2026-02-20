@@ -1,0 +1,184 @@
+﻿@model SmartTicketingSystem.Models.TICKET_TYPE
+@{
+    ViewData["Title"] = "Add Ticket Type";
+    var ev = ViewBag.Event as SmartTicketingSystem.Models.EVENT;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-ticket-alt"></i> Add Ticket Type for "@ev?.title"
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateForEvent" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <input type="hidden" asp-for="EventID" value="@ev?.eventID" />
+
+                        <div class="mb-3">
+                            <label asp-for="TypeName" class="form-label fw-bold">Ticket Type Name</label>
+                            <input asp-for="TypeName" class="form-control"
+                                   placeholder="e.g., VIP, General, Student, Early Bird, Senior Citizen" />
+                            <span asp-validation-for="TypeName" class="text-danger"></span>
+                            <small class="text-muted">Choose a descriptive name for this ticket type</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Price" class="form-label fw-bold">Price (Rs.)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rs.</span>
+                                        <input asp-for="Price" class="form-control" type="number"
+                                               step="0.01" min="0" value="0" />
+                                    </div>
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                    <small class="text-muted">Enter 0 for free tickets</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="seatLimit" class="form-label fw-bold">Number of Seats</label>
+                                    <input asp-for="seatLimit" class="form-control" type="number"
+                                           min="1" value="100" />
+                                    <span asp-validation-for="seatLimit" class="text-danger"></span>
+                                    <small class="text-muted">Total number of tickets available</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="salesStartAt" class="form-label fw-bold">Sales Start Date</label>
+                                    <input asp-for="salesStartAt" class="form-control" type="datetime-local" />
+                                    <span asp-validation-for="salesStartAt" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="salesEndAt" class="form-label fw-bold">Sales End Date</label>
+                                    <input asp-for="salesEndAt" class="form-control" type="datetime-local" />
+                                    <span asp-validation-for="salesEndAt" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Sales Period:</strong> Tickets will be available for purchase between
+                            the start and end dates you set above.
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create Ticket Type
+                            </button>
+                            <a asp-action="Tickets" asp-controller="Organizer" asp-route-eventId="@ev?.eventID"
+                               class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Examples of different ticket types -->
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Example Ticket Types</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Price (Rs.)</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>General Admission</td>
+                                <td>500.00 - 1000.00</td>
+                                <td>Regular entry ticket</td>
+                            </tr>
+                            <tr>
+                                <td>VIP</td>
+                                <td>1500.00 - 2500.00</td>
+                                <td>Premium access with benefits</td>
+                            </tr>
+                            <tr>
+                                <td>Student</td>
+                                <td>300.00 - 500.00</td>
+                                <td>Discounted for students (verify at door)</td>
+                            </tr>
+                            <tr>
+                                <td>Early Bird</td>
+                                <td>400.00 - 600.00</td>
+                                <td>Discounted for early purchase</td>
+                            </tr>
+                            <tr>
+                                <td>Group (4 people)</td>
+                                <td>1800.00 - 2200.00</td>
+                                <td>Special price for groups</td>
+                            </tr>
+                            <tr>
+                                <td>Senior Citizen</td>
+                                <td>250.00 - 350.00</td>
+                                <td>Discounted for seniors</td>
+                            </tr>
+                            <tr>
+                                <td>Free Entry</td>
+                                <td>0.00</td>
+                                <td>Complimentary tickets</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            // Set default dates if not set
+            if (!$('#salesStartAt').val()) {
+                var now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                $('#salesStartAt').val(now.toISOString().slice(0, 16));
+            }
+
+            if (!$('#salesEndAt').val()) {
+                var end = new Date();
+                end.setMonth(end.getMonth() + 1);
+                end.setMinutes(end.getMinutes() - end.getTimezoneOffset());
+                $('#salesEndAt').val(end.toISOString().slice(0, 16));
+            }
+
+            // Validate end date after start date
+            $('#salesEndAt').change(function() {
+                var start = new Date($('#salesStartAt').val());
+                var end = new Date($(this).val());
+
+                if (end <= start) {
+                    alert('End date must be after start date');
+                    var newEnd = new Date(start);
+                    newEnd.setDate(newEnd.getDate() + 1);
+                    newEnd.setMinutes(newEnd.getMinutes() - newEnd.getTimezoneOffset());
+                    $(this).val(newEnd.toISOString().slice(0, 16));
+                }
+            });
+        });
+    </script>
+}
