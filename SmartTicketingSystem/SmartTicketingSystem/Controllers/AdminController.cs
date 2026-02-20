@@ -28,7 +28,9 @@ public class AdminController : Controller
         return await _context.USER.FirstOrDefaultAsync(u => u.IdentityUserId == identityId);
     }
 
-    //  Dashboard
+    // =========================
+    // DASHBOARD
+    // =========================
     public IActionResult Dashboard()
     {
         ViewBag.TotalUsers = _context.USER.Count();
@@ -73,27 +75,49 @@ public class AdminController : Controller
 
         // Latest tables
         ViewData["LatestBookings"] = _context.BOOKING
+            .Include(b => b.Event)
+            .Include(b => b.User)
             .OrderByDescending(b => b.BookingDateTime)
-            .Select(b => new { b.BookingID, b.BookingReference, b.TotalAmount })
+            .Select(b => new {
+                b.BookingID,
+                b.BookingReference,
+                b.TotalAmount,
+                EventTitle = b.Event != null ? b.Event.title : "N/A",
+                UserEmail = b.User != null ? b.User.Email : "N/A"
+            })
             .Take(5)
             .ToList();
 
         ViewData["LatestPayments"] = _context.PAYMENT
+            .Include(p => p.Booking)
             .OrderByDescending(p => p.PaidAt)
-            .Select(p => new { p.PaymentID, p.BookingID, p.Amount })
+            .Select(p => new {
+                p.PaymentID,
+                p.BookingID,
+                p.Amount,
+                BookingRef = p.Booking != null ? p.Booking.BookingReference : "N/A"
+            })
             .Take(5)
             .ToList();
 
         ViewData["LatestRequests"] = _context.PUBLIC_EVENT_REQUEST
             .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new { r.requestID, r.requestFullName, r.eventTitle, r.status, r.CreatedAt })
+            .Select(r => new {
+                r.requestID,
+                r.requestFullName,
+                r.eventTitle,
+                r.status,
+                r.CreatedAt
+            })
             .Take(5)
             .ToList();
 
         return View();
     }
 
-    // Approvals list page
+    // =========================
+    // APPROVALS LIST
+    // =========================
     public async Task<IActionResult> Approvals()
     {
         var pending = await _context.EVENT
@@ -104,7 +128,9 @@ public class AdminController : Controller
         return View(pending);
     }
 
-    // Approve Event
+    // =========================
+    // APPROVE EVENT
+    // =========================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApproveEvent(int id, string decisionNote)
@@ -128,7 +154,6 @@ public class AdminController : Controller
         using var tx = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 1) Insert approval record
             var approval = new EVENT_APPROVAL
             {
                 EventID = ev.eventID,
@@ -142,25 +167,21 @@ public class AdminController : Controller
             _context.EVENT_APPROVAL.Add(approval);
             await _context.SaveChangesAsync();
 
-            // 2) Update event
             ev.status = "Published";
             ev.updatedAt = DateTime.Now;
             ev.ApprovalID = approval.ApprovalID;
 
-            // 3) If this was a public event, find and update the linked request record
             if (!string.IsNullOrWhiteSpace(ev.visibility) &&
                 ev.visibility.Equals("Public", StringComparison.OrdinalIgnoreCase))
             {
                 PUBLIC_EVENT_REQUEST? linked = null;
 
-                // Strategy 1: Look for exact EVENT_ID in reviewedNote
                 linked = await _context.PUBLIC_EVENT_REQUEST
                     .Where(r => r.reviewedNote != null &&
                                r.reviewedNote.Contains($"EVENT_ID:{ev.eventID}"))
                     .OrderByDescending(r => r.CreatedAt)
                     .FirstOrDefaultAsync();
 
-                // Strategy 2: Look for the old format
                 if (linked == null)
                 {
                     linked = await _context.PUBLIC_EVENT_REQUEST
@@ -193,7 +214,6 @@ public class AdminController : Controller
 
             _context.EVENT.Update(ev);
             await _context.SaveChangesAsync();
-
             await tx.CommitAsync();
 
             TempData["Success"] = "Event approved and published.";
@@ -207,7 +227,9 @@ public class AdminController : Controller
         }
     }
 
-    // Reject Event - FIXED with all return paths
+    // =========================
+    // REJECT EVENT
+    // =========================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RejectEvent(int id, string decisionNote)
@@ -231,7 +253,6 @@ public class AdminController : Controller
         using var tx = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 1) Insert approval record
             var approval = new EVENT_APPROVAL
             {
                 EventID = ev.eventID,
@@ -245,25 +266,21 @@ public class AdminController : Controller
             _context.EVENT_APPROVAL.Add(approval);
             await _context.SaveChangesAsync();
 
-            // 2) Update event
             ev.status = "Rejected";
             ev.updatedAt = DateTime.Now;
             ev.ApprovalID = approval.ApprovalID;
 
-            // 3) If this was a public event, find and update the linked request record
             if (!string.IsNullOrWhiteSpace(ev.visibility) &&
                 ev.visibility.Equals("Public", StringComparison.OrdinalIgnoreCase))
             {
                 PUBLIC_EVENT_REQUEST? linked = null;
 
-                // Strategy 1: Look for exact EVENT_ID in reviewedNote
                 linked = await _context.PUBLIC_EVENT_REQUEST
                     .Where(r => r.reviewedNote != null &&
                                r.reviewedNote.Contains($"EVENT_ID:{ev.eventID}"))
                     .OrderByDescending(r => r.CreatedAt)
                     .FirstOrDefaultAsync();
 
-                // Strategy 2: Look for the old format
                 if (linked == null)
                 {
                     linked = await _context.PUBLIC_EVENT_REQUEST
@@ -296,7 +313,6 @@ public class AdminController : Controller
 
             _context.EVENT.Update(ev);
             await _context.SaveChangesAsync();
-
             await tx.CommitAsync();
 
             TempData["Success"] = "Event rejected.";
@@ -307,6 +323,50 @@ public class AdminController : Controller
             await tx.RollbackAsync();
             TempData["Error"] = $"Reject failed: {ex.Message}";
             return RedirectToAction(nameof(Approvals));
+        }
+    }
+
+    // =========================
+    // BOOKINGS - Admin view all bookings (READ ONLY)
+    // =========================
+    public async Task<IActionResult> Bookings(string searchRef, string status, string payment)
+    {
+        try
+        {
+            var query = _context.BOOKING
+                .Include(b => b.Event)
+                .Include(b => b.User)
+                .Include(b => b.BookingItems)
+                    .ThenInclude(bi => bi.TicketType)
+                .Include(b => b.Payments)
+                .AsQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(searchRef))
+                query = query.Where(b => b.BookingReference.Contains(searchRef));
+
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(b => b.BookingStatus == status);
+
+            if (!string.IsNullOrEmpty(payment))
+                query = query.Where(b => b.PaymentStatus == payment);
+
+            var bookings = await query
+                .OrderByDescending(b => b.BookingDateTime)
+                .ToListAsync();
+
+            // Calculate summary stats
+            ViewBag.TotalBookings = bookings.Count;
+            ViewBag.PaidBookings = bookings.Count(b => b.PaymentStatus == "Paid");
+            ViewBag.UnpaidBookings = bookings.Count(b => b.PaymentStatus == "Unpaid");
+            ViewBag.TotalRevenue = bookings.Where(b => b.PaymentStatus == "Paid").Sum(b => b.TotalAmount);
+
+            return View(bookings);
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = $"Error loading bookings: {ex.Message}";
+            return View(new List<BOOKING>());
         }
     }
 }

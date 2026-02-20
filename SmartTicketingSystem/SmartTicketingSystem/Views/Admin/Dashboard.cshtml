@@ -27,6 +27,7 @@
 
     <div class="d-flex gap-2">
         <a class="btn btn-outline-primary" asp-controller="Admin" asp-action="Approvals">Approvals</a>
+        <a class="btn btn-outline-primary" asp-controller="Admin" asp-action="Bookings">Bookings</a>
         <a class="btn btn-outline-primary" asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index">Requests</a>
         <a class="btn btn-outline-primary" asp-controller="USERs" asp-action="Index">Users</a>
         <a class="btn btn-outline-primary" asp-controller="EVENTs" asp-action="Index">Events</a>
@@ -60,7 +61,7 @@
             <div class="card-body">
                 <div class="text-muted">Total Bookings</div>
                 <div class="display-6">@ViewBag.TotalBookings</div>
-                <a class="btn btn-sm btn-primary mt-2" asp-controller="BOOKINGs" asp-action="Index">View</a>
+                <a class="btn btn-sm btn-primary mt-2" asp-controller="Admin" asp-action="Bookings">View</a>
             </div>
         </div>
     </div>
@@ -142,14 +143,14 @@
                                 <tr>
                                     <td>@b.BookingID</td>
                                     <td>@(b.BookingReference ?? "")</td>
-                                    <td class="text-end">@b.TotalAmount</td>
+                                    <td class="text-end">Rs. @b.TotalAmount</td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
 
-                <a class="btn btn-sm btn-outline-primary" asp-controller="BOOKINGs" asp-action="Index">View all</a>
+                <a class="btn btn-sm btn-primary mt-2" asp-controller="Admin" asp-action="Bookings">View</a>
             </div>
         </div>
     </div>
@@ -173,8 +174,8 @@
                             {
                                 <tr>
                                     <td>@p.PaymentID</td>
-                                    <td>@p.BookingID</td>
-                                    <td class="text-end">@p.Amount</td>
+                                    <td>@p.BookingRef</td>
+                                    <td class="text-end">Rs. @p.Amount</td>
                                 </tr>
                             }
                         </tbody>
@@ -244,7 +245,10 @@
             labels: @Html.Raw(categoryLabelsJson),
             datasets: [{
                 label: 'Events',
-                data: @Html.Raw(categoryCountsJson)
+                data: @Html.Raw(categoryCountsJson),
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                ]
             }]
         }
     });
