@@ -1,0 +1,340 @@
+﻿@model List<SmartTicketingSystem.Models.ViewModels.TicketTypeVM>
+@{
+    ViewData["Title"] = "Book Tickets - " + ViewBag.Event.title;
+    var ev = ViewBag.Event as SmartTicketingSystem.Models.EVENT;
+    var eventId = ViewBag.EventId;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Book Tickets for @ev?.title</h4>
+                </div>
+                <div class="card-body">
+                    
+                    <form asp-action="Book" method="post" id="bookingForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="eventId" value="@eventId" />
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Select your tickets below. You can pay later to receive QR tickets.
+                        </div>
+
+                        @if (!Model.Any())
+                        {
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                No tickets available for this event.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Ticket Type</th>
+                                            <th>Price</th>
+                                            <th>Available</th>
+                                            <th style="width: 150px;">Quantity</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.Count; i++)
+                                        {
+                                            var ticket = Model[i];
+                                            <tr class="ticket-row" data-price="@ticket.Price" data-id="@ticket.TicketTypeId">
+                                                <td class="fw-bold">@ticket.TypeName</td>
+                                                <td>
+                                                    @if (ticket.Price == 0)
+                                                    {
+                                                        <span class="badge bg-success">FREE</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>Rs. @ticket.Price.ToString("N2")</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info available-badge">@ticket.AvailableQuantity</span>
+                                                </td>
+                                                <td>
+                                                    <input type="number"
+                                                           name="quantities[@ticket.TicketTypeId]"
+                                                           class="form-control form-control-sm ticket-quantity"
+                                                           min="0"
+                                                           max="@ticket.AvailableQuantity"
+                                                           value="0"
+                                                           data-price="@ticket.Price"
+                                                           data-id="@ticket.TicketTypeId" />
+                                                </td>
+                                                <td class="subtotal" id="subtotal-@ticket.TicketTypeId">Rs. 0.00</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-secondary">
+                                        <tr>
+                                            <td colspan="4" class="text-end fw-bold">Subtotal:</td>
+                                            <td class="fw-bold" id="subtotal">Rs. 0.00</td>
+                                        </tr>
+                                        <tr id="discountRow" style="display: none;">
+                                            <td colspan="4" class="text-end text-success">Discount:</td>
+                                            <td class="text-success" id="discountAmount">- Rs. 0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4" class="text-end fw-bold fs-5">Total:</td>
+                                            <td class="fw-bold fs-5 text-primary" id="total">Rs. 0.00</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <!-- Promo Code Section -->
+                            <div class="card mt-3 mb-3">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <label class="form-label fw-bold">
+                                                <i class="fas fa-tag"></i> Have a Promo Code?
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="promoCode"
+                                                       placeholder="Enter promo code" name="promoCode" />
+                                                <button class="btn btn-outline-success" type="button" id="applyPromo">
+                                                    Apply
+                                                </button>
+                                                <button class="btn btn-outline-danger" type="button" id="removePromo"
+                                                        style="display: none;">
+                                                    Remove
+                                                </button>
+                                            </div>
+                                            <div id="promoMessage" class="mt-1 small"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                                    <i class="fas fa-check"></i> Confirm Booking
+                                </button>
+                                <a asp-action="Details" asp-route-id="@eventId" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+
+                            <small class="text-muted mt-2 d-block">
+                                <i class="fas fa-info-circle"></i>
+                                After payment, QR tickets will be generated for each ticket.
+                            </small>
+                        }
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary Sidebar -->
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <h6>@ev?.title</h6>
+                    <p class="text-muted small">@ev?.StartDateTime.ToString("MMMM dd, yyyy h:mm tt")</p>
+
+                    <hr />
+
+                    <div id="orderItems">
+                        <p class="text-muted">No tickets selected</p>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between">
+                        <span>Subtotal:</span>
+                        <span class="fw-bold" id="sidebarSubtotal">Rs. 0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-success" id="sidebarDiscount" style="display: none;">
+                        <span>Discount:</span>
+                        <span id="sidebarDiscountAmount">- Rs. 0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between fs-5 fw-bold mt-2">
+                        <span>Total:</span>
+                        <span class="text-primary" id="sidebarTotal">Rs. 0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            let selectedPromo = null;
+            let promoDiscount = 0;
+
+            // Calculate totals
+            function calculateTotals() {
+                let subtotal = 0;
+
+                $('.ticket-quantity').each(function() {
+                    let qty = parseInt($(this).val()) || 0;
+                    let price = parseFloat($(this).data('price'));
+                    let id = $(this).data('id');
+                    let lineTotal = qty * price;
+
+                    subtotal += lineTotal;
+                    $(`#subtotal-${id}`).text('Rs. ' + lineTotal.toFixed(2));
+                });
+
+                let total = subtotal - promoDiscount;
+                if (total < 0) total = 0;
+
+                // Update displays
+                $('#subtotal').text('Rs. ' + subtotal.toFixed(2));
+                $('#total').text('Rs. ' + total.toFixed(2));
+                $('#sidebarSubtotal').text('Rs. ' + subtotal.toFixed(2));
+                $('#sidebarTotal').text('Rs. ' + total.toFixed(2));
+
+                // Update order items
+                let orderHtml = '';
+                $('.ticket-quantity').each(function() {
+                    let qty = parseInt($(this).val()) || 0;
+                    if (qty > 0) {
+                        let type = $(this).closest('tr').find('td:first').text();
+                        let price = parseFloat($(this).data('price'));
+                        orderHtml += `<div class="d-flex justify-content-between small mb-1">
+                            <span>${qty} x ${type}</span>
+                            <span>Rs. ${(qty * price).toFixed(2)}</span>
+                        </div>`;
+                    }
+                });
+
+                $('#orderItems').html(orderHtml || '<p class="text-muted">No tickets selected</p>');
+
+                // Enable/disable submit button based on selection
+                $('#submitBtn').prop('disabled', subtotal === 0);
+            }
+
+            // Quantity change handler
+            $('.ticket-quantity').on('input', function() {
+                let max = parseInt($(this).attr('max'));
+                let val = parseInt($(this).val()) || 0;
+
+                if (val > max) {
+                    $(this).val(max);
+                }
+                if (val < 0) {
+                    $(this).val(0);
+                }
+
+                calculateTotals();
+            });
+
+            // Apply promo code
+            $('#applyPromo').click(function() {
+                let code = $('#promoCode').val().trim();
+                if (!code) {
+                    $('#promoMessage').html('<span class="text-danger">Please enter a promo code</span>');
+                    return;
+                }
+
+                let subtotal = parseFloat($('#subtotal').text().replace('Rs. ', ''));
+
+                $.ajax({
+                    url: '@Url.Action("Validate", "BOOKING_PROMO")',
+                    type: 'POST',
+                    data: {
+                        code: code,
+                        eventId: @eventId,
+                        totalAmount: subtotal
+                    },
+                    success: function(response) {
+                        if (response.valid) {
+                            selectedPromo = {
+                                code: code,
+                                id: response.promoId,
+                                discount: response.discountAmount
+                            };
+                            promoDiscount = response.discountAmount;
+
+                            // Create a hidden input for the promo code
+                            $('#promoCodeInput').remove();
+                            $('<input>').attr({
+                                type: 'hidden',
+                                id: 'promoCodeInput',
+                                name: 'promoCode',
+                                value: code
+                            }).appendTo('#bookingForm');
+
+                            $('#promoMessage').html('<span class="text-success">' + response.message + '</span>');
+                            $('#applyPromo').hide();
+                            $('#removePromo').show();
+                            $('#discountRow').show();
+                            $('#sidebarDiscount').show();
+                            $('#discountAmount').text('- Rs. ' + promoDiscount.toFixed(2));
+                            $('#sidebarDiscountAmount').text('- Rs. ' + promoDiscount.toFixed(2));
+
+                            calculateTotals();
+                        } else {
+                            $('#promoMessage').html('<span class="text-danger">' + response.message + '</span>');
+                        }
+                    },
+                    error: function() {
+                        $('#promoMessage').html('<span class="text-danger">Error validating promo code</span>');
+                    }
+                });
+            });
+
+            // Remove promo code
+            $('#removePromo').click(function() {
+                selectedPromo = null;
+                promoDiscount = 0;
+                $('#promoCode').val('');
+                $('#promoCodeInput').remove();
+                $('#promoMessage').html('');
+                $('#applyPromo').show();
+                $('#removePromo').hide();
+                $('#discountRow').hide();
+                $('#sidebarDiscount').hide();
+                calculateTotals();
+            });
+
+            // Simple form submission - just let it submit normally
+            $('#bookingForm').submit(function(e) {
+                let hasTickets = false;
+                $('.ticket-quantity').each(function() {
+                    if (parseInt($(this).val()) > 0) {
+                        hasTickets = true;
+                    }
+                });
+
+                if (!hasTickets) {
+                    e.preventDefault();
+                    alert('Please select at least one ticket');
+                    return false;
+                }
+
+                // Log form data before submission
+                console.log('Form submitting with:');
+                $('.ticket-quantity').each(function() {
+                    if (parseInt($(this).val()) > 0) {
+                        console.log('Ticket ID:', $(this).data('id'), 'Quantity:', $(this).val());
+                    }
+                });
+
+                return true; // Allow form to submit
+            });
+
+            // Initial calculation
+            calculateTotals();
+        });
+    </script>
+}

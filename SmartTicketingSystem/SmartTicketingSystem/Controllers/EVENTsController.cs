@@ -55,11 +55,8 @@ namespace SmartTicketingSystem.Controllers
         private bool IsUniversityMember() => User.IsInRole("UniversityMember");
         private bool IsExternalMember() => User.IsInRole("ExternalMember");
 
-        private bool IsUniversityOrganizer() => IsOrganizer() && IsUniversityMember();
-        private bool IsExternalOrganizer() => IsOrganizer() && IsExternalMember();
-
         // =========================
-        // INDEX (Upcoming events list with role rules)
+        // INDEX
         // =========================
         [AllowAnonymous]
         public async Task<IActionResult> Index()
@@ -70,24 +67,20 @@ namespace SmartTicketingSystem.Controllers
                 .Where(e => e.StartDateTime >= now)
                 .AsQueryable();
 
-            // Guest: Published + Public only
             if (!User.Identity.IsAuthenticated)
             {
                 var guest = await baseQuery
                     .Where(e => e.status == "Published" && e.visibility == "Public")
                     .OrderBy(e => e.StartDateTime)
                     .ToListAsync();
-
                 return View(guest);
             }
 
-            // Admin: everything upcoming
             if (IsAdmin())
             {
                 var admin = await baseQuery
                     .OrderBy(e => e.StartDateTime)
                     .ToListAsync();
-
                 return View(admin);
             }
 
@@ -95,20 +88,16 @@ namespace SmartTicketingSystem.Controllers
             if (IsOrganizer())
                 appUser = await GetCurrentAppUserAsync();
 
-            // External Member (not Uni): Published Public + own events (any status) if organizer
             if (IsExternalMember() && !IsUniversityMember())
             {
                 var q = baseQuery.Where(e =>
                     (e.status == "Published" && e.visibility == "Public")
                     || (IsOrganizer() && appUser != null && e.createdByUserID == appUser.member_id)
                 );
-
                 var list = await q.OrderBy(e => e.StartDateTime).ToListAsync();
                 return View(list);
             }
 
-            // University Member: Published (Public + University) + PendingUpcoming
-            // + own events (any status) if organizer
             if (IsUniversityMember())
             {
                 var q = baseQuery.Where(e =>
@@ -116,22 +105,19 @@ namespace SmartTicketingSystem.Controllers
                     || e.status == "PendingUpcoming"
                     || (IsOrganizer() && appUser != null && e.createdByUserID == appUser.member_id)
                 );
-
                 var list = await q.OrderBy(e => e.StartDateTime).ToListAsync();
                 return View(list);
             }
 
-            // Fallback
             var fallback = await baseQuery
                 .Where(e => e.status == "Published" && e.visibility == "Public")
                 .OrderBy(e => e.StartDateTime)
                 .ToListAsync();
-
             return View(fallback);
         }
 
         // =========================
-        // DETAILS (Role protected)
+        // DETAILS
         // =========================
         public async Task<IActionResult> Details(int? id)
         {
@@ -140,7 +126,6 @@ namespace SmartTicketingSystem.Controllers
             var ev = await _context.EVENT.FirstOrDefaultAsync(e => e.eventID == id.Value);
             if (ev == null) return NotFound();
 
-            // Guest: only Published Public
             if (!User.Identity.IsAuthenticated)
             {
                 if (!(ev.status == "Published" && ev.visibility == "Public"))
@@ -148,7 +133,6 @@ namespace SmartTicketingSystem.Controllers
             }
             else
             {
-                // External Member: Published Public only, unless it's their own organizer event
                 if (IsExternalMember() && !IsUniversityMember())
                 {
                     if (!(ev.status == "Published" && ev.visibility == "Public"))
@@ -162,7 +146,6 @@ namespace SmartTicketingSystem.Controllers
                     }
                 }
 
-                // University Member: Published or PendingUpcoming, unless it's their own organizer event
                 if (IsUniversityMember())
                 {
                     if (!(ev.status == "Published" || ev.status == "PendingUpcoming"))
@@ -177,7 +160,6 @@ namespace SmartTicketingSystem.Controllers
                 }
             }
 
-            // Ticket types (active + within sales window)
             var now = DateTime.Now;
             var ticketTypes = await _context.TICKET_TYPE
                 .Where(t => t.EventID == ev.eventID
@@ -187,15 +169,11 @@ namespace SmartTicketingSystem.Controllers
                 .OrderBy(t => t.Price)
                 .ToListAsync();
 
-            // Booked seats per ticket type
             var bookedByTicketType = await _context.BOOKING_ITEM
-                .Join(_context.TICKET_TYPE,
-                    bi => bi.TicketTypeID,
-                    tt => tt.TicketID,
-                    (bi, tt) => new { bi, tt })
-                .Where(x => x.tt.EventID == ev.eventID)
-                .GroupBy(x => x.tt.TicketID)
-                .Select(g => new { TicketID = g.Key, Qty = g.Sum(z => z.bi.Quantity) })
+                .Include(bi => bi.TicketType)
+                .Where(bi => bi.TicketType != null && bi.TicketType.EventID == ev.eventID)
+                .GroupBy(bi => bi.TicketTypeID)
+                .Select(g => new { TicketID = g.Key, Qty = g.Sum(bi => bi.Quantity) })
                 .ToListAsync();
 
             var bookedMap = bookedByTicketType.ToDictionary(x => x.TicketID, x => x.Qty);
@@ -209,6 +187,26 @@ namespace SmartTicketingSystem.Controllers
 
             var totalBookedSeats = bookedByTicketType.Sum(x => x.Qty);
             var remainingEventCap = Math.Max(0, ev.capacity - totalBookedSeats);
+
+            // Get active promotions for this event
+            var activePromos = await _context.PROMO_CODE
+                .Where(p => p.isActive == 'Y'
+                            && p.startDate <= now
+                            && p.endDate >= now)
+                .ToListAsync();
+
+            // Filter promos that have been used for this event
+            var usedPromoIds = await _context.BOOKING_PROMO
+                .Where(bp => bp.Booking != null && bp.Booking.EventID == ev.eventID)
+                .Select(bp => bp.BookingCodeID)
+                .Distinct()
+                .ToListAsync();
+
+            activePromos = activePromos
+                .Where(p => !usedPromoIds.Contains(p.PromoCodeID))
+                .ToList();
+
+            ViewBag.ActivePromos = activePromos;
 
             var vm = new EventDetailsVM
             {
@@ -238,7 +236,7 @@ namespace SmartTicketingSystem.Controllers
         }
 
         // =========================
-        // CREATE (POST) - UPDATED WITH RELIABLE LINKING AND NULL HANDLING
+        // CREATE (POST)
         // =========================
         [Authorize(Policy = "AdminOrOrganizer")]
         [HttpPost]
@@ -247,47 +245,37 @@ namespace SmartTicketingSystem.Controllers
             [Bind("title,Description,StartDateTime,endDateTime,venue,IsOnlineBool,onlineLink,AccessibilityInfo,capacity,visibility,organizerInfo,Agenda,maplink,organizerUnitID,categoryID")]
             EVENT ev)
         {
-            // 1) Re-load dropdowns if validation fails
             if (!ModelState.IsValid)
             {
                 await LoadDropDownsAsync(ev.categoryID, ev.organizerUnitID);
                 return View(ev);
             }
 
-            // 2) Must have logged app user
             var identityId = _userManager.GetUserId(User);
             var appUser = await _context.USER.FirstOrDefaultAsync(u => u.IdentityUserId == identityId);
             if (appUser == null)
             {
-                ModelState.AddModelError("", "Cannot find your profile (USER table).");
+                ModelState.AddModelError("", "Cannot find your profile.");
                 await LoadDropDownsAsync(ev.categoryID, ev.organizerUnitID);
                 return View(ev);
             }
 
-            // 3) Convert checkbox bool -> char 'Y'/'N'
             ev.IsOnline = ev.IsOnlineBool ? 'Y' : 'N';
-
-            // 4) Enforce online link rules server-side
             if (ev.IsOnline == 'N')
                 ev.onlineLink = null;
 
-            // 5) Visibility: only Public or University
             if (!string.Equals(ev.visibility, "Public", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(ev.visibility, "University", StringComparison.OrdinalIgnoreCase))
             {
                 ev.visibility = "University";
             }
 
-            // 6) Force system fields (never user input)
             ev.createdByUserID = appUser.member_id;
             ev.createdAt = DateTime.Now;
             ev.updatedAt = DateTime.Now;
-
-            // Status: submit for admin approval directly
             ev.status = "PendingApproval";
             ev.ApprovalID = 0;
 
-            // Ensure non-nullable string fields have values
             ev.title = ev.title ?? "";
             ev.Description = ev.Description ?? "";
             ev.venue = ev.venue ?? "";
@@ -296,22 +284,15 @@ namespace SmartTicketingSystem.Controllers
             ev.organizerInfo = ev.organizerInfo ?? "";
             ev.Agenda = ev.Agenda ?? "";
             ev.maplink = ev.maplink ?? "";
-            ev.visibility = ev.visibility ?? "University";
-            ev.status = ev.status ?? "PendingApproval";
 
-            // Start a transaction to ensure both records are created or none
             using var transaction = await _context.Database.BeginTransactionAsync();
-
             try
             {
                 _context.EVENT.Add(ev);
                 await _context.SaveChangesAsync();
 
-                // If Public event -> also create a Public Event Request record with RELIABLE linking
-                if (!string.IsNullOrWhiteSpace(ev.visibility) &&
-                    ev.visibility.Equals("Public", StringComparison.OrdinalIgnoreCase))
+                if (ev.visibility.Equals("Public", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Create a unique token for linking
                     string linkToken = $"EVENTLINK_{ev.eventID}_{DateTime.Now.Ticks}";
 
                     var req = new PUBLIC_EVENT_REQUEST
@@ -328,35 +309,28 @@ namespace SmartTicketingSystem.Controllers
                         status = "Pending",
                         ReviewedByUserID = 0,
                         CreatedAt = DateTime.Now,
-                        // Store both Event ID and token in reviewedNote for reliable linking
-                        reviewedNote = $"EVENT_ID:{ev.eventID}|TOKEN:{linkToken}|Submitted by organizer on {DateTime.Now}"
+                        reviewedNote = $"EVENT_ID:{ev.eventID}|TOKEN:{linkToken}|Submitted on {DateTime.Now}"
                     };
 
                     _context.PUBLIC_EVENT_REQUEST.Add(req);
                     await _context.SaveChangesAsync();
-
-                    // Optional: Update event with token for cross-reference
-                    ev.organizerInfo = (ev.organizerInfo ?? "") + $" [RequestToken:{linkToken}]";
-                    _context.EVENT.Update(ev);
-                    await _context.SaveChangesAsync();
                 }
 
                 await transaction.CommitAsync();
-
                 TempData["Success"] = "Event submitted for admin approval.";
                 return RedirectToAction(nameof(Details), new { id = ev.eventID });
             }
-            catch (Exception)
+            catch
             {
                 await transaction.RollbackAsync();
-                ModelState.AddModelError("", "Error creating event. Please try again.");
+                ModelState.AddModelError("", "Error creating event.");
                 await LoadDropDownsAsync(ev.categoryID, ev.organizerUnitID);
                 return View(ev);
             }
         }
 
         // =========================
-        // ADMIN: Pending Approvals Queue
+        // PENDING APPROVALS
         // =========================
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> PendingApprovals()
@@ -365,12 +339,11 @@ namespace SmartTicketingSystem.Controllers
                 .Where(e => e.status == "PendingApproval" || e.status == "PendingUpcoming")
                 .OrderBy(e => e.StartDateTime)
                 .ToListAsync();
-
             return View(list);
         }
 
         // =========================
-        // ADMIN: Approve Event
+        // APPROVE EVENT
         // =========================
         [Authorize(Policy = "AdminOnly")]
         [HttpPost]
@@ -389,7 +362,7 @@ namespace SmartTicketingSystem.Controllers
             var adminUser = await GetCurrentAppUserAsync();
             if (adminUser == null)
             {
-                TempData["Error"] = "Cannot find admin profile in USER table.";
+                TempData["Error"] = "Cannot find admin profile.";
                 return RedirectToAction(nameof(PendingApprovals));
             }
 
@@ -418,7 +391,7 @@ namespace SmartTicketingSystem.Controllers
         }
 
         // =========================
-        // ADMIN: Reject Event
+        // REJECT EVENT
         // =========================
         [Authorize(Policy = "AdminOnly")]
         [HttpPost]
@@ -437,7 +410,7 @@ namespace SmartTicketingSystem.Controllers
             var adminUser = await GetCurrentAppUserAsync();
             if (adminUser == null)
             {
-                TempData["Error"] = "Cannot find admin profile in USER table.";
+                TempData["Error"] = "Cannot find admin profile.";
                 return RedirectToAction(nameof(PendingApprovals));
             }
 
@@ -466,109 +439,227 @@ namespace SmartTicketingSystem.Controllers
         }
 
         // =========================
-        // BOOK NOW
+        // BOOK (GET) - Booking form
+        // =========================
+        [Authorize(Policy = "MemberOnly")]
+        public async Task<IActionResult> Book(int id)
+        {
+            try
+            {
+                var ev = await _context.EVENT
+                    .FirstOrDefaultAsync(e => e.eventID == id && e.status == "Published");
+
+                if (ev == null)
+                {
+                    TempData["Error"] = "Event not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var appUser = await GetCurrentAppUserAsync();
+                if (appUser == null)
+                {
+                    TempData["Error"] = "Please login to book tickets.";
+                    return RedirectToAction("Login", "Account");
+                }
+
+                if (IsExternalMember() && !IsUniversityMember() && ev.visibility != "Public")
+                {
+                    TempData["Error"] = "External members can only book public events.";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+
+                var now = DateTime.Now;
+                var ticketTypes = await _context.TICKET_TYPE
+                    .Where(t => t.EventID == ev.eventID
+                                && t.isActive == 'Y'
+                                && t.salesStartAt <= now
+                                && t.salesEndAt >= now)
+                    .ToListAsync();
+
+                if (!ticketTypes.Any())
+                {
+                    TempData["Error"] = "No tickets available.";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+
+                var bookedSeats = await _context.BOOKING_ITEM
+                    .Include(bi => bi.TicketType)
+                    .Where(bi => bi.TicketType != null && bi.TicketType.EventID == ev.eventID)
+                    .GroupBy(bi => bi.TicketTypeID)
+                    .Select(g => new { TicketTypeID = g.Key, Booked = g.Sum(bi => bi.Quantity) })
+                    .ToDictionaryAsync(x => x.TicketTypeID, x => x.Booked);
+
+                var viewModel = new List<TicketTypeVM>();
+                foreach (var tt in ticketTypes)
+                {
+                    bookedSeats.TryGetValue(tt.TicketID, out int booked);
+                    viewModel.Add(new TicketTypeVM
+                    {
+                        TicketTypeId = tt.TicketID,
+                        TypeName = tt.TypeName,
+                        Price = tt.Price,
+                        AvailableQuantity = Math.Max(0, tt.seatLimit - booked),
+                        SeatLimit = tt.seatLimit
+                    });
+                }
+
+                ViewBag.Event = ev;
+                ViewBag.EventId = id;
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error: {ex.Message}";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+        }
+
+        // =========================
+        // BOOK (POST) - Process booking with complete error handling
         // =========================
         [Authorize(Policy = "MemberOnly")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BookNow(int eventId, Dictionary<int, int> quantities)
+        public async Task<IActionResult> Book(int eventId, Dictionary<int, int> quantities, string? promoCode = null)
         {
-            if (quantities == null || quantities.Count == 0)
-            {
-                TempData["Error"] = "Please select at least one ticket quantity.";
-                return RedirectToAction(nameof(Details), new { id = eventId });
-            }
-
-            var selected = quantities
-                .Where(kv => kv.Value > 0)
-                .ToDictionary(kv => kv.Key, kv => kv.Value);
-
-            if (selected.Count == 0)
-            {
-                TempData["Error"] = "Please select at least one ticket quantity.";
-                return RedirectToAction(nameof(Details), new { id = eventId });
-            }
-
-            var appUser = await GetCurrentAppUserAsync();
-            if (appUser == null)
-            {
-                TempData["Error"] = "Cannot find your profile. Please contact admin.";
-                return RedirectToAction(nameof(Details), new { id = eventId });
-            }
-
-            var ev = await _context.EVENT.FirstOrDefaultAsync(e => e.eventID == eventId);
-            if (ev == null) return NotFound();
-
-            if (!string.Equals(ev.status, "Published", StringComparison.OrdinalIgnoreCase))
-            {
-                TempData["Error"] = "This event is not available for booking.";
-                return RedirectToAction(nameof(Details), new { id = eventId });
-            }
-
-            // External member can only book Public events
-            if (IsExternalMember() && !IsUniversityMember() &&
-                !string.Equals(ev.visibility, "Public", StringComparison.OrdinalIgnoreCase))
-            {
-                TempData["Error"] = "External members can only book public events.";
-                return RedirectToAction(nameof(Details), new { id = eventId });
-            }
-
-            var ticketIds = selected.Keys.ToList();
-            var now = DateTime.Now;
-
-            var ticketTypes = await _context.TICKET_TYPE
-                .Where(t => t.EventID == eventId
-                            && ticketIds.Contains(t.TicketID)
-                            && t.isActive == 'Y'
-                            && t.salesStartAt <= now
-                            && t.salesEndAt >= now)
-                .ToListAsync();
-
-            if (ticketTypes.Count != ticketIds.Count)
-            {
-                TempData["Error"] = "One or more selected ticket types are invalid or not available.";
-                return RedirectToAction(nameof(Details), new { id = eventId });
-            }
-
-            // How many seats already booked per ticket type
-            var bookedByTT = await _context.BOOKING_ITEM
-                .Join(_context.TICKET_TYPE,
-                    bi => bi.TicketTypeID,
-                    tt => tt.TicketID,
-                    (bi, tt) => new { bi, tt })
-                .Where(x => x.tt.EventID == eventId)
-                .GroupBy(x => x.tt.TicketID)
-                .Select(g => new { TicketID = g.Key, Qty = g.Sum(z => z.bi.Quantity) })
-                .ToListAsync();
-
-            var bookedMap = bookedByTT.ToDictionary(x => x.TicketID, x => x.Qty);
-
-            foreach (var tt in ticketTypes)
-            {
-                var alreadyBooked = bookedMap.ContainsKey(tt.TicketID) ? bookedMap[tt.TicketID] : 0;
-                var remaining = Math.Max(0, tt.seatLimit - alreadyBooked);
-                var want = selected[tt.TicketID];
-
-                if (want > remaining)
-                {
-                    TempData["Error"] = $"Not enough seats for {tt.TypeName}. Remaining: {remaining}.";
-                    return RedirectToAction(nameof(Details), new { id = eventId });
-                }
-            }
-
-            // Check total event capacity
-            var totalAlreadyBooked = bookedByTT.Sum(x => x.Qty);
-            var totalWant = selected.Values.Sum();
-
-            if (totalAlreadyBooked + totalWant > ev.capacity)
-            {
-                TempData["Error"] = "Event is full. Please join the waiting list.";
-                return RedirectToAction(nameof(Details), new { id = eventId });
-            }
-
-            using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
+                Console.WriteLine("========== BOOK POST HIT ==========");
+                Console.WriteLine($"EventId: {eventId}");
+                Console.WriteLine($"PromoCode: {promoCode}");
+                if (quantities != null)
+                {
+                    foreach (var q in quantities)
+                    {
+                        Console.WriteLine($"Key: {q.Key}, Value: {q.Value}");
+                    }
+                }
+
+                // Check if quantities is null or empty
+                if (quantities == null || !quantities.Any(kv => kv.Value > 0))
+                {
+                    Console.WriteLine("No quantities selected");
+                    TempData["Error"] = "Please select at least one ticket.";
+                    return RedirectToAction(nameof(Book), new { id = eventId });
+                }
+
+                var selectedTickets = quantities
+                    .Where(kv => kv.Value > 0)
+                    .ToDictionary(kv => kv.Key, kv => kv.Value);
+
+                Console.WriteLine($"Selected tickets count: {selectedTickets.Count}");
+
+                // Get current user
+                var appUser = await GetCurrentAppUserAsync();
+                if (appUser == null)
+                {
+                    Console.WriteLine("User not found");
+                    TempData["Error"] = "Please login to book tickets.";
+                    return RedirectToAction("Login", "Account");
+                }
+                Console.WriteLine($"User ID: {appUser.member_id}");
+
+                // Get event
+                var ev = await _context.EVENT
+                    .FirstOrDefaultAsync(e => e.eventID == eventId && e.status == "Published");
+
+                if (ev == null)
+                {
+                    Console.WriteLine("Event not found");
+                    TempData["Error"] = "Event not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+                Console.WriteLine($"Event found: {ev.title}");
+
+                // Check visibility rules
+                if (IsExternalMember() && !IsUniversityMember() && ev.visibility != "Public")
+                {
+                    Console.WriteLine("Visibility check failed");
+                    TempData["Error"] = "External members can only book public events.";
+                    return RedirectToAction(nameof(Details), new { id = eventId });
+                }
+
+                // Get ticket types
+                var now = DateTime.Now;
+                var ticketTypes = await _context.TICKET_TYPE
+                    .Where(t => t.EventID == eventId
+                                && selectedTickets.Keys.Contains(t.TicketID)
+                                && t.isActive == 'Y'
+                                && t.salesStartAt <= now
+                                && t.salesEndAt >= now)
+                    .ToListAsync();
+
+                if (ticketTypes.Count != selectedTickets.Count)
+                {
+                    Console.WriteLine($"Ticket types mismatch. Found: {ticketTypes.Count}, Expected: {selectedTickets.Count}");
+                    TempData["Error"] = "One or more selected tickets are not available.";
+                    return RedirectToAction(nameof(Book), new { id = eventId });
+                }
+
+                // Check availability
+                var bookedSeats = await _context.BOOKING_ITEM
+                    .Include(bi => bi.TicketType)
+                    .Where(bi => bi.TicketType != null && bi.TicketType.EventID == eventId)
+                    .GroupBy(bi => bi.TicketTypeID)
+                    .Select(g => new { TicketTypeID = g.Key, Booked = g.Sum(bi => bi.Quantity) })
+                    .ToDictionaryAsync(x => x.TicketTypeID, x => x.Booked);
+
+                foreach (var tt in ticketTypes)
+                {
+                    bookedSeats.TryGetValue(tt.TicketID, out int booked);
+                    var available = tt.seatLimit - booked;
+                    Console.WriteLine($"Ticket {tt.TypeName}: Available={available}, Requested={selectedTickets[tt.TicketID]}");
+
+                    if (selectedTickets[tt.TicketID] > available)
+                    {
+                        TempData["Error"] = $"Only {available} {tt.TypeName} tickets left.";
+                        return RedirectToAction(nameof(Book), new { id = eventId });
+                    }
+                }
+
+                // Check total capacity
+                var totalBooked = await _context.BOOKING_ITEM
+                    .Where(bi => bi.TicketType != null && bi.TicketType.EventID == eventId)
+                    .SumAsync(bi => (int?)bi.Quantity) ?? 0;
+
+                var totalRequested = selectedTickets.Values.Sum();
+                Console.WriteLine($"Total booked: {totalBooked}, Total requested: {totalRequested}, Capacity: {ev.capacity}");
+
+                if (totalBooked + totalRequested > ev.capacity)
+                {
+                    TempData["Info"] = "Event is full. Join waiting list?";
+                    return RedirectToAction("Join", "WAITING_LIST", new { eventId });
+                }
+
+                // Calculate total
+                decimal totalAmount = selectedTickets.Sum(kv =>
+                    ticketTypes.First(tt => tt.TicketID == kv.Key).Price * kv.Value);
+                Console.WriteLine($"Total amount: {totalAmount}");
+
+                // Apply promo code if provided
+                decimal discountAmount = 0;
+                int? promoCodeId = null;
+
+                if (!string.IsNullOrWhiteSpace(promoCode))
+                {
+                    var promo = await _context.PROMO_CODE
+                        .FirstOrDefaultAsync(p => p.code == promoCode
+                            && p.isActive == 'Y'
+                            && p.startDate <= now
+                            && p.endDate >= now);
+
+                    if (promo != null)
+                    {
+                        promoCodeId = promo.PromoCodeID;
+                        discountAmount = promo.DiscountType == "Percentage"
+                            ? totalAmount * (promo.DiscountValue / 100)
+                            : promo.DiscountValue;
+                        discountAmount = Math.Min(discountAmount, totalAmount);
+                        Console.WriteLine($"Promo applied: {promo.code}, Discount: {discountAmount}");
+                    }
+                }
+
+                // FIXED: Create booking with all required fields including null values
                 var booking = new BOOKING
                 {
                     BookingReference = $"BKG-{Guid.NewGuid():N}".Substring(0, 12).ToUpper(),
@@ -577,43 +668,82 @@ namespace SmartTicketingSystem.Controllers
                     BookingDateTime = DateTime.Now,
                     BookingStatus = "PendingPayment",
                     PaymentStatus = "Unpaid",
-                    TotalAmount = 0,
-                    createdAt = DateTime.Now
+                    TotalAmount = totalAmount - discountAmount,
+                    createdAt = DateTime.Now,
+                    CancellationReason = null,
+                    CancelledAt = null
                 };
 
-                _context.BOOKING.Add(booking);
-                await _context.SaveChangesAsync();
+                using var transaction = await _context.Database.BeginTransactionAsync();
 
-                decimal total = 0;
-                foreach (var tt in ticketTypes)
+                try
                 {
-                    var qty = selected[tt.TicketID];
-                    var lineTotal = tt.Price * qty;
-                    total += lineTotal;
+                    _context.BOOKING.Add(booking);
+                    await _context.SaveChangesAsync();
+                    Console.WriteLine($"Booking created with ID: {booking.BookingID}");
 
-                    _context.BOOKING_ITEM.Add(new BOOKING_ITEM
+                    foreach (var tt in ticketTypes)
                     {
-                        BookingID = booking.BookingID,
-                        TicketTypeID = tt.TicketID,
-                        Quantity = qty,
-                        UnitPrice = tt.Price,
-                        LineTotal = lineTotal
-                    });
+                        var qty = selectedTickets[tt.TicketID];
+                        var lineTotal = tt.Price * qty;
+
+                        _context.BOOKING_ITEM.Add(new BOOKING_ITEM
+                        {
+                            BookingID = booking.BookingID,
+                            TicketTypeID = tt.TicketID,
+                            Quantity = qty,
+                            UnitPrice = tt.Price,
+                            LineTotal = lineTotal
+                        });
+                        Console.WriteLine($"Added booking item: {tt.TypeName} x{qty}");
+                    }
+
+                    if (promoCodeId.HasValue && discountAmount > 0)
+                    {
+                        _context.BOOKING_PROMO.Add(new BOOKING_PROMO
+                        {
+                            BookingID = booking.BookingID,
+                            BookingCodeID = promoCodeId.Value,
+                            DiscountedAmount = discountAmount,
+                            AppliedAt = DateTime.Now
+                        });
+                        Console.WriteLine($"Added promo record");
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    Console.WriteLine($"Booking successful! ID: {booking.BookingID}");
+                    TempData["Success"] = "Booking created successfully!";
+
+                    return RedirectToAction("Confirmation", "BOOKINGs", new { id = booking.BookingID });
                 }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
 
-                booking.TotalAmount = total;
-                _context.BOOKING.Update(booking);
+                    var errorMessage = ex.Message;
+                    if (ex.InnerException != null)
+                    {
+                        errorMessage += " | INNER: " + ex.InnerException.Message;
 
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
+                        if (ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx)
+                        {
+                            errorMessage += $" | SQL Error {sqlEx.Number}: {sqlEx.Message}";
+                        }
+                    }
 
-                TempData["Success"] = "Booking created. Choose Pay Now or Pay Later.";
-                return RedirectToAction("Confirmation", "BOOKINGs", new { id = booking.BookingID });
+                    Console.WriteLine("========== DATABASE ERROR ==========");
+                    Console.WriteLine(errorMessage);
+
+                    TempData["Error"] = $"Failed to create booking: {errorMessage}";
+                    return RedirectToAction(nameof(Book), new { id = eventId });
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                await tx.RollbackAsync();
-                TempData["Error"] = "Booking failed. Please try again.";
+                Console.WriteLine($"OUTER ERROR: {ex.Message}");
+                TempData["Error"] = $"An error occurred: {ex.Message}";
                 return RedirectToAction(nameof(Details), new { id = eventId });
             }
         }
@@ -629,18 +759,16 @@ namespace SmartTicketingSystem.Controllers
             var appUser = await GetCurrentAppUserAsync();
             if (appUser == null)
             {
-                TempData["Error"] = "Cannot find your profile. Please contact admin.";
+                TempData["Error"] = "Cannot find your profile.";
                 return RedirectToAction(nameof(Details), new { id = eventId });
             }
 
             var ev = await _context.EVENT.FirstOrDefaultAsync(e => e.eventID == eventId);
             if (ev == null) return NotFound();
 
-            // External can only join waiting list for public events
-            if (IsExternalMember() && !IsUniversityMember() &&
-                !string.Equals(ev.visibility, "Public", StringComparison.OrdinalIgnoreCase))
+            if (IsExternalMember() && !IsUniversityMember() && ev.visibility != "Public")
             {
-                TempData["Error"] = "External members can only request public events.";
+                TempData["Error"] = "External members can only join public events.";
                 return RedirectToAction(nameof(Details), new { id = eventId });
             }
 
@@ -664,8 +792,7 @@ namespace SmartTicketingSystem.Controllers
             });
 
             await _context.SaveChangesAsync();
-
-            TempData["Success"] = "You have been added to the waiting list.";
+            TempData["Success"] = "Added to waiting list.";
             return RedirectToAction(nameof(Details), new { id = eventId });
         }
     }
