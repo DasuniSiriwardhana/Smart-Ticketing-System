@@ -1,0 +1,182 @@
+﻿@using Microsoft.EntityFrameworkCore
+@model SmartTicketingSystem.Models.EVENT
+@{
+    ViewData["Title"] = "Promo Codes";
+    // If Model is null, try to get from ViewBag
+    var ev = Model ?? ViewBag.Event as SmartTicketingSystem.Models.EVENT;
+    var usedPromos = ViewBag.UsedPromos as List<SmartTicketingSystem.Models.PROMO_CODE>;
+    var availablePromos = ViewBag.AvailablePromos as List<SmartTicketingSystem.Models.PROMO_CODE>;
+}
+
+@inject SmartTicketingSystem.Data.ApplicationDbContext _context
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-tags"></i> Promotions @(ev != null ? $"for {ev.title}" : "")</h2>
+            @if (ev != null)
+            {
+                <p class="text-muted">Manage promo codes for this specific event</p>
+            }
+        </div>
+        <div>
+            @if (ev != null)
+            {
+                <a asp-controller="PROMO_CODE" asp-action="Create" asp-route-eventId="@ev.eventID" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create New Promo
+                </a>
+                <a asp-controller="EVENTs" asp-action="Details" asp-route-id="@ev.eventID"
+                   class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Event
+                </a>
+            }
+            else
+            {
+                <a asp-controller="PROMO_CODE" asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create New Promo
+                </a>
+                <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Active Promos for this Event -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-check-circle"></i> Active Promos for this Event</h5>
+        </div>
+        <div class="card-body">
+            @if (usedPromos != null && usedPromos.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Promo Code</th>
+                                <th>Discount</th>
+                                <th>Valid Until</th>
+                                <th>Usage</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var promo in usedPromos)
+                            {
+                                var usageCount = 0;
+                                if (ev != null)
+                                {
+                                    usageCount = _context.BOOKING_PROMO
+                                    .Count(bp => bp.BookingCodeID == promo.PromoCodeID &&
+                                    bp.Booking.EventID == ev.eventID);
+                                }
+
+                                <tr>
+                                    <td class="fw-bold">@promo.code</td>
+                                    <td>
+                                        @if (promo.DiscountType == "Percentage")
+                                        {
+                                            <span>@promo.DiscountValue% OFF</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Rs. @promo.DiscountValue.ToString("N2") OFF</span>
+                                        }
+                                    </td>
+                                    <td>@promo.endDate.ToString("MMM dd, yyyy")</td>
+                                    <td><span class="badge bg-info">@usageCount</span></td>
+                                    <td>
+                                        <a asp-controller="PROMO_CODE" asp-action="Details" asp-route-id="@promo.PromoCodeID"
+                                           class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-chart-line"></i> View Usage
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">No promos have been used for this event yet.</p>
+            }
+        </div>
+    </div>
+
+    <!-- Available Promos to Assign -->
+    @if (availablePromos != null && availablePromos.Any())
+    {
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-box-open"></i> Available Promos (Can be used for this event)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Promo Code</th>
+                                <th>Discount</th>
+                                <th>Valid Until</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var promo in availablePromos)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@promo.code</td>
+                                    <td>
+                                        @if (promo.DiscountType == "Percentage")
+                                        {
+                                            <span>@promo.DiscountValue% OFF</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@promo.DiscountValue.ToString("C") OFF</span>
+                                        }
+                                    </td>
+                                    <td>@promo.endDate.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        @if (promo.isActive == 'Y')
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (ev != null)
+                                        {
+                                            <form asp-controller="PROMO_CODE" asp-action="AssignToEvent" method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="promoId" value="@promo.PromoCodeID" />
+                                                <input type="hidden" name="eventId" value="@ev.eventID" />
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-plus-circle"></i> Use for this Event
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>

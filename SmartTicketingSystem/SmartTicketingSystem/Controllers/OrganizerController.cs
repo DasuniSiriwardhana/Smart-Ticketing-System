@@ -24,6 +24,16 @@ namespace SmartTicketingSystem.Controllers
             _userManager = userManager;
         }
 
+        // Helper to get current member ID
+        private async Task<int?> GetCurrentMemberIdAsync()
+        {
+            var identityId = _userManager.GetUserId(User);
+            if (string.IsNullOrWhiteSpace(identityId)) return null;
+
+            var appUser = await _context.USER.FirstOrDefaultAsync(u => u.IdentityUserId == identityId);
+            return appUser?.member_id;
+        }
+
         // University Organizer dashboard (Organizer + UniversityMember)
         [Authorize(Policy = "UniversityOrganizer")]
         public async Task<IActionResult> Dashboard()
@@ -52,9 +62,7 @@ namespace SmartTicketingSystem.Controllers
             }
 
             // 2) My events (Organizer created)
-            // EVENT.createdByUserID stores USER.member_id of organizer
             var myEventsQuery = _context.EVENT.Where(e => e.createdByUserID == appUser.member_id);
-
             var myEventIds = await myEventsQuery.Select(e => e.eventID).ToListAsync();
 
             // Summary cards
@@ -62,7 +70,6 @@ namespace SmartTicketingSystem.Controllers
             ViewBag.UpcomingEvents = await myEventsQuery.CountAsync(e => e.StartDateTime >= DateTime.Now);
 
             // 3) Bookings for MY events
-            // BOOKING_ITEM.TicketTypeID -> TICKET_TYPE.TicketID
             var bookingIdsForMyEvents = await _context.BOOKING_ITEM
                 .Join(_context.TICKET_TYPE,
                     bi => bi.TicketTypeID,
@@ -86,7 +93,7 @@ namespace SmartTicketingSystem.Controllers
 
             ViewBag.TotalTicketsIssued = totalSeatsBooked;
 
-            // 5) Chart: My events created per month (EVENT.createdAt)
+            // 5) Chart: My events created per month
             var eventsPerMonth = await myEventsQuery
                 .GroupBy(e => e.createdAt.Month)
                 .Select(g => new { Month = g.Key, Count = g.Count() })
@@ -101,7 +108,7 @@ namespace SmartTicketingSystem.Controllers
 
             ViewData["EventMonthCounts"] = eventsPerMonth.Select(x => x.Count).ToList();
 
-            // 6) Chart: Top events by bookings (distinct bookings per event)
+            // 6) Chart: Top events by bookings
             var topEvents = await _context.BOOKING_ITEM
                 .Join(_context.TICKET_TYPE,
                     bi => bi.TicketTypeID,
@@ -119,7 +126,6 @@ namespace SmartTicketingSystem.Controllers
                 .ToListAsync();
 
             var topEventIds = topEvents.Select(x => x.EventID).ToList();
-
             var topTitlesMap = await _context.EVENT
                 .Where(e => topEventIds.Contains(e.eventID))
                 .Select(e => new { e.eventID, e.title })
@@ -150,16 +156,207 @@ namespace SmartTicketingSystem.Controllers
             return View();
         }
 
+        // ================= TICKET MANAGEMENT =================
+        [Authorize(Policy = "UniversityOrganizer")]
+        public async Task<IActionResult> Tickets(int eventId)
+        {
+            var memberId = await GetCurrentMemberIdAsync();
+            if (memberId == null) return Forbid();
+
+            var ev = await _context.EVENT
+                .FirstOrDefaultAsync(e => e.eventID == eventId && e.createdByUserID == memberId.Value);
+
+            if (ev == null) return NotFound();
+
+            var ticketTypes = await _context.TICKET_TYPE
+                .Where(t => t.EventID == eventId)
+                .OrderBy(t => t.Price)
+                .ToListAsync();
+
+            // Get sold counts with null handling
+            var soldCounts = new Dictionary<int, int>();
+            var soldData = await _context.BOOKING_ITEM
+                .Include(bi => bi.Booking)
+                .Where(bi => bi.Booking != null && bi.Booking.EventID == eventId)
+                .GroupBy(bi => bi.TicketTypeID)
+                .Select(g => new { TicketTypeID = g.Key, Sold = g.Sum(bi => bi.Quantity) })
+                .ToListAsync();
+
+            foreach (var item in soldData)
+            {
+                soldCounts[item.TicketTypeID] = item.Sold;
+            }
+
+            ViewBag.Event = ev;
+            ViewBag.SoldCounts = soldCounts;
+
+            return View(ticketTypes);
+        }
+
+        // ================= PROMOTION MANAGEMENT =================
+        [Authorize(Policy = "UniversityOrganizer")]
+        public async Task<IActionResult> Promotions(int eventId)
+        {
+            var memberId = await GetCurrentMemberIdAsync();
+            if (memberId == null) return Forbid();
+
+            var ev = await _context.EVENT
+                .FirstOrDefaultAsync(e => e.eventID == eventId && e.createdByUserID == memberId.Value);
+
+            if (ev == null) return NotFound();
+
+            // Get promos used for this event
+            var usedPromos = await _context.BOOKING_PROMO
+                .Include(bp => bp.PromoCode)
+                .Where(bp => bp.Booking != null && bp.Booking.EventID == eventId && bp.PromoCode != null)
+                .Select(bp => bp.PromoCode)
+                .Distinct()
+                .ToListAsync();
+
+            // Get used promo IDs
+            var usedPromoIds = usedPromos
+                .Where(p => p != null)
+                .Select(p => p.PromoCodeID)
+                .ToHashSet();
+
+            // Get available promos
+            var availablePromos = await _context.PROMO_CODE
+                .Where(p => p.isActive == 'Y')
+                .ToListAsync();
+
+            // Filter out used ones
+            availablePromos = availablePromos
+                .Where(p => !usedPromoIds.Contains(p.PromoCodeID))
+                .ToList();
+
+            ViewBag.UsedPromos = usedPromos;
+            ViewBag.AvailablePromos = availablePromos;
+
+            // IMPORTANT: Pass the event as the model
+            return View(ev);
+        }
+
+        // ================= BOOKINGS FOR EVENT =================
+        [Authorize(Policy = "UniversityOrganizer")]
+        public async Task<IActionResult> Bookings(int eventId)
+        {
+            var memberId = await GetCurrentMemberIdAsync();
+            if (memberId == null) return Forbid();
+
+            var ev = await _context.EVENT
+                .FirstOrDefaultAsync(e => e.eventID == eventId && e.createdByUserID == memberId.Value);
+
+            if (ev == null) return NotFound();
+
+            var bookings = await _context.BOOKING
+                .Include(b => b.User)
+                .Include(b => b.BookingItems)
+                    .ThenInclude(bi => bi.TicketType)
+                .Where(b => b.EventID == eventId)
+                .OrderByDescending(b => b.BookingDateTime)
+                .ToListAsync();
+
+            ViewBag.Event = ev;
+
+            return View(bookings);
+        }
+
+        // ================= WAITING LIST =================
+        [Authorize(Policy = "UniversityOrganizer")]
+        public async Task<IActionResult> WaitingList(int eventId)
+        {
+            var memberId = await GetCurrentMemberIdAsync();
+            if (memberId == null) return Forbid();
+
+            var ev = await _context.EVENT
+                .FirstOrDefaultAsync(e => e.eventID == eventId && e.createdByUserID == memberId.Value);
+
+            if (ev == null) return NotFound();
+
+            var waitingList = await _context.WAITING_LIST
+                .Include(w => w.User)
+                .Where(w => w.EventID == eventId)
+                .OrderBy(w => w.AddedAt)
+                .ToListAsync();
+
+            ViewBag.Event = ev;
+
+            return View(waitingList);
+        }
+
+        // ================= EVENT REPORTS (UPDATED WITH NULL SAFETY) =================
+        [Authorize(Policy = "UniversityOrganizer")]
+        public async Task<IActionResult> Reports(int eventId)
+        {
+            var memberId = await GetCurrentMemberIdAsync();
+            if (memberId == null) return Forbid();
+
+            var ev = await _context.EVENT
+                .FirstOrDefaultAsync(e => e.eventID == eventId && e.createdByUserID == memberId.Value);
+
+            if (ev == null) return NotFound();
+
+            // Daily sales for last 30 days
+            var startDate = DateTime.Now.AddDays(-30);
+            var dailySales = await _context.BOOKING
+                .Where(b => b.EventID == eventId && b.BookingDateTime >= startDate)
+                .GroupBy(b => b.BookingDateTime.Date)
+                .Select(g => new {
+                    Date = g.Key,
+                    Count = g.Count(),
+                    Revenue = g.Sum(b => b.TotalAmount)
+                })
+                .OrderBy(g => g.Date)
+                .ToListAsync();
+
+            // Ticket breakdown with null handling
+            var ticketBreakdown = await _context.BOOKING_ITEM
+                .Include(bi => bi.TicketType)
+                .Where(bi => bi.Booking != null && bi.Booking.EventID == eventId)
+                .GroupBy(bi => new {
+                    TicketTypeID = bi.TicketTypeID,
+                    TypeName = bi.TicketType != null ? bi.TicketType.TypeName : "Unknown"
+                })
+                .Select(g => new
+                {
+                    TicketType = g.Key.TypeName,
+                    Sold = g.Sum(bi => bi.Quantity),
+                    Revenue = g.Sum(bi => bi.LineTotal)
+                })
+                .ToListAsync();
+
+            // Promo effectiveness with null handling
+            var promoEffectiveness = await _context.BOOKING_PROMO
+                .Include(bp => bp.PromoCode)
+                .Where(bp => bp.Booking != null && bp.Booking.EventID == eventId && bp.PromoCode != null)
+                .GroupBy(bp => new {
+                    BookingCodeID = bp.BookingCodeID,
+                    Code = bp.PromoCode != null ? bp.PromoCode.code : "Unknown"
+                })
+                .Select(g => new
+                {
+                    PromoCode = g.Key.Code,
+                    TimesUsed = g.Count(),
+                    TotalDiscount = g.Sum(bp => bp.DiscountedAmount)
+                })
+                .ToListAsync();
+
+            ViewBag.Event = ev;
+            ViewBag.DailySales = dailySales;
+            ViewBag.TicketBreakdown = ticketBreakdown;
+            ViewBag.PromoEffectiveness = promoEffectiveness;
+
+            return View();
+        }
+
         // External Organizer dashboard (Organizer + ExternalMember)
         [Authorize(Policy = "ExternalOrganizer")]
         public IActionResult ExternalDashboard()
         {
-            // This will load: Views/Organizer/ExternalDashboard.cshtml
             return View();
         }
 
-        // Optional helper route: /Organizer -> sends them to correct dashboard
-        // (Only if you want. If you don’t need it, you can delete this method.)
+        // Optional helper route
         [HttpGet("/Organizer")]
         public IActionResult Index()
         {

@@ -1,0 +1,133 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.TICKET_TYPE>
+@{
+    ViewData["Title"] = "Manage Tickets";
+    var ev = ViewBag.Event as SmartTicketingSystem.Models.EVENT;
+    var soldCounts = ViewBag.SoldCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-ticket-alt"></i> Manage Ticket Types</h2>
+            <h5 class="text-muted">Event: @ev?.title</h5>
+        </div>
+        <div>
+            <a asp-controller="TICKET_TYPE" asp-action="CreateForEvent" asp-route-eventId="@ev?.eventID"
+               class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Ticket Type
+            </a>
+            <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No ticket types added yet.
+            <a asp-controller="TICKET_TYPE" asp-action="CreateForEvent" asp-route-eventId="@ev?.eventID">
+                Click here to add your first ticket type
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ticket Type</th>
+                                <th>Price</th>
+                                <th>Total Seats</th>
+                                <th>Sold</th>
+                                <th>Available</th>
+                                <th>Sales Period</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in Model)
+                            {
+                                var sold = soldCounts.ContainsKey(ticket.TicketID) ? soldCounts[ticket.TicketID] : 0;
+                                var available = ticket.seatLimit - sold;
+                                var statusClass = ticket.isActive == 'Y' ? "success" : "danger";
+                                var statusText = ticket.isActive == 'Y' ? "Active" : "Inactive";
+                                var now = DateTime.Now;
+                                var isOnSale = now >= ticket.salesStartAt && now <= ticket.salesEndAt;
+
+                                <tr>
+                                    <td class="fw-bold">@ticket.TypeName</td>
+                                    <td>
+                                        @if (ticket.Price == 0)
+                                        {
+                                            <span class="badge bg-success">FREE</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Rs. @ticket.Price.ToString("N2")</span>
+                                        }
+                                    </td>
+                                    <td>@ticket.seatLimit</td>
+                                    <td>
+                                        <span class="badge bg-info">@sold</span>
+                                    </td>
+                                    <td>
+                                        @if (available > 0)
+                                        {
+                                            <span class="badge bg-success">@available</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Sold Out</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small>
+                                            @ticket.salesStartAt.ToString("MMM dd") - @ticket.salesEndAt.ToString("MMM dd, yyyy")
+                                            @if (!isOnSale)
+                                            {
+                                                <span class="badge bg-warning">Not on sale</span>
+                                            }
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@statusClass">@statusText</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-controller="TICKET_TYPE" asp-action="Edit" asp-route-id="@ticket.TicketID"
+                                               class="btn btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form asp-controller="TICKET_TYPE" asp-action="ToggleStatus" method="post"
+                                                  style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@ticket.TicketID" />
+                                                <button type="submit" class="btn btn-outline-warning"
+                                                        title="@(ticket.isActive == 'Y' ? "Deactivate" : "Activate")">
+                                                    <i class="fas @(ticket.isActive == 'Y' ? "fa-eye-slash" : "fa-eye")"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
