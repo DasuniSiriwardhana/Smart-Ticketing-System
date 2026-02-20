@@ -24,30 +24,31 @@
             </div>
 
             <div class="d-flex gap-2 mt-3 mt-md-0">
-                <a class="btn btn-primary" asp-controller="EVENTs" asp-action="Index">Browse Events</a>
-                <a class="btn btn-outline-secondary" asp-controller="BOOKINGs" asp-action="Index">My Bookings</a>
-                <a class="btn btn-outline-secondary" asp-controller="TICKETs" asp-action="Index">My Tickets</a>
+                <a class="btn btn-primary" asp-controller="EVENTs" asp-action="Index">
+                    <i class="fas fa-calendar-alt"></i> Browse Events
+                </a>
+                <a class="btn btn-outline-secondary" asp-controller="BOOKINGs" asp-action="MyBookings">
+                    <i class="fas fa-ticket-alt"></i> My Bookings
+                </a>
+                <a class="btn btn-outline-secondary" asp-controller="TICKETs" asp-action="MyTickets">
+                    <i class="fas fa-qrcode"></i> My Tickets
+                </a>
             </div>
         </div>
     </div>
 
     <!-- Summary Cards -->
     <div class="row g-4 mb-4">
-
         <div class="col-md-4">
-            <div class="card shadow-sm h-100 rounded-4">
+            <div class="card shadow-sm h-100 rounded-4 border-primary">
                 <div class="card-body">
-                    <div class="text-muted">My Bookings</div>
-                    <div class="display-6">@ViewBag.MyBookings</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100 rounded-4">
-                <div class="card-body">
-                    <div class="text-muted">My Tickets</div>
-                    <div class="display-6">@ViewBag.MyTickets</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">My Bookings</div>
+                            <div class="display-6">@ViewBag.MyBookings</div>
+                        </div>
+                        <i class="fas fa-ticket-alt fa-3x text-primary opacity-50"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -55,42 +56,72 @@
         <div class="col-md-4">
             <div class="card shadow-sm h-100 rounded-4 border-success">
                 <div class="card-body">
-                    <div class="text-muted">Upcoming Public Events</div>
-                    <div class="display-6">@ViewBag.UpcomingPublicEvents</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">My Tickets</div>
+                            <div class="display-6">@ViewBag.MyTickets</div>
+                        </div>
+                        <i class="fas fa-qrcode fa-3x text-success opacity-50"></i>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 rounded-4 border-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Upcoming Public Events</div>
+                            <div class="display-6">@ViewBag.UpcomingPublicEvents</div>
+                        </div>
+                        <i class="fas fa-calendar-check fa-3x text-warning opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Upcoming Public Events -->
     <div class="card shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Upcoming Public Events</h5>
+        </div>
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Upcoming Public Events</h5>
-                <a asp-controller="EVENTs" asp-action="Index" class="btn btn-sm btn-outline-primary">View all</a>
-            </div>
-
             <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
-                            <th>ID</th>
                             <th>Title</th>
                             <th>Date</th>
                             <th>Venue</th>
                             <th>Mode</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (dynamic e in (IEnumerable<dynamic>)upcomingEvents)
                         {
                             <tr>
-                                <td>@e.eventID</td>
-                                <td>@e.title</td>
-                                <td>@(((DateTime)e.StartDateTime).ToString("yyyy-MM-dd HH:mm"))</td>
+                                <td class="fw-bold">@e.title</td>
+                                <td>@(((DateTime)e.StartDateTime).ToString("MMM dd, yyyy - h:mm tt"))</td>
                                 <td>@e.venue</td>
-                                <td>@(((char)e.IsOnline) == 'Y' ? "Online" : "Physical")</td>
+                                <td>
+                                    @if (((char)e.IsOnline) == 'Y')
+                                    {
+                                        <span class="badge bg-info">Online</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Physical</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-controller="EVENTs" asp-action="Details" asp-route-id="@e.eventID"
+                                       class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -104,8 +135,8 @@
         <div class="col-lg-6">
             <div class="card shadow-sm rounded-4">
                 <div class="card-body">
-                    <h5 class="mb-3">My Bookings Per Month</h5>
-                    <canvas id="bookingChart"></canvas>
+                    <h5 class="mb-3"><i class="fas fa-chart-line"></i> My Bookings Per Month</h5>
+                    <canvas id="bookingChart" height="250"></canvas>
                 </div>
             </div>
         </div>
@@ -114,39 +145,57 @@
             <div class="card shadow-sm rounded-4">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Recent Bookings</h5>
-                        <a asp-controller="BOOKINGs" asp-action="Index" class="btn btn-sm btn-outline-primary">View all</a>
+                        <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Bookings</h5>
+                        <a asp-controller="BOOKINGs" asp-action="MyBookings" class="btn btn-sm btn-outline-primary">
+                            View All <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
 
                     <div class="table-responsive">
                         <table class="table table-sm align-middle">
-                            <thead>
+                            <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Reference</th>
                                     <th class="text-end">Total</th>
                                     <th>Status</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (dynamic b in (IEnumerable<dynamic>)myRecentBookings)
                                 {
                                     <tr>
-                                        <td>@b.BookingID</td>
-                                        <td>@(b.BookingReference ?? "")</td>
-                                        <td class="text-end">@b.TotalAmount</td>
-                                        <td>@(b.PaymentStatus ?? b.BookingStatus)</td>
+                                        <td class="fw-bold">@(b.BookingReference ?? "N/A")</td>
+                                        <td class="text-end">Rs. @b.TotalAmount</td>
+                                        <td>
+                                            @if (b.PaymentStatus == "Paid")
+                                            {
+                                                <span class="badge bg-success">Paid</span>
+                                            }
+                                            else if (b.PaymentStatus == "Unpaid")
+                                            {
+                                                <span class="badge bg-warning">Unpaid</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@(b.BookingStatus)</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-controller="BOOKINGs" asp-action="Details" asp-route-id="@b.BookingID"
+                                               class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -159,10 +208,19 @@
             datasets: [{
                 label: 'Bookings',
                 data: @Html.Raw(countsJson),
-                borderColor: 'blue',
-                fill: false,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                fill: true,
                 tension: 0.3
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
         }
     });
 </script>
