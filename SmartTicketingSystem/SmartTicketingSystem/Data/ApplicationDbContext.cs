@@ -54,6 +54,86 @@ namespace SmartTicketingSystem.Data
                 .WithMany()
                 .HasForeignKey(r => r.ReviewedByUserID)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // BOOKING relationships
+            modelBuilder.Entity<BOOKING>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.member_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BOOKING>()
+                .HasOne(b => b.Event)
+                .WithMany()
+                .HasForeignKey(b => b.EventID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // BOOKING_ITEM relationships
+            modelBuilder.Entity<BOOKING_ITEM>()
+                .HasOne(bi => bi.Booking)
+                .WithMany(b => b.BookingItems)
+                .HasForeignKey(bi => bi.BookingID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BOOKING_ITEM>()
+                .HasOne(bi => bi.TicketType)
+                .WithMany(tt => tt.BookingItems)
+                .HasForeignKey(bi => bi.TicketTypeID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // BOOKING_PROMO relationships
+            modelBuilder.Entity<BOOKING_PROMO>()
+                .HasOne(bp => bp.Booking)
+                .WithOne(b => b.BookingPromo)
+                .HasForeignKey<BOOKING_PROMO>(bp => bp.BookingID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BOOKING_PROMO>()
+                .HasOne(bp => bp.PromoCode)
+                .WithMany(pc => pc.BookingPromos)
+                .HasForeignKey(bp => bp.BookingCodeID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // PAYMENT relationships
+            modelBuilder.Entity<PAYMENT>()
+                .HasOne(p => p.Booking)
+                .WithMany(b => b.Payments)
+                .HasForeignKey(p => p.BookingID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // TICKET relationships
+            modelBuilder.Entity<TICKET>()
+                .HasOne(t => t.Booking)
+                .WithMany()
+                .HasForeignKey(t => t.BookingID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // WAITING_LIST relationships
+            modelBuilder.Entity<WAITING_LIST>()
+                .HasOne(w => w.Event)
+                .WithMany()
+                .HasForeignKey(w => w.EventID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<WAITING_LIST>()
+                .HasOne(w => w.User)
+                .WithMany()
+                .HasForeignKey(w => w.member_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TICKET>()
+      .HasOne(t => t.Booking)
+      .WithMany(b => b.Tickets)
+      .HasForeignKey(t => t.BookingID)
+      .OnDelete(DeleteBehavior.Cascade)
+      .HasConstraintName("FK_TICKET_BOOKING_BookingID"); // Explicit naming[citation:7]
+
+            modelBuilder.Entity<PAYMENT>()
+                .HasOne(p => p.Booking)
+                .WithMany(b => b.Payments)
+                .HasForeignKey(p => p.BookingID)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PAYMENT_BOOKING_BookingID"); // Explicit naming
         }
     }
 }
