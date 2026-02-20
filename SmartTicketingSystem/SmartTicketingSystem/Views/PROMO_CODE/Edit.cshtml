@@ -49,12 +49,13 @@
                 <span asp-validation-for="endDate" class="text-danger"></span>
             </div>
 
-            <!--  checkbox -->
+            <!-- ===== FIXED CHECKBOX ===== -->
             <div class="mb-3 form-check">
-                <input asp-for="IsActiveBool" class="form-check-input" />
-                <label asp-for="IsActiveBool" class="form-check-label">Active</label>
+                <input type="checkbox" class="form-check-input" id="IsActiveCheck"
+                       name="IsActiveCheck" value="true" @(Model.isActive == 'Y' ? "checked" : "") />
+                <label class="form-check-label" for="IsActiveCheck">Active</label>
+                <input type="hidden" name="isActive" id="isActive" value="@Model.isActive" />
             </div>
-            <span asp-validation-for="IsActiveBool" class="text-danger"></span>
 
             <div class="d-flex gap-2">
                 <input type="submit" value="Save" class="btn btn-primary" />
@@ -68,4 +69,10 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        // Sync checkbox with hidden field
+        document.getElementById('IsActiveCheck').addEventListener('change', function() {
+            document.getElementById('isActive').value = this.checked ? 'Y' : 'N';
+        });
+    </script>
 }
