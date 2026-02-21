@@ -2,146 +2,295 @@
 @model RegisterModel
 @{
     ViewData["Title"] = "Register";
+    Layout = "/Areas/Identity/Pages/Account/_Layout.cshtml";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css" />
 
-<h1>@ViewData["Title"]</h1>
-
-<div class="row">
-    <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>Create a new account.</h2>
-            <hr />
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-
-            <div class="form-floating mb-3">
-                <input asp-for="Input.FullName" class="form-control" autocomplete="name" aria-required="true" placeholder="Full Name" />
-                <label asp-for="Input.FullName">Full Name</label>
-                <span asp-validation-for="Input.FullName" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Input.Phone" class="form-label">Contact Number</label>
-                <input asp-for="Input.Phone" class="form-control" id="phone" autocomplete="tel" placeholder="+94 77XXXXXXX" />
-                <span asp-validation-for="Input.Phone" class="text-danger"></span>
-            </div>
-
-
-            <div class="form-floating mb-3">
-                <input asp-for="Input.UniversityNumber" class="form-control" id="uniNo" placeholder="E12345" />
-                <label asp-for="Input.UniversityNumber">University Number</label>
-                <span asp-validation-for="Input.UniversityNumber" class="text-danger"></span>
-            </div>
-
-            <div class="form-floating mb-3">
-                <select asp-for="Input.UserType" class="form-select" aria-required="true">
-                    <option value="">-- Select user type --</option>
-                    <option value="ExternalMember">External Member</option>
-                    <option value="UniversityMember">University Member</option>
-                    <option value="Organizer">Staff</option>
-                </select>
-                <label asp-for="Input.UserType">User Type</label>
-                <span asp-validation-for="Input.UserType" class="text-danger"></span>
-            </div>
-
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label asp-for="Input.Email">Email</label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.Password">Password</label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
-
-            <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-
-            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
-    </div>
-
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured.
-                            See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name"
-                                            title="Log in using your @provider.DisplayName account">
-                                        @provider.DisplayName
-                                    </button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
-    </div>
-</div>
-
 <style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4361ee, #7209b7);
+    }
+
+    /* FIXED: Completely restructured phone field */
+    .phone-field-container {
+        position: relative;
+        width: 100%;
+    }
+
     .iti {
         width: 100%;
     }
 
-        .iti input {
-            width: 100%;
+    #phone {
+        width: 100%;
+        height: 58px;
+        padding: 1rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+        #phone:focus {
+            border-color: #4361ee;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(67,97,238,0.25);
         }
+
+    /* FIXED: Custom label that won't get corrupted */
+    .phone-label {
+        position: absolute;
+        top: 0;
+        left: 90px;
+        padding: 1rem 0.75rem;
+        margin-bottom: 0;
+        line-height: 1.5;
+        color: #6c757d;
+        pointer-events: none;
+        transition: all 0.2s ease-in-out;
+        background-color: transparent;
+        white-space: nowrap;
+        z-index: 10;
+    }
+
+    /* FIXED: When input has content, label moves up */
+    .phone-field-container.filled .phone-label,
+    .phone-field-container .iti--allow-dropdown input:focus ~ .phone-label {
+        transform: scale(0.85) translateY(-1.2rem) translateX(-0.5rem);
+        color: #4361ee;
+        background-color: white;
+        padding: 0 0.5rem;
+        left: 80px;
+        top: 0.5rem;
+        z-index: 20;
+    }
+
+    .iti__flag-container {
+        z-index: 15;
+    }
+
+    .iti__country-list {
+        z-index: 1050 !important;
+    }
 </style>
 
+<div class="row justify-content-center">
+    <div class="col-md-12 col-lg-10">
+        <div class="card border-0 shadow-lg overflow-hidden">
+            <div class="row g-0">
+                <!-- Left Side - Branding -->
+                <div class="col-md-4 bg-gradient-primary text-white p-4 d-flex flex-column justify-content-center">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-plus fa-4x mb-3"></i>
+                        <h3 class="fw-bold">Join SmartTicket!</h3>
+                        <p class="opacity-75">Create your account today</p>
+                    </div>
+                    <div class="mt-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span>Free registration</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span>Access all events</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span>Manage bookings</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span>Get QR tickets</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side - Registration Form -->
+                <div class="col-md-8 p-4">
+                    <div class="text-center mb-4">
+                        <h4 class="fw-bold">Create Account</h4>
+                        <p class="text-muted">Fill in your details to get started</p>
+                    </div>
+
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.FullName" class="form-control" placeholder="Full Name" />
+                                    <label asp-for="Input.FullName">Full Name</label>
+                                    <span asp-validation-for="Input.FullName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.Email" class="form-control" placeholder="name@example.com" />
+                                    <label asp-for="Input.Email">Email Address</label>
+                                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!-- FIXED: Custom phone field without form-floating -->
+                                <div class="mb-3">
+                                    <div class="phone-field-container" id="phoneContainer">
+                                        <input asp-for="Input.Phone" class="form-control" id="phone" placeholder=" " />
+                                        <label class="phone-label" for="phone">Phone Number</label>
+                                    </div>
+                                    <span asp-validation-for="Input.Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="Input.UserType" class="form-select" id="userTypeSelect">
+                                        <option value="">-- Select user type --</option>
+                                        <option value="ExternalMember">External Member</option>
+                                        <option value="UniversityMember">University Member</option>
+                                        <option value="Organizer">Staff / Organizer</option>
+                                    </select>
+                                    <label asp-for="Input.UserType">Account Type</label>
+                                    <span asp-validation-for="Input.UserType" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" id="universityField" style="display: none;">
+                            <div class="col-12">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.UniversityNumber" class="form-control" id="uniNo" placeholder="E12345" />
+                                    <label asp-for="Input.UniversityNumber">University Number</label>
+                                    <span asp-validation-for="Input.UniversityNumber" class="text-danger"></span>
+                                    <small class="text-muted">Must start with 'E' (e.g., E12345)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.Password" class="form-control" type="password" placeholder="Password" />
+                                    <label asp-for="Input.Password">Password</label>
+                                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.ConfirmPassword" class="form-control" type="password" placeholder="Confirm Password" />
+                                    <label asp-for="Input.ConfirmPassword">Confirm Password</label>
+                                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-3">
+                            <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </button>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <p class="mb-0">
+                                Already have an account?
+                                <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none fw-bold">Sign in</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
     <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
     <script>
-        const phoneInput = document.querySelector("#phone");
-        const iti = window.intlTelInput(phoneInput, {
-            initialCountry: "lk",
-            separateDialCode: false,
-            nationalMode: false,
-            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js",
-        });
+        $(document).ready(function() {
+            const phoneInput = document.querySelector("#phone");
+            const phoneContainer = document.querySelector("#phoneContainer");
 
-        // Save as E.164 format (+94...) on submit
-        const form = phoneInput.closest("form");
-        form.addEventListener("submit", function () {
-            if (iti && iti.getNumber) {
-                phoneInput.value = iti.getNumber();
-            }
-        });
-                const uniNo = document.querySelector("#uniNo");
-        if (uniNo) {
-          uniNo.addEventListener("blur", function () {
-            const v = (uniNo.value || "").trim();
-            if (v.length > 0 && !v.toUpperCase().startsWith("E")) {
-              uniNo.value = "E" + v;
-            }
-          });
-        }
+            if (phoneInput) {
+                const iti = window.intlTelInput(phoneInput, {
+                    initialCountry: "lk",
+                    separateDialCode: false,
+                    nationalMode: false,
+                    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js",
+                });
 
+                // FIXED: Update container class based on input value
+                function updatePhoneLabel() {
+                    if (phoneInput.value) {
+                        phoneContainer.classList.add('filled');
+                    } else {
+                        phoneContainer.classList.remove('filled');
+                    }
+                }
+
+                // Initial check
+                setTimeout(() => {
+                    const flagContainer = document.querySelector('.iti__flag-container');
+                    if (flagContainer) {
+                        const width = flagContainer.offsetWidth;
+                        phoneInput.style.paddingLeft = (width + 10) + 'px';
+
+                        const label = document.querySelector('.phone-label');
+                        if (label) {
+                            label.style.left = (width + 15) + 'px';
+                        }
+                    }
+                    updatePhoneLabel();
+                }, 100);
+
+                // Listen for input changes
+                phoneInput.addEventListener('input', updatePhoneLabel);
+                phoneInput.addEventListener('blur', updatePhoneLabel);
+                phoneInput.addEventListener('focus', updatePhoneLabel);
+
+                // Form submit
+                const form = phoneInput.closest("form");
+                form.addEventListener("submit", function () {
+                    if (iti && iti.getNumber) {
+                        phoneInput.value = iti.getNumber();
+                    }
+                });
+            }
+
+            // University number auto-format
+            const uniNo = document.querySelector("#uniNo");
+            if (uniNo) {
+                uniNo.addEventListener("blur", function () {
+                    const v = (uniNo.value || "").trim();
+                    if (v.length > 0 && !v.toUpperCase().startsWith("E")) {
+                        uniNo.value = "E" + v;
+                    }
+                });
+            }
+
+            // Show/hide university field
+            function toggleUniversityField() {
+                const userType = $('#userTypeSelect').val();
+                if (userType === 'UniversityMember') {
+                    $('#universityField').show();
+                    $('#uniNo').prop('required', true);
+                } else {
+                    $('#universityField').hide();
+                    $('#uniNo').prop('required', false);
+                    $('#uniNo').val('');
+                }
+            }
+
+            $('#userTypeSelect').change(toggleUniversityField);
+            toggleUniversityField();
+        });
     </script>
 }

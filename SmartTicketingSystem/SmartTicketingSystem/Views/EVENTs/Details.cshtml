@@ -1,227 +1,474 @@
 ﻿@model SmartTicketingSystem.Models.ViewModels.EventDetailsVM
-
 @{
-    ViewData["Title"] = "Event Details";
+    ViewData["Title"] = Model.Event.title;
+    var reviews = ViewBag.Reviews as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var totalReviews = ViewBag.TotalReviews ?? 0;
+    var averageRating = ViewBag.AverageRating ?? 0.0;
+    var canReview = ViewBag.CanReview ?? false;
+    var userReview = ViewBag.UserReview as SmartTicketingSystem.Models.REVIEW;
+    var onWaitingList = ViewBag.OnWaitingList ?? false;
+    var activePromos = ViewBag.ActivePromos as List<SmartTicketingSystem.Models.PROMO_CODE> ?? new List<SmartTicketingSystem.Models.PROMO_CODE>();
+    var eventImageUrl = ViewBag.EventImageUrl as string ?? "/images/event-placeholder.jpg";
+    var categories = ViewBag.Categories as List<EVENT_CATEGORY> ?? new List<EVENT_CATEGORY>();
+    var categoryDict = categories.ToDictionary(c => c.categoryID, c => c.categoryName);
+    var categoryName = categoryDict.ContainsKey(Model.Event.categoryID) ? categoryDict[Model.Event.categoryID] : "General";
+    var hasPaidBooking = ViewBag.HasPaidBooking ?? false;
+}
+
+@functions {
+    public static string FormatDuration(DateTime start, DateTime end)
+    {
+        var duration = end - start;
+        var hours = duration.Hours;
+        var minutes = duration.Minutes;
+
+        if (hours > 0 && minutes > 0)
+            return $"{hours} hours {minutes} minutes";
+        else if (hours > 0)
+            return $"{hours} hours";
+        else if (minutes > 0)
+            return $"{minutes} minutes";
+        else
+            return "Less than a minute";
+    }
 }
 
 <div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="EVENTs" asp-action="Index">Events</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Event.title</li>
+        </ol>
+    </nav>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger">@TempData["Error"]</div>
-    }
-
-    <div class="row g-4">
-        <!-- LEFT: Event info -->
-        <div class="col-lg-7">
-            <div class="card shadow-sm rounded-4">
-                <div class="card-body p-4">
-                    <div class="d-flex flex-wrap gap-2 mb-3">
-                        <span class="badge bg-info text-dark">@Model.Event.visibility</span>
-                        <span class="badge bg-secondary">@Model.Event.status</span>
-                        <span class="badge bg-dark">
-                            Remaining: @Model.RemainingEventCapacity / @Model.Event.capacity
-                        </span>
+    <!-- Event Header with Image -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card event-header-card">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="@eventImageUrl" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 300px;" alt="@Model.Event.title">
                     </div>
+                    <div class="col-md-8">
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <span class="badge bg-primary">@Model.Event.visibility</span>
+                                <span class="badge bg-secondary">@Model.Event.status</span>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-chair me-1"></i>@Model.RemainingEventCapacity seats left
+                                </span>
+                                @if (Model.Event.IsOnline == 'Y')
+                                {
+                                    <span class="badge bg-success">Online Event</span>
+                                }
+                            </div>
 
-                    <h2 class="mb-2">@Model.Event.title</h2>
-                    <div class="text-muted mb-3">
-                        @Model.Event.venue •
-                        @Model.Event.StartDateTime.ToString("yyyy-MM-dd HH:mm")
-                    </div>
+                            <h1 class="display-5 fw-bold mb-3">@Model.Event.title</h1>
 
-                    @if (!string.IsNullOrWhiteSpace(Model.Event.Description))
-                    {
-                        <p class="mb-4">@Model.Event.Description</p>
-                    }
+                            <div class="event-meta mb-4">
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                        <strong>Date:</strong> @Model.Event.StartDateTime.ToString("MMMM dd, yyyy")
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <i class="fas fa-clock text-primary me-2"></i>
+                                        <strong>Time:</strong> @Model.Event.StartDateTime.ToString("h:mm tt") - @Model.Event.endDateTime.ToString("h:mm tt")
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                        <strong>Venue:</strong> @Model.Event.venue
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <i class="fas fa-tag text-primary me-2"></i>
+                                        <strong>Category:</strong> @categoryName
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="p-3 bg-light border rounded-4">
-                                <div class="fw-semibold mb-1">Start</div>
-                                <div>@Model.Event.StartDateTime</div>
+                            @if (!string.IsNullOrWhiteSpace(Model.Event.Description))
+                            {
+                                <div class="event-description mb-4">
+                                    <h5>About This Event</h5>
+                                    <p class="text-muted">@Model.Event.Description</p>
+                                </div>
+                            }
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back
+                                </a>
+
+                                <!-- Ask Question Button -->
+                                <a asp-controller="INQUIRies"
+                                   asp-action="Create"
+                                   asp-route-eventId="@Model.Event.eventID"
+                                   asp-route-eventTitle="@Model.Event.title"
+                                   class="btn btn-outline-info">
+                                    <i class="fas fa-question-circle me-2"></i>Ask Question
+                                </a>
+
+                                @if (User.IsInRole("Admin") || User.IsInRole("Organizer"))
+                                {
+                                    <a class="btn btn-outline-dark" asp-action="Edit" asp-route-id="@Model.Event.eventID">
+                                        <i class="fas fa-edit me-2"></i>Edit
+                                    </a>
+                                }
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="p-3 bg-light border rounded-4">
-                                <div class="fw-semibold mb-1">End</div>
-                                <div>@Model.Event.endDateTime</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="my-4" />
-
-                    <div class="d-flex gap-2 flex-wrap">
-                        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
-
-                        @* Admin/Organizer controls *@
-                        @if (User.IsInRole("Admin") || User.IsInRole("Organizer"))
-                        {
-                            <a class="btn btn-outline-dark"
-                               asp-action="Edit"
-                               asp-route-id="@Model.Event.eventID">
-                                Edit
-                            </a>
-                            <a class="btn btn-outline-primary"
-                               asp-controller="Organizer"
-                               asp-action="Tickets"
-                               asp-route-eventId="@Model.Event.eventID">
-                                <i class="fas fa-ticket-alt"></i> Manage Tickets
-                            </a>
-                            <a class="btn btn-outline-success"
-                               asp-controller="Organizer"
-                               asp-action="Promotions"
-                               asp-route-eventId="@Model.Event.eventID">
-                                <i class="fas fa-tags"></i> Manage Promos
-                            </a>
-                        }
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- RIGHT: Booking & Promotions -->
-        <div class="col-lg-5">
-            <!-- Book Tickets Card -->
-            <div class="card shadow-sm rounded-4 mb-4">
-                <div class="card-body p-4">
-                    <h4 class="mb-2">Book Tickets</h4>
-                    <div class="text-muted mb-3">
-                        Select quantities. You can pay later to receive QR tickets.
-                    </div>
-
-                    @* If user is NOT logged in -> show login message *@
-                    @if (!(User?.Identity?.IsAuthenticated ?? false))
+    <div class="row g-4">
+        <!-- Left Column - Main Content -->
+        <div class="col-lg-8">
+            <!-- Ticket Selection Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-ticket-alt me-2 text-primary"></i>Select Tickets</h5>
+                </div>
+                <div class="card-body">
+                    @if (!User.Identity.IsAuthenticated)
                     {
                         <div class="alert alert-info mb-0">
-                            Please <a asp-area="Identity" asp-page="/Account/Login">log in</a> to book tickets.
+                            <i class="fas fa-info-circle me-2"></i>
+                            Please <a asp-area="Identity" asp-page="/Account/Login" class="alert-link">log in</a> to book tickets.
                         </div>
                     }
-                    else
+                    else if (Model.TicketTypes == null || !Model.TicketTypes.Any())
                     {
-                        @* Only members can book *@
-                        @if (!(User.IsInRole("ExternalMember") || User.IsInRole("UniversityMember") || User.IsInRole("Organizer") || User.IsInRole("Admin")))
-                        {
-                            <div class="alert alert-warning mb-0">
-                                Your account does not have permission to book tickets.
-                            </div>
-                        }
-                        else
-                        {
-                            @* If no ticket types available *@
-                            if (Model.TicketTypes == null || Model.TicketTypes.Count == 0)
+                        <div class="alert alert-warning mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            No ticket types available for this event.
+                            @if (User.IsInRole("Admin") || User.IsInRole("Organizer"))
                             {
-                                <div class="alert alert-warning mb-0">
-                                    <i class="fas fa-exclamation-triangle"></i> No ticket types available for this event.
-                                    @if (User.IsInRole("Admin") || User.IsInRole("Organizer"))
-                                    {
-                                        <div class="mt-2">
-                                            <a asp-controller="Organizer"
-                                               asp-action="Tickets"
-                                               asp-route-eventId="@Model.Event.eventID"
-                                               class="btn btn-sm btn-primary">
-                                                <i class="fas fa-plus"></i> Add Ticket Types
-                                            </a>
-                                        </div>
-                                    }
+                                <a asp-controller="Organizer" asp-action="Tickets"
+                                   asp-route-eventId="@Model.Event.eventID"
+                                   class="btn btn-sm btn-primary mt-2">
+                                    <i class="fas fa-plus me-2"></i>Add Ticket Types
+                                </a>
+                            }
+                        </div>
+                    }
+                    else if (Model.RemainingEventCapacity <= 0)
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-clock fa-4x text-warning mb-3"></i>
+                            <h5>Event is Full</h5>
+                            <p class="text-muted mb-4">This event has reached maximum capacity.</p>
+
+                            @if (onWaitingList)
+                            {
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    You are on the waiting list. We'll notify you when spots open.
                                 </div>
                             }
                             else
                             {
-                                @* If event full -> show waiting list button only *@
-                                if (Model.RemainingEventCapacity <= 0)
-                                {
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-clock"></i> This event is currently full.
-                                    </div>
-                                    <form asp-action="JoinWaitingList" method="post">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="eventId" value="@Model.Event.eventID" />
-                                        <button type="submit" class="btn btn-outline-warning w-100">
-                                            <i class="fas fa-clock"></i> Join Waiting List
-                                        </button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <!-- Book Now button -->
-                                    <a asp-action="Book" asp-route-id="@Model.Event.eventID"
-                                       class="btn btn-success btn-lg w-100 mb-3">
-                                        <i class="fas fa-ticket-alt"></i> Book Now
-                                    </a>
-
-                                    <!-- Preview of available ticket types -->
-                                    <div class="mt-3">
-                                        <h6>Available Tickets:</h6>
-                                        <div class="list-group">
-                                            @foreach (var tt in Model.TicketTypes.Take(3))
-                                            {
-                                                var remaining = Model.RemainingByTicketType.ContainsKey(tt.TicketID)
-                                                ? Model.RemainingByTicketType[tt.TicketID]
-                                                : 0;
-
-                                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <span class="fw-bold">@tt.TypeName</span><br />
-                                                        <small class="text-muted">
-                                                            @if (tt.Price == 0)
-                                                            {
-                                                                <span class="badge bg-success">FREE</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span>Rs. @tt.Price.ToString("N2")</span>
-                                                            }
-                                                        </small>
-                                                    </div>
-                                                    <span class="badge bg-info rounded-pill">@remaining left</span>
-                                                </div>
-                                            }
-                                        </div>
-                                        @if (Model.TicketTypes.Count > 3)
-                                        {
-                                            <small class="text-muted d-block mt-2">
-                                                + @(Model.TicketTypes.Count - 3) more ticket types available
-                                            </small>
-                                        }
-                                    </div>
-                                }
+                                <form asp-action="JoinWaitingList" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="eventId" value="@Model.Event.eventID" />
+                                    <button type="submit" class="btn btn-warning btn-lg">
+                                        <i class="fas fa-clock me-2"></i>Join Waiting List
+                                    </button>
+                                </form>
                             }
-                        }
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-action="Book" asp-route-id="@Model.Event.eventID"
+                           class="btn btn-success btn-lg w-100 mb-4">
+                            <i class="fas fa-ticket-alt me-2"></i>Book Now
+                        </a>
+
+                        <!-- Ticket Types Preview -->
+                        <div class="ticket-types-preview">
+                            <h6 class="mb-3">Available Ticket Types</h6>
+                            @foreach (var tt in Model.TicketTypes)
+                            {
+                                var remaining = Model.RemainingByTicketType.ContainsKey(tt.TicketID)
+                                ? Model.RemainingByTicketType[tt.TicketID] : 0;
+
+                                <div class="ticket-type-item d-flex justify-content-between align-items-center p-3 mb-2 border rounded">
+                                    <div>
+                                        <h6 class="mb-1">@tt.TypeName</h6>
+                                        <small class="text-muted">
+                                            @if (tt.Price == 0)
+                                            {
+                                                <span class="badge bg-success">FREE</span>
+                                            }
+                                            else
+                                            {
+                                                @:Rs. @tt.Price.ToString("N2")
+                                            }
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info">@remaining left</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
                     }
                 </div>
             </div>
 
-            <!-- PROMOTIONS CARD - ADD THIS SECTION -->
-            <div class="card shadow-sm rounded-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-tags"></i> Available Promotions</h5>
+            <!-- Reviews Card - FIXED (Removed duplicate) -->
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-star me-2 text-warning"></i>Reviews (@totalReviews)</h5>
+                    @if (canReview)
+                    {
+                        <a asp-controller="REVIEWs" asp-action="Create" asp-route-eventId="@Model.Event.eventID"
+                           class="btn btn-sm btn-primary">
+                            <i class="fas fa-pen me-2"></i>Write Review
+                        </a>
+                    }
+                </div>
+
+                <!-- FIXED DEBUG SECTION - No _context errors -->
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <div class="alert alert-info m-3">
+                        <h6>Debug - Why no button?</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td>User Logged In:</td>
+                                <td><span class="badge bg-success">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td>Has Paid Booking:</td>
+                                <td>
+                                    @if (hasPaidBooking)
+                                    {
+                                        <span class="badge bg-success">Yes</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">No - Need to book and pay</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Event Ended:</td>
+                                <td>
+                                    @if (Model.Event.endDateTime < DateTime.Now)
+                                    {
+                                        <span class="badge bg-success">Yes</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">No - Event ends @Model.Event.endDateTime.ToString("MMM dd, hh:mm tt")</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Already Reviewed:</td>
+                                <td>
+                                    @if (userReview != null)
+                                    {
+                                        <span class="badge bg-warning">Yes - Already submitted a review</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">No</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Final canReview:</strong></td>
+                                <td>
+                                    @if (canReview)
+                                    {
+                                        <span class="badge bg-success">TRUE - Button should show</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">FALSE - Button hidden</span>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning m-3">
+                        <i class="fas fa-info-circle me-2"></i>Please log in to write a review.
+                    </div>
+                }
+
+                <div class="card-body">
+                    <!-- Rating Summary -->
+                    <div class="rating-summary text-center mb-4">
+                        <h1 class="display-3 fw-bold text-primary">@averageRating.ToString("0.0")</h1>
+                        <div class="rating-stars mb-2">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= Math.Round(averageRating))
+                                {
+                                    <i class="fas fa-star text-warning fa-lg"></i>
+                                }
+                                else
+                                {
+                                    <i class="far fa-star text-warning fa-lg"></i>
+                                }
+                            }
+                        </div>
+                        <p class="text-muted">Based on @totalReviews reviews</p>
+                    </div>
+
+                    @if (userReview != null)
+                    {
+                        <div class="alert alert-light border mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Your Review</h6>
+                                <span class="badge bg-@(userReview.ReviewStatus == "Approved" ? "success" : "warning")">
+                                    @userReview.ReviewStatus
+                                </span>
+                            </div>
+                            <div class="rating-stars mb-2">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= userReview.Ratings)
+                                    {
+                                        <i class="fas fa-star text-warning"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star text-warning"></i>
+                                    }
+                                }
+                            </div>
+                            <p class="mb-1">@userReview.Comments</p>
+                            <small class="text-muted">@userReview.createdAt.ToString("MMM dd, yyyy")</small>
+                        </div>
+                    }
+
+                    <!-- Reviews List -->
+                    @if (reviews.Any())
+                    {
+                        <div class="reviews-list">
+                            @foreach (var review in reviews.Take(5))
+                            {
+                                <div class="review-item p-3 mb-3 border-bottom">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="mb-0">@review.UserFullName</h6>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rating-stars">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= review.Ratings)
+                                                    {
+                                                        <i class="fas fa-star text-warning small"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star text-warning small"></i>
+                                                    }
+                                                }
+                                            </div>
+                                            @if (User.Identity.IsAuthenticated)
+                                            {
+                                                <a asp-controller="REVIEWs" asp-action="Report" asp-route-reviewId="@review.ReviewID"
+                                                   class="btn btn-sm btn-outline-danger ms-2"
+                                                   title="Report this review">
+                                                    <i class="fas fa-flag"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                    <p class="mb-1">@review.Comments</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>@review.createdAt.ToString("MMM dd, yyyy")
+                                        </small>
+                                        @if (review.isVerifiedAttendee == 'Y')
+                                        {
+                                            <span class="badge bg-success">Verified Attendee</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        @if (reviews.Count() > 5)
+                        {
+                            <div class="text-center mt-3">
+                                <a asp-controller="REVIEWs" asp-action="EventReviews"
+                                   asp-route-eventId="@Model.Event.eventID"
+                                   class="btn btn-outline-primary">
+                                    View All @totalReviews Reviews
+                                </a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center mb-0">No reviews yet. Be the first to review!</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Info Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Quick Info</h5>
                 </div>
                 <div class="card-body">
-                    @{
-                        var activePromos = ViewBag.ActivePromos as List<SmartTicketingSystem.Models.PROMO_CODE>;
-                    }
-                    @if (activePromos != null && activePromos.Any())
-                    {
-                        <div class="list-group">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            <strong>Capacity:</strong> @Model.Event.capacity people
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <strong>Duration:</strong> @FormatDuration(Model.Event.StartDateTime, Model.Event.endDateTime)
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-star text-warning me-2"></i>
+                            <strong>Rating:</strong> @averageRating.ToString("0.0") (@totalReviews reviews)
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-calendar-plus text-primary me-2"></i>
+                            <strong>Organized by:</strong> @(Model.Event.organizerInfo ?? "Event Team")
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Promotions Card -->
+            @if (activePromos.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-tags me-2"></i>Available Promotions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
                             @foreach (var promo in activePromos)
                             {
-                                <div class="list-group-item">
+                                <div class="list-group-item px-0">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <span class="fw-bold text-success">@promo.code</span>
                                             @if (promo.DiscountType == "Percentage")
                                             {
-                                                <span class="badge bg-primary">@promo.DiscountValue% OFF</span>
+                                                <span class="badge bg-primary ms-2">@promo.DiscountValue% OFF</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-primary">Rs. @promo.DiscountValue.ToString("N2") OFF</span>
+                                                <span class="badge bg-primary ms-2">Rs. @promo.DiscountValue.ToString("N2") OFF</span>
                                             }
                                         </div>
                                         <small class="text-muted">Until @promo.endDate.ToString("MMM dd")</small>
@@ -232,16 +479,54 @@
                                 </div>
                             }
                         </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted mb-0">No active promotions for this event.</p>
-                    }
+                    </div>
                 </div>
-            </div>
+            }
 
-            <div class="text-muted mt-3" style="font-size:0.9rem;">
-                <i class="fas fa-info-circle"></i> After payment, the system generates a QR ticket per seat.
+            <!-- Location Card -->
+            @if (Model.Event.IsOnline == 'N' && !string.IsNullOrWhiteSpace(Model.Event.venue))
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Location</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2"><strong>@Model.Event.venue</strong></p>
+                        <div class="map-placeholder bg-light p-4 text-center rounded">
+                            <i class="fas fa-map fa-3x text-muted mb-2"></i>
+                            <p class="text-muted small">Map will be displayed here</p>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(Model.Event.maplink))
+                        {
+                            <a href="@Model.Event.maplink" target="_blank" class="btn btn-outline-primary w-100 mt-3">
+                                <i class="fas fa-directions me-2"></i>Get Directions
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Share Card -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-share-alt me-2 text-primary"></i>Share This Event</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="#" class="btn btn-outline-primary" onclick="shareOnFacebook()">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-info" onclick="shareOnTwitter()">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-success" onclick="shareOnWhatsApp()">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary" onclick="copyLink()">
+                            <i class="fas fa-link"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -249,14 +534,41 @@
 
 @section Scripts {
     <script>
-        // Auto-disable quantity inputs when remaining is 0
-        $(document).ready(function() {
-            $('input[type="number"]').each(function() {
-                var max = parseInt($(this).attr('max'));
-                if (max <= 0) {
-                    $(this).prop('disabled', true);
-                }
+        // Share functions
+        function shareOnFacebook() {
+            var url = encodeURIComponent(window.location.href);
+            window.open('https://www.facebook.com/sharer/sharer.php?u=' + url, '_blank');
+        }
+
+        function shareOnTwitter() {
+            var text = encodeURIComponent('Check out this event: @Model.Event.title');
+            var url = encodeURIComponent(window.location.href);
+            window.open('https://twitter.com/intent/tweet?text=' + text + '&url=' + url, '_blank');
+        }
+
+        function shareOnWhatsApp() {
+            var text = encodeURIComponent('Check out this event: @Model.Event.title - ' + window.location.href);
+            window.open('https://wa.me/?text=' + text, '_blank');
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(function() {
+                showNotification('Link copied to clipboard!', 'success');
             });
-        });
+        }
+
+        function showNotification(message, type) {
+            var notification = $('<div class="alert alert-' + type + ' alert-dismissible fade show notification-toast" role="alert">' +
+                message +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                '</div>');
+
+            $('body').append(notification);
+            setTimeout(function() {
+                notification.fadeOut('slow', function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
     </script>
 }

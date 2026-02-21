@@ -642,11 +642,11 @@ namespace SmartTicketingSystem.Data.Migrations
 
             modelBuilder.Entity("SmartTicketingSystem.Models.REVIEW_REPORT", b =>
                 {
-                    b.Property<int>("RportID")
+                    b.Property<int>("ReportID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RportID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportID"));
 
                     b.Property<string>("ReportDetail")
                         .IsRequired()
@@ -665,7 +665,7 @@ namespace SmartTicketingSystem.Data.Migrations
                     b.Property<int>("ReviewID")
                         .HasColumnType("int");
 
-                    b.HasKey("RportID");
+                    b.HasKey("ReportID");
 
                     b.ToTable("REVIEW_REPORT");
                 });

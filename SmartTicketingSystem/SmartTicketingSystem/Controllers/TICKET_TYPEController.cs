@@ -19,7 +19,7 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // ==================== HELPER METHODS ====================
+        // ==========HELPER METHODS ====================
         private async Task<int?> GetCurrentMemberIdAsync()
         {
             var identityUserId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -50,7 +50,7 @@ namespace SmartTicketingSystem.Controllers
             return false;
         }
 
-        // ==================== CREATE FOR EVENT (GET) ====================
+        // ==========CREATE FOR EVENT (GET) ====================
         [Authorize(Policy = "AdminOrOrganizer")]
         public async Task<IActionResult> CreateForEvent(int eventId)
         {
@@ -80,7 +80,7 @@ namespace SmartTicketingSystem.Controllers
             return View(ticketType);
         }
 
-        // ==================== CREATE FOR EVENT (POST) ====================
+        // ==========CREATE FOR EVENT (POST) ====================
         [Authorize(Policy = "AdminOrOrganizer")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -138,7 +138,7 @@ namespace SmartTicketingSystem.Controllers
             return View(ticketType);
         }
 
-        // ==================== TOGGLE STATUS ====================
+        // ==========TOGGLE STATUS ====================
         [Authorize(Policy = "AdminOrOrganizer")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -162,7 +162,7 @@ namespace SmartTicketingSystem.Controllers
             return RedirectToAction("Tickets", "Organizer", new { eventId = ticketType.EventID });
         }
 
-        // ==================== SEARCH ====================
+        // ==========SEARCH ====================
         public async Task<IActionResult> Search(
             string mode,
             int? ticketId,
@@ -234,13 +234,13 @@ namespace SmartTicketingSystem.Controllers
             return View("Index", await query.OrderByDescending(t => t.createdAt).ToListAsync());
         }
 
-        // ==================== INDEX ====================
+        // ==========INDEX ====================
         public async Task<IActionResult> Index()
         {
             return View(await _context.TICKET_TYPE.OrderByDescending(t => t.createdAt).ToListAsync());
         }
 
-        // ==================== DETAILS ====================
+        // ==========DETAILS ====================
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -251,11 +251,11 @@ namespace SmartTicketingSystem.Controllers
             return View(ticketType);
         }
 
-        // ==================== CREATE (GET) ====================
+        // ==========CREATE (GET) ====================
         [Authorize(Policy = "AdminOrOrganizer")]
         public IActionResult Create() => View();
 
-        // ==================== CREATE (POST) ====================
+        // ==========CREATE (POST) ====================
         [Authorize(Policy = "AdminOrOrganizer")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -275,7 +275,7 @@ namespace SmartTicketingSystem.Controllers
             return View(ticketType);
         }
 
-        // ==================== EDIT (GET) ====================
+        // ==========EDIT (GET) ====================
         [Authorize(Policy = "AdminOrOrganizer")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -296,7 +296,7 @@ namespace SmartTicketingSystem.Controllers
             return View(ticketType);
         }
 
-        // ==================== EDIT (POST) ====================
+        // ==========EDIT (POST) ====================
         [Authorize(Policy = "AdminOrOrganizer")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -357,7 +357,7 @@ namespace SmartTicketingSystem.Controllers
             return View(ticketType);
         }
 
-        // ==================== DELETE (GET) ====================
+        // ==========DELETE (GET) ====================
         [Authorize(Policy = "AdminOrOrganizer")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -387,7 +387,7 @@ namespace SmartTicketingSystem.Controllers
             return View(ticketType);
         }
 
-        // ==================== DELETE (POST) ====================
+        // ==========DELETE (POST) ====================
         [Authorize(Policy = "AdminOrOrganizer")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]

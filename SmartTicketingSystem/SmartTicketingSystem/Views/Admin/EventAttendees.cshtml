@@ -1,0 +1,232 @@
+﻿@model List<SmartTicketingSystem.Controllers.AttendeeViewModel>
+@{
+    ViewData["Title"] = "Event Attendees";
+    var ev = ViewBag.Event;
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="ManageAttendance">Manage Attendance</a></li>
+            <li class="breadcrumb-item active">@ev?.title</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-users me-2 text-primary"></i>@ev?.title</h2>
+            <p class="text-muted">
+                <i class="fas fa-calendar me-2"></i>@(ev?.StartDateTime.ToString("MMMM dd, yyyy • hh:mm tt"))
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Scanner" asp-route-eventId="@ev?.eventID" class="btn btn-primary">
+                <i class="fas fa-qrcode me-2"></i>Scan Tickets
+            </a>
+            <button class="btn btn-success" onclick="bulkCheckIn()">
+                <i class="fas fa-check-double me-2"></i>Bulk Check-in
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-white">
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search attendees...">
+                </div>
+                <div class="col-md-3">
+                    <select id="filterStatus" class="form-select">
+                        <option value="all">All</option>
+                        <option value="checked">Checked In</option>
+                        <option value="notchecked">Not Checked In</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="attendeesTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="selectAll" onclick="toggleAll()">
+                            </th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Ticket Type</th>
+                            <th>QR Code</th>
+                            <th>Status</th>
+                            <th>Checked In At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var attendee in Model)
+                            {
+                                <tr class="@(attendee.IsCheckedIn ? "table-success" : "")">
+                                    <td>
+                                        @if (!attendee.IsCheckedIn)
+                                        {
+                                            <input type="checkbox" class="attendee-check" value="@attendee.UserID"
+                                                   data-booking="@attendee.BookingID">
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@attendee.UserName</strong>
+                                    </td>
+                                    <td>@attendee.UserEmail</td>
+                                    <td>@attendee.TicketType</td>
+                                    <td>
+                                        <code class="small">@attendee.QRCode</code>
+                                    </td>
+                                    <td>
+                                        @if (attendee.IsCheckedIn)
+                                        {
+                                            <span class="badge bg-success">Checked In</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (attendee.CheckedInAt.HasValue)
+                                        {
+                                            @attendee.CheckedInAt.Value.ToString("hh:mm tt")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!attendee.IsCheckedIn)
+                                        {
+                                            <button class="btn btn-sm btn-success"
+                                                    onclick="manualCheckIn(@attendee.UserID, @attendee.BookingID, @ev?.eventID)">
+                                                <i class="fas fa-check"></i> Check In
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success"><i class="fas fa-check-circle"></i> Done</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No attendees found for this event.</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedAttendees = [];
+
+        // Manual check-in
+        function manualCheckIn(userId, bookingId, eventId) {
+            $.ajax({
+                url: '@Url.Action("ManualCheckIn", "Admin")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    userId: userId,
+                    bookingId: bookingId,
+                    eventId: eventId
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error checking in. Please try again.');
+                }
+            });
+        }
+
+        // Bulk check-in
+        function bulkCheckIn() {
+            selectedAttendees = [];
+            $('.attendee-check:checked').each(function() {
+                selectedAttendees.push($(this).val());
+            });
+
+            if (selectedAttendees.length === 0) {
+                alert('Please select at least one attendee');
+                return;
+            }
+
+            if (confirm(`Check in ${selectedAttendees.length} attendees?`)) {
+                $.ajax({
+                    url: '@Url.Action("BulkCheckIn", "Admin")',
+                    type: 'POST',
+                    data: {
+                        eventId: @(ev?.eventID ?? 0),
+                        userIds: selectedAttendees
+                    },
+                    traditional: true,
+                    success: function() {
+                        location.reload();
+                    },
+                    error: function() {
+                        alert('Error in bulk check-in. Please try again.');
+                    }
+                });
+            }
+        }
+
+        // Toggle all checkboxes
+        function toggleAll() {
+            $('.attendee-check').prop('checked', $('#selectAll').prop('checked'));
+        }
+
+        // Search and filter
+        $('#searchInput').on('keyup', function() {
+            filterTable();
+        });
+
+        $('#filterStatus').on('change', function() {
+            filterTable();
+        });
+
+        function filterTable() {
+            var search = $('#searchInput').val().toLowerCase();
+            var filter = $('#filterStatus').val();
+
+            $('#attendeesTable tbody tr').each(function() {
+                var name = $(this).find('td:eq(1)').text().toLowerCase();
+                var email = $(this).find('td:eq(2)').text().toLowerCase();
+                var isChecked = $(this).hasClass('table-success');
+
+                var matchesSearch = name.includes(search) || email.includes(search);
+                var matchesFilter = filter === 'all' ||
+                                   (filter === 'checked' && isChecked) ||
+                                   (filter === 'notchecked' && !isChecked);
+
+                if (matchesSearch && matchesFilter) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+    </script>
+}

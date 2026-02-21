@@ -1,195 +1,374 @@
-﻿@model IEnumerable<SmartTicketingSystem.Models.EVENT>
-@if (User.IsInRole("Admin"))
-{
-    // show admin crud buttons
+﻿@using System.IO
+@model IEnumerable<SmartTicketingSystem.Models.EVENT>
+@{
+    ViewData["Title"] = "Discover Events";
+    var categories = ViewBag.Categories as List<EVENT_CATEGORY> ?? [];
+    var categoryDict = categories.ToDictionary(c => c.categoryID, c => c.categoryName);
+
+    var selectedCategory = Context.Request.Query["category"].ToString();
+    var searchQuery = Context.Request.Query["search"].ToString();
+    var selectedDate = Context.Request.Query["date"].ToString();
+    var selectedMinPrice = Context.Request.Query["minPrice"].ToString();
+    var selectedMaxPrice = Context.Request.Query["maxPrice"].ToString();
+    var location = Context.Request.Query["location"].ToString();
+    var online = Context.Request.Query["online"].ToString();
+    var free = Context.Request.Query["free"].ToString();
+    var selectedSort = Context.Request.Query["sort"].ToString();
 }
 
+@functions {
+    private static string GetEventImageUrl(int eventId)
+    {
+        try
+        {
+            // Use fully qualified System.IO.Path to avoid ambiguity
+            var uploadsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/events");
+            if (!System.IO.Directory.Exists(uploadsFolder))
+                return "/images/event-placeholder.png";
 
-@{
-    ViewData["Title"] = "Events";
-    bool isAdmin = User.IsInRole("Admin");
-    bool isOrganizer = User.IsInRole("Organizer");
-    bool isUniMember = User.IsInRole("UniversityMember");
-    bool isExtMember = User.IsInRole("ExternalMember");
+            var files = System.IO.Directory.GetFiles(uploadsFolder, $"event_{eventId}.*");
+            if (files.Length != 0)
+            {
+                var fileName = System.IO.Path.GetFileName(files[0]);
+                return $"/uploads/events/{fileName}";
+            }
+        }
+        catch
+        {
+            // Suppressed exception
+        }
+
+        return "/images/event-placeholder.jpg";
+    }
 }
 
 <div class="container py-4">
-
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger">@TempData["Error"]</div>
-    }
-
     <!-- Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <div>
-            <h2 class="mb-0">Upcoming Events</h2>
-            <div class="text-muted">
-                @if (!User.Identity.IsAuthenticated)
-                {
-                    <span>Showing public events.</span>
-                }
-                else if (isUniMember)
-                {
-                    <span>Showing public + university events (including pending upcoming).</span>
-                }
-                else
-                {
-                    <span>Showing public events.</span>
-                }
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0">
+                <div class="card-body p-4">
+                    <h2 class="fw-bold mb-2"><i class="fas fa-calendar-alt me-2"></i>Discover Events</h2>
+                    <p class="mb-0 opacity-75">Find and book the best events happening near you</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="row mb-4">
+        <div class="col-lg-3 mb-4 mb-lg-0">
+            <div class="card filter-card sticky-top" style="top: 20px; z-index: 100;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2 text-primary"></i>Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" id="filterForm">
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" name="search" class="form-control"
+                                       placeholder="Event name..." value="@searchQuery">
+                            </div>
+                        </div>
+
+                        <!-- Category Filter -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Category</label>
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat.categoryName" selected="@(cat.categoryName == selectedCategory)">
+                                        @cat.categoryName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Date Filter -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Date</label>
+                            <select name="date" class="form-select">
+                                <option value="">Any Date</option>
+                                <option value="today" selected="@(selectedDate == "today")">Today</option>
+                                <option value="tomorrow" selected="@(selectedDate == "tomorrow")">Tomorrow</option>
+                                <option value="week" selected="@(selectedDate == "week")">This Week</option>
+                                <option value="month" selected="@(selectedDate == "month")">This Month</option>
+                            </select>
+                        </div>
+
+                        <!-- Price Range -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Price Range (Rs.)</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="number" name="minPrice" class="form-control"
+                                           placeholder="Min" min="0" value="@selectedMinPrice">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" name="maxPrice" class="form-control"
+                                           placeholder="Max" min="0" value="@selectedMaxPrice">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Location</label>
+                            <input type="text" name="location" class="form-control"
+                                   placeholder="City or venue..." value="@location">
+                        </div>
+
+                        <!-- Online/Offline Toggle -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="online" value="true" id="onlineCheck" @(online == "true" ? "checked" : "")>
+                                <label class="form-check-label" for="onlineCheck">
+                                    Online Events Only
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="free" value="true" id="freeCheck" @(free == "true" ? "checked" : "")>
+                                <label class="form-check-label" for="freeCheck">
+                                    Free Events Only
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Filter Buttons -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Apply Filters
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Clear Filters
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
-        @if (isAdmin || isOrganizer)
-        {
-            <a asp-action="Create" class="btn btn-primary">
-                + Create Event
-            </a>
-        }
-    </div>
-
-    @if (Model == null || !Model.Any())
-    {
-        <div class="alert alert-warning">
-            No upcoming events found.
-        </div>
-    }
-    else
-    {
-        <div class="row g-3">
-            @foreach (var e in Model)
-            {
-                // status badge style
-                string statusClass =
-                e.status == "Published" ? "bg-success"
-                : e.status == "PendingUpcoming" ? "bg-warning text-dark"
-                : e.status == "PendingApproval" ? "bg-secondary"
-                : e.status == "Draft" ? "bg-dark"
-                : "bg-secondary";
-
-                // visibility badge style
-                string visClass =
-                e.visibility == "Public" ? "bg-primary"
-                : "bg-info text-dark"; // University
-
-                <div class="col-12">
-                    <div class="card shadow-sm rounded-4">
-                        <div class="card-body p-4">
-
-                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
-                                <div class="me-2" style="min-width:260px;">
-                                    <div class="d-flex flex-wrap gap-2 mb-2">
-                                        <span class="badge @visClass">@e.visibility</span>
-                                        <span class="badge @statusClass">@e.status</span>
-
-                                        @if (e.IsOnline == 'Y')
-                                        {
-                                            <span class="badge bg-light text-dark border">Online</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-light text-dark border">Onsite</span>
-                                        }
-                                    </div>
-
-                                    <h4 class="mb-1">@e.title</h4>
-
-                                    <div class="text-muted">
-                                        @e.StartDateTime.ToString("yyyy-MM-dd HH:mm")
-                                        @if (e.endDateTime != default(DateTime))
-                                        {
-                                            <span> - @e.endDateTime.ToString("yyyy-MM-dd HH:mm")</span>
-                                        }
-                                    </div>
-
-                                    <div class="mt-2">
-                                        <span class="fw-semibold">Venue:</span>
-                                        <span class="text-muted">@e.venue</span>
-                                    </div>
-                                </div>
-
-                                <div class="flex-grow-1">
-                                    @if (!string.IsNullOrWhiteSpace(e.Description))
-                                    {
-                                        <p class="mb-2 text-muted" style="max-width:900px;">
-                                            @(e.Description.Length > 220 ? e.Description.Substring(0, 220) + "..." : e.Description)
-                                        </p>
-                                    }
-
-                                    <div class="d-flex flex-wrap gap-3 small text-muted">
-                                        <div><span class="fw-semibold">Capacity:</span> @e.capacity</div>
-
-                                        @if (!string.IsNullOrWhiteSpace(e.AccessibilityInfo))
-                                        {
-                                            <div><span class="fw-semibold">Accessibility:</span> Yes</div>
-                                        }
-                                        else
-                                        {
-                                            <div><span class="fw-semibold">Accessibility:</span> Not specified</div>
-                                        }
-
-                                        @if (e.IsOnline == 'Y' && !string.IsNullOrWhiteSpace(e.onlineLink))
-                                        {
-                                            <div>
-                                                <a href="@e.onlineLink" target="_blank" class="text-decoration-none">Online Link</a>
-                                            </div>
-                                        }
-
-                                        @if (e.IsOnline == 'N' && !string.IsNullOrWhiteSpace(e.maplink))
-                                        {
-                                            <div>
-                                                <a href="@e.maplink" target="_blank" class="text-decoration-none">Map</a>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-
-                                <!-- Actions -->
-                                <div class="text-end" style="min-width:220px;">
-                                    <div class="d-grid gap-2">
-                                        <a asp-action="Details" asp-route-id="@e.eventID" class="btn btn-outline-secondary">
-                                            View Details
-                                        </a>
-
-                                        @* Organizer/Admin actions *@
-                                        @if (isAdmin || isOrganizer)
-                                        {
-                                            <a asp-action="Edit" asp-route-id="@e.eventID" class="btn btn-outline-dark">
-                                                Edit
-                                            </a>
-                                        }
-
-                                        @* Submit for approval only when Draft and Organizer/Admin *@
-                                        @if ((isAdmin || isOrganizer) && e.status == "Draft")
-                                        {
-                                            <form asp-action="SubmitForApproval" method="post" class="m-0">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@e.eventID" />
-                                                <button type="submit" class="btn btn-primary w-100">
-                                                    Submit For Approval
-                                                </button>
-                                            </form>
-                                        }
-                                    </div>
-
-                                    @* Note for members about pending status *@
-                                    @if (e.status == "PendingUpcoming" && isUniMember)
-                                    {
-                                        <div class="mt-2 small text-muted">
-                                            This event is pending approval (University).
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-
-                        </div>
+        <!-- Events Grid -->
+        <div class="col-lg-9">
+            @{
+                var eventCount = Model.Count();
+                var totalPages = Math.Ceiling(eventCount / 12.0);
+            }
+            <!-- Results Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="mb-0">@eventCount Events Found</h5>
+                    <small class="text-muted">Page 1 of @totalPages</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" style="width: 150px;" id="sortSelect" name="sort">
+                        <option value="date" selected="@(selectedSort == "date" || string.IsNullOrEmpty(selectedSort))">Sort by: Date</option>
+                        <option value="price_asc" selected="@(selectedSort == "price_asc")">Price: Low to High</option>
+                        <option value="price_desc" selected="@(selectedSort == "price_desc")">Price: High to Low</option>
+                        <option value="name" selected="@(selectedSort == "name")">Name</option>
+                    </select>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary active" id="gridView">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="btn btn-outline-primary" id="listView">
+                            <i class="fas fa-list"></i>
+                        </button>
                     </div>
                 </div>
-            }
+            </div>
+
+            <!-- Events Grid -->
+            <div class="row g-4" id="eventsGrid">
+                @if (eventCount == 0)
+                {
+                    <div class="col-12">
+                        <div class="card text-center py-5">
+                            <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                            <h4>No Events Found</h4>
+                            <p class="text-muted">Try adjusting your filters or check back later</p>
+                            <a href="@Url.Action("Index")" class="btn btn-primary mx-auto" style="width: fit-content;">
+                                Clear Filters
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var ev in Model)
+                    {
+                        var categoryName = categoryDict.TryGetValue(ev.categoryID, out var name) ? name : "General";
+                        <div class="col-md-6 col-xl-4">
+                            <div class="card event-card h-100">
+                                <div class="event-card-image">
+                                    <img src="@GetEventImageUrl(ev.eventID)" alt="@ev.title">
+                                    <div class="event-card-overlay">
+                                        <span class="badge bg-primary">@ev.visibility</span>
+                                        @if (ev.IsOnline == 'Y')
+                                        {
+                                            <span class="badge bg-info">Online</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="event-category">@categoryName</span>
+                                        <span class="event-price fw-bold text-primary">
+                                            <span>Check Price</span>
+                                        </span>
+                                    </div>
+
+                                    <h5 class="event-title fw-bold mb-2">@ev.title</h5>
+
+                                    <div class="event-details mb-3">
+                                        <p class="mb-1 small">
+                                            <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                            @ev.StartDateTime.ToString("MMM dd, yyyy")
+                                        </p>
+                                        <p class="mb-1 small">
+                                            <i class="fas fa-clock text-primary me-2"></i>
+                                            @ev.StartDateTime.ToString("h:mm tt")
+                                        </p>
+                                        <p class="mb-1 small">
+                                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                            @ev.venue
+                                        </p>
+                                    </div>
+
+                                    <div class="mt-auto">
+                                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                            <span class="small text-muted">
+                                                <i class="fas fa-users me-1"></i> @ev.capacity seats
+                                            </span>
+                                            <a asp-controller="EVENTs" asp-action="Details" asp-route-id="@ev.eventID"
+                                               class="btn btn-sm btn-primary">
+                                                View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- List View (Hidden by default) -->
+            <div class="row g-4" id="eventsList" style="display: none;">
+                @foreach (var ev in Model)
+                {
+                    var categoryName = categoryDict.TryGetValue(ev.categoryID, out var name) ? name : "General";
+                    <div class="col-12">
+                        <div class="card event-list-item">
+                            <div class="row g-0">
+                                <div class="col-md-3">
+                                    <img src="@GetEventImageUrl(ev.eventID)"
+                                         class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 200px;" alt="@ev.title">
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title fw-bold">@ev.title</h4>
+                                                <p class="text-muted mb-2">@categoryName</p>
+                                            </div>
+                                            <div class="text-end">
+                                                <h5 class="text-primary mb-1">Check Price</h5>
+                                                <small class="text-muted">Starting from</small>
+                                            </div>
+                                        </div>
+                                        <p class="card-text">@(ev.Description?.Length > 200 ? ev.Description[..200] + "..." : ev.Description)</p>
+                                        <div class="row mt-3">
+                                            <div class="col-md-4">
+                                                <small><i class="fas fa-calendar text-primary me-2"></i>@ev.StartDateTime.ToString("MMM dd, yyyy")</small>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small><i class="fas fa-clock text-primary me-2"></i>@ev.StartDateTime.ToString("h:mm tt")</small>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small><i class="fas fa-map-marker-alt text-primary me-2"></i>@ev.venue</small>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <a asp-controller="EVENTs" asp-action="Details" asp-route-id="@ev.eventID"
+                                               class="btn btn-primary">
+                                                View Details <i class="fas fa-arrow-right ms-2"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
-    }
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Grid/List View Toggle
+            $('#gridView').click(function() {
+                $(this).addClass('active');
+                $('#listView').removeClass('active');
+                $('#eventsGrid').show();
+                $('#eventsList').hide();
+            });
+
+            $('#listView').click(function() {
+                $(this).addClass('active');
+                $('#gridView').removeClass('active');
+                $('#eventsList').show();
+                $('#eventsGrid').hide();
+            });
+
+            // Auto-submit on category or date change
+            $('select[name="category"], select[name="date"]').change(function() {
+                $('#filterForm').submit();
+            });
+
+            // Sort change
+            $('#sortSelect').change(function() {
+                var currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('sort', $(this).val());
+                window.location.href = currentUrl.toString();
+            });
+
+            // Price range validation
+            $('input[name="minPrice"], input[name="maxPrice"]').on('input', function() {
+                var minVal = parseInt($('input[name="minPrice"]').val()) || 0;
+                var maxVal = parseInt($('input[name="maxPrice"]').val()) || 0;
+                if (maxVal > 0 && minVal > maxVal) {
+                    $('input[name="maxPrice"]').val(minVal);
+                }
+            });
+
+            // Preserve filter values
+            var urlParams = new URLSearchParams(window.location.search);
+
+            if (urlParams.has('category')) {
+                $('select[name="category"]').val(urlParams.get('category'));
+            }
+            if (urlParams.has('date')) {
+                $('select[name="date"]').val(urlParams.get('date'));
+            }
+            if (urlParams.has('sort')) {
+                $('#sortSelect').val(urlParams.get('sort'));
+            }
+        });
+
+        $('#filterForm').submit(function(e) {
+            e.preventDefault();
+            var formData = $(this).serialize();
+            window.location.href = '@Url.Action("Index")?' + formData;
+        });
+    </script>
+}

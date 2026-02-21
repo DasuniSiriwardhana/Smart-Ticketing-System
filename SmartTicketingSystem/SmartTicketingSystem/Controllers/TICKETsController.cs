@@ -8,8 +8,6 @@ using SmartTicketingSystem.Data;
 using SmartTicketingSystem.Models;
 using SmartTicketingSystem.Models.ViewModels;
 using QRCoder;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 
 namespace SmartTicketingSystem.Controllers
@@ -36,7 +34,7 @@ namespace SmartTicketingSystem.Controllers
         private bool IsAdmin() => User.IsInRole("Admin");
 
         // =========================
-        // MY TICKETS - User's ticket dashboard
+        // MY TICKETS - FIXED WITH JOINS
         // =========================
         [Authorize(Policy = "MemberOnly")]
         public async Task<IActionResult> MyTickets()
@@ -50,32 +48,33 @@ namespace SmartTicketingSystem.Controllers
                     return RedirectToAction("Login", "Account");
                 }
 
-                Console.WriteLine($"Loading tickets for member: {memberId}");
-
+                // Get all paid bookings for this user
                 var paidBookings = await _context.BOOKING
-                    .Include(b => b.Event)
-                    .Include(b => b.BookingItems)
-                        .ThenInclude(bi => bi.TicketType)
-                    .Include(b => b.Tickets)
                     .Where(b => b.member_id == memberId.Value && b.PaymentStatus == "Paid")
-                    .OrderByDescending(b => b.Event.StartDateTime)
+                    .OrderByDescending(b => b.BookingDateTime)
                     .ToListAsync();
-
-                Console.WriteLine($"Found {paidBookings.Count} paid bookings");
 
                 var viewModel = new MyTicketsVM();
                 var now = DateTime.Now;
 
                 foreach (var booking in paidBookings)
                 {
+                    // Get event details separately
+                    var ev = await _context.EVENT.FindAsync(booking.EventID);
+
+                    // Get tickets for this booking
+                    var tickets = await _context.TICKET
+                        .Where(t => t.BookingID == booking.BookingID)
+                        .ToListAsync();
+
                     var ticketGroup = new TicketGroupVM
                     {
                         BookingId = booking.BookingID,
                         BookingReference = booking.BookingReference,
-                        EventTitle = booking.Event?.title ?? "Unknown Event",
-                        EventDate = booking.Event?.StartDateTime ?? DateTime.Now,
-                        EventVenue = booking.Event?.venue ?? "Unknown Venue",
-                        Tickets = booking.Tickets?.Select(t => new TicketVM
+                        EventTitle = ev?.title ?? "Unknown Event",
+                        EventDate = ev?.StartDateTime ?? DateTime.Now,
+                        EventVenue = ev?.venue ?? "Unknown Venue",
+                        Tickets = tickets.Select(t => new TicketVM
                         {
                             TicketId = t.TicketID,
                             QRCodeValue = t.QRcodevalue,
@@ -83,7 +82,7 @@ namespace SmartTicketingSystem.Controllers
                         }).ToList() ?? new List<TicketVM>()
                     };
 
-                    if (booking.Event?.StartDateTime > now)
+                    if (ev?.StartDateTime > now)
                         viewModel.UpcomingTickets.Add(ticketGroup);
                     else
                         viewModel.PastTickets.Add(ticketGroup);
@@ -98,10 +97,6 @@ namespace SmartTicketingSystem.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in MyTickets: {ex.Message}");
-                if (ex.InnerException != null)
-                    Console.WriteLine($"Inner: {ex.InnerException.Message}");
-
                 TempData["Error"] = $"Error loading tickets: {ex.Message}";
                 return RedirectToAction("Index", "Home");
             }
@@ -115,10 +110,7 @@ namespace SmartTicketingSystem.Controllers
         {
             try
             {
-                var ticket = await _context.TICKET
-                    .Include(t => t.Booking)
-                    .FirstOrDefaultAsync(t => t.TicketID == id);
-
+                var ticket = await _context.TICKET.FindAsync(id);
                 if (ticket == null) return NotFound();
 
                 using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
@@ -143,14 +135,13 @@ namespace SmartTicketingSystem.Controllers
         {
             try
             {
-                var ticket = await _context.TICKET
-                    .Include(t => t.Booking)
-                    .FirstOrDefaultAsync(t => t.TicketID == id);
-
+                var ticket = await _context.TICKET.FindAsync(id);
                 if (ticket == null) return NotFound();
 
                 var memberId = await GetCurrentMemberIdAsync();
-                if (!IsAdmin() && ticket.Booking?.member_id != memberId)
+                var booking = await _context.BOOKING.FindAsync(ticket.BookingID);
+
+                if (!IsAdmin() && booking?.member_id != memberId)
                     return Forbid();
 
                 using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
@@ -168,7 +159,7 @@ namespace SmartTicketingSystem.Controllers
         }
 
         // =========================
-        // SEARCH
+        // SEARCH - Admin only
         // =========================
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Search(
@@ -179,22 +170,14 @@ namespace SmartTicketingSystem.Controllers
             DateTime? fromDate,
             DateTime? toDate)
         {
-            var query = _context.TICKET
-                .Include(t => t.Booking)
-                .ThenInclude(b => b.Event)
-                .Include(t => t.Booking)
-                .ThenInclude(b => b.User)
-                .AsQueryable();
+            var query = _context.TICKET.AsQueryable();
 
             if (mode == "TicketID" && ticketId.HasValue)
                 query = query.Where(t => t.TicketID == ticketId.Value);
-
             else if (mode == "BookingID" && bookingId.HasValue)
                 query = query.Where(t => t.BookingID == bookingId.Value);
-
             else if (mode == "QRCode" && !string.IsNullOrWhiteSpace(qrCodeValue))
                 query = query.Where(t => t.QRcodevalue.Contains(qrCodeValue));
-
             else if (mode == "DateRange")
             {
                 if (fromDate.HasValue)
@@ -216,43 +199,85 @@ namespace SmartTicketingSystem.Controllers
                     query = query.Where(t => t.issuedAt < toDate.Value.AddDays(1));
             }
 
-            return View("Index", await query.OrderByDescending(t => t.issuedAt).ToListAsync());
+            var tickets = await query.OrderByDescending(t => t.issuedAt).ToListAsync();
+
+            // Get related data for display
+            var viewModel = new List<TicketWithDetailsVM>();
+            foreach (var ticket in tickets)
+            {
+                var booking = await _context.BOOKING.FindAsync(ticket.BookingID);
+                var ev = booking != null ? await _context.EVENT.FindAsync(booking.EventID) : null;
+                var user = booking != null ? await _context.USER.FindAsync(booking.member_id) : null;
+
+                viewModel.Add(new TicketWithDetailsVM
+                {
+                    Ticket = ticket,
+                    BookingReference = booking?.BookingReference,
+                    EventTitle = ev?.title,
+                    UserEmail = user?.Email
+                });
+            }
+
+            return View("Index", viewModel);
         }
 
         // =========================
-        // INDEX - Admin only
+        // INDEX - Admin only (FIXED)
         // =========================
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Index()
         {
-            return View(await _context.TICKET
-                .Include(t => t.Booking)
-                .ThenInclude(b => b.Event)
-                .Include(t => t.Booking)
-                .ThenInclude(b => b.User)
+            var tickets = await _context.TICKET
                 .OrderByDescending(t => t.issuedAt)
-                .ToListAsync());
+                .ToListAsync();
+
+            var viewModel = new List<TicketWithDetailsVM>();
+            foreach (var ticket in tickets)
+            {
+                var booking = await _context.BOOKING.FindAsync(ticket.BookingID);
+                var ev = booking != null ? await _context.EVENT.FindAsync(booking.EventID) : null;
+                var user = booking != null ? await _context.USER.FindAsync(booking.member_id) : null;
+
+                viewModel.Add(new TicketWithDetailsVM
+                {
+                    Ticket = ticket,
+                    BookingReference = booking?.BookingReference,
+                    EventTitle = ev?.title,
+                    UserEmail = user?.Email
+                });
+            }
+
+            return View(viewModel);
         }
 
         // =========================
-        // DETAILS
+        // DETAILS - Admin only
         // =========================
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-            var ticket = await _context.TICKET
-                .Include(t => t.Booking)
-                .ThenInclude(b => b.Event)
-                .Include(t => t.Booking)
-                .ThenInclude(b => b.User)
-                .FirstOrDefaultAsync(m => m.TicketID == id);
+
+            var ticket = await _context.TICKET.FindAsync(id);
             if (ticket == null) return NotFound();
-            return View(ticket);
+
+            var booking = await _context.BOOKING.FindAsync(ticket.BookingID);
+            var ev = booking != null ? await _context.EVENT.FindAsync(booking.EventID) : null;
+            var user = booking != null ? await _context.USER.FindAsync(booking.member_id) : null;
+
+            var viewModel = new TicketWithDetailsVM
+            {
+                Ticket = ticket,
+                BookingReference = booking?.BookingReference,
+                EventTitle = ev?.title,
+                UserEmail = user?.Email
+            };
+
+            return View(viewModel);
         }
 
         // =========================
-        // CREATE (GET)
+        // CREATE (GET) - Admin only
         // =========================
         [Authorize(Policy = "AdminOnly")]
         public IActionResult Create()
@@ -261,7 +286,7 @@ namespace SmartTicketingSystem.Controllers
         }
 
         // =========================
-        // CREATE (POST)
+        // CREATE (POST) - Admin only
         // =========================
         [Authorize(Policy = "AdminOnly")]
         [HttpPost]
@@ -278,7 +303,7 @@ namespace SmartTicketingSystem.Controllers
         }
 
         // =========================
-        // EDIT (GET)
+        // EDIT (GET) - Admin only
         // =========================
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Edit(int? id)
@@ -290,7 +315,7 @@ namespace SmartTicketingSystem.Controllers
         }
 
         // =========================
-        // EDIT (POST)
+        // EDIT (POST) - Admin only
         // =========================
         [Authorize(Policy = "AdminOnly")]
         [HttpPost]
@@ -318,21 +343,19 @@ namespace SmartTicketingSystem.Controllers
         }
 
         // =========================
-        // DELETE (GET)
+        // DELETE (GET) - Admin only
         // =========================
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-            var ticket = await _context.TICKET
-                .Include(t => t.Booking)
-                .FirstOrDefaultAsync(m => m.TicketID == id);
+            var ticket = await _context.TICKET.FindAsync(id);
             if (ticket == null) return NotFound();
             return View(ticket);
         }
 
         // =========================
-        // DELETE (POST)
+        // DELETE (POST) - Admin only
         // =========================
         [Authorize(Policy = "AdminOnly")]
         [HttpPost, ActionName("Delete")]
@@ -347,5 +370,14 @@ namespace SmartTicketingSystem.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+    }
+
+    // Helper ViewModel for tickets with details
+    public class TicketWithDetailsVM
+    {
+        public TICKET Ticket { get; set; }
+        public string? BookingReference { get; set; }
+        public string? EventTitle { get; set; }
+        public string? UserEmail { get; set; }
     }
 }

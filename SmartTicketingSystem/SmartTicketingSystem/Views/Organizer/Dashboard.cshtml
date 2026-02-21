@@ -1,146 +1,146 @@
 ﻿@using System.Text.Json
-
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Organizer Dashboard";
 
     var eventMonthLabels = ViewData["EventMonthLabels"] as List<string> ?? new List<string>();
     var eventMonthCounts = ViewData["EventMonthCounts"] as List<int> ?? new List<int>();
-
     var topTitles = ViewData["TopEventTitles"] as List<string> ?? new List<string>();
     var topCounts = ViewData["TopEventBookingCounts"] as List<int> ?? new List<int>();
+    var myRecentEvents = ViewData["MyRecentEvents"] as IEnumerable<dynamic> ?? new List<dynamic>();
 
     var eventMonthLabelsJson = JsonSerializer.Serialize(eventMonthLabels);
     var eventMonthCountsJson = JsonSerializer.Serialize(eventMonthCounts);
-
     var topTitlesJson = JsonSerializer.Serialize(topTitles);
     var topCountsJson = JsonSerializer.Serialize(topCounts);
-
-    var myRecentEvents = ViewData["MyRecentEvents"] as IEnumerable<dynamic> ?? new List<dynamic>();
 }
 
-<div class="container py-4">
-
-    <!-- Header / Hero -->
-    <div class="p-4 rounded-4 bg-light border mb-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center">
-            <div>
-                <h2 class="mb-1">Organizer Dashboard</h2>
-                <div class="text-muted">Create events, track bookings, and manage attendance.</div>
-            </div>
-
-            <div class="d-flex gap-2 mt-3 mt-md-0">
-                <a class="btn btn-primary" asp-controller="EVENTs" asp-action="Create">
-                    <i class="fas fa-plus"></i> Create Event
-                </a>
-                <a class="btn btn-outline-secondary" asp-controller="EVENTs" asp-action="Index">
-                    <i class="fas fa-calendar"></i> My Events
-                </a>
-                <a class="btn btn-outline-secondary" asp-controller="BOOKINGs" asp-action="MyBookings">
-                    <i class="fas fa-ticket-alt"></i> My Bookings
-                </a>
-                <a class="btn btn-outline-secondary" asp-controller="TICKETs" asp-action="MyTickets">
-                    <i class="fas fa-qrcode"></i> My Tickets
-                </a>
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-2"><i class="fas fa-chart-line me-2"></i>Organizer Dashboard</h2>
+                            <p class="mb-0 opacity-75">Manage your events, track bookings, and monitor performance</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-controller="EVENTs" asp-action="Create" class="btn btn-light">
+                                <i class="fas fa-plus-circle me-2"></i>Create Event
+                            </a>
+                            <a asp-controller="EVENTs" asp-action="Index" class="btn btn-outline-light">
+                                <i class="fas fa-calendar-alt me-2"></i>My Events
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Summary Cards -->
+    <!-- Stats Cards -->
     <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100 rounded-4 border-primary">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted small">My Events</div>
-                            <div class="display-6">@ViewBag.TotalMyEvents</div>
-                        </div>
-                        <i class="fas fa-calendar fa-3x text-primary opacity-50"></i>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-primary-soft">
+                        <i class="fas fa-calendar text-primary"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">My Events</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalMyEvents</h3>
+                    </div>
+                </div>
+                <div class="stat-footer mt-2">
+                    <span class="text-muted small">@ViewBag.UpcomingEvents upcoming</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-success-soft">
+                        <i class="fas fa-shopping-cart text-success"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Total Bookings</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalBookingsForMyEvents</h3>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100 rounded-4 border-success">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted small">Event Bookings</div>
-                            <div class="display-6">@ViewBag.TotalBookingsForMyEvents</div>
-                        </div>
-                        <i class="fas fa-shopping-cart fa-3x text-success opacity-50"></i>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-info-soft">
+                        <i class="fas fa-ticket-alt text-info"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Tickets Sold</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalTicketsIssued</h3>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100 rounded-4 border-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted small">Tickets Issued</div>
-                            <div class="display-6">@ViewBag.TotalTicketsIssued</div>
-                        </div>
-                        <i class="fas fa-ticket-alt fa-3x text-info opacity-50"></i>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-warning-soft">
+                        <i class="fas fa-clock text-warning"></i>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100 rounded-4 border-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted small">Upcoming Events</div>
-                            <div class="display-6">@ViewBag.UpcomingEvents</div>
-                        </div>
-                        <i class="fas fa-calendar-check fa-3x text-warning opacity-50"></i>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Upcoming Events</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.UpcomingEvents</h3>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts -->
+    <!-- Charts Row -->
     <div class="row g-4 mb-4">
         <div class="col-lg-7">
-            <div class="card shadow-sm rounded-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Events Created Per Month</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="mb-3"><i class="fas fa-chart-line"></i> Events Created Per Month</h5>
-                    <canvas id="eventMonthChart" height="250"></canvas>
+                    <canvas id="eventMonthChart" height="300"></canvas>
                 </div>
             </div>
         </div>
-
         <div class="col-lg-5">
-            <div class="card shadow-sm rounded-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>Top Events by Bookings</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="mb-3"><i class="fas fa-chart-bar"></i> Top Events by Bookings</h5>
-                    <canvas id="topEventsChart" height="250"></canvas>
+                    <canvas id="topEventsChart" height="300"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Events with Management Actions -->
-    <div class="card shadow-sm rounded-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Events</h5>
+    <!-- Recent Events with Actions -->
+    <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-clock me-2 text-primary"></i>Recent Events</h5>
+            <a asp-controller="EVENTs" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                View All Events
+            </a>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead class="table-light">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
                         <tr>
-                            <th>Title</th>
-                            <th>Start</th>
+                            <th>Event</th>
+                            <th>Start Date</th>
                             <th>Status</th>
-                            <th class="text-end">Capacity</th>
-                            <th class="text-center">Actions</th>
+                            <th>Capacity</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -163,31 +163,27 @@
                                         <span class="badge bg-secondary">@e.status</span>
                                     }
                                 </td>
-                                <td class="text-end">@e.capacity</td>
-                                <td>
-                                    <div class="d-flex gap-1 justify-content-center">
+                                <td>@e.capacity</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
                                         <a asp-action="Tickets" asp-route-eventId="@e.eventID"
-                                           class="btn btn-sm btn-primary" title="Manage Tickets">
+                                           class="btn btn-outline-primary" title="Manage Tickets">
                                             <i class="fas fa-ticket-alt"></i>
                                         </a>
                                         <a asp-action="Promotions" asp-route-eventId="@e.eventID"
-                                           class="btn btn-sm btn-success" title="Manage Promotions">
+                                           class="btn btn-outline-success" title="Manage Promotions">
                                             <i class="fas fa-tags"></i>
                                         </a>
                                         <a asp-action="Bookings" asp-route-eventId="@e.eventID"
-                                           class="btn btn-sm btn-info" title="View Bookings">
+                                           class="btn btn-outline-info" title="View Bookings">
                                             <i class="fas fa-shopping-cart"></i>
                                         </a>
-                                        <a asp-action="WaitingList" asp-route-eventId="@e.eventID"
-                                           class="btn btn-sm btn-warning" title="Waiting List">
-                                            <i class="fas fa-clock"></i>
-                                        </a>
                                         <a asp-action="Reports" asp-route-eventId="@e.eventID"
-                                           class="btn btn-sm btn-secondary" title="Reports">
+                                           class="btn btn-outline-secondary" title="Reports">
                                             <i class="fas fa-chart-bar"></i>
                                         </a>
                                         <a asp-controller="EVENTs" asp-action="Details" asp-route-id="@e.eventID"
-                                           class="btn btn-sm btn-outline-dark" title="View Event">
+                                           class="btn btn-outline-dark" title="View Event">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </div>
@@ -201,24 +197,24 @@
     </div>
 </div>
 
-<!-- Help Text -->
-<div class="container mt-3">
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle"></i>
+<!-- Quick Guide -->
+<div class="container mt-4">
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="fas fa-info-circle me-2"></i>
         <strong>Quick Guide:</strong>
         <ul class="mb-0 mt-2">
             <li><i class="fas fa-ticket-alt text-primary"></i> Tickets - Add/edit ticket types and prices</li>
             <li><i class="fas fa-tags text-success"></i> Promos - Create and manage promo codes</li>
             <li><i class="fas fa-shopping-cart text-info"></i> Bookings - View all bookings for this event</li>
-            <li><i class="fas fa-clock text-warning"></i> Waiting List - See who's waiting for tickets</li>
             <li><i class="fas fa-chart-bar text-secondary"></i> Reports - View sales and performance reports</li>
         </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
+    // Events Created Per Month Chart
     new Chart(document.getElementById('eventMonthChart'), {
         type: 'line',
         data: {
@@ -226,14 +222,16 @@
             datasets: [{
                 label: 'Events Created',
                 data: @Html.Raw(eventMonthCountsJson),
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderColor: '#4361ee',
+                backgroundColor: 'rgba(67,97,238,0.1)',
+                borderWidth: 3,
                 fill: true,
                 tension: 0.3
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     display: false
@@ -242,20 +240,22 @@
         }
     });
 
+    // Top Events Chart
     new Chart(document.getElementById('topEventsChart'), {
         type: 'bar',
         data: {
             labels: @Html.Raw(topTitlesJson),
             datasets: [{
-                label: 'Number of Bookings',
+                label: 'Bookings',
                 data: @Html.Raw(topCountsJson),
-                backgroundColor: 'rgba(13, 110, 253, 0.7)',
-                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(67,97,238,0.7)',
+                borderColor: '#4361ee',
                 borderWidth: 1
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 y: {
                     beginAtZero: true,
@@ -272,3 +272,53 @@
         }
     });
 </script>
+
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        border: 1px solid #eee;
+        height: 100%;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .bg-primary-soft {
+        background: rgba(67,97,238,0.1);
+    }
+
+    .bg-success-soft {
+        background: rgba(6,214,160,0.1);
+    }
+
+    .bg-info-soft {
+        background: rgba(76,201,240,0.1);
+    }
+
+    .bg-warning-soft {
+        background: rgba(247,37,133,0.1);
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4361ee, #7209b7);
+    }
+
+    .table thead th {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+    }
+</style>

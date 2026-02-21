@@ -19,6 +19,9 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
+        // =========================
+        // Helpers
+        // =========================
         private async Task<int?> GetCurrentMemberIdAsync()
         {
             var identityUserId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -41,7 +44,64 @@ namespace SmartTicketingSystem.Controllers
                           select ur.UserRoleID).AnyAsync();
         }
 
-        // SEARCH: Admin/Organizer all, member only own
+        // =========================
+        // JOIN - Add to waiting list
+        // =========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Join(int eventId)
+        {
+            try
+            {
+                var memberId = await GetCurrentMemberIdAsync();
+                if (memberId == null)
+                {
+                    TempData["Error"] = "Please login to join waiting list.";
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var ev = await _context.EVENT.FindAsync(eventId);
+                if (ev == null)
+                {
+                    TempData["Error"] = "Event not found.";
+                    return RedirectToAction("Index", "EVENTs");
+                }
+
+                var exists = await _context.WAITING_LIST
+                    .AnyAsync(w => w.EventID == eventId
+                        && w.member_id == memberId.Value
+                        && w.Status == "Pending");
+
+                if (exists)
+                {
+                    TempData["Info"] = "You are already in the waiting list.";
+                    return RedirectToAction("Details", "EVENTs", new { id = eventId });
+                }
+
+                var waiting = new WAITING_LIST
+                {
+                    EventID = eventId,
+                    member_id = memberId.Value,
+                    AddedAt = DateTime.Now,
+                    Status = "Pending"
+                };
+
+                _context.WAITING_LIST.Add(waiting);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Added to waiting list.";
+                return RedirectToAction("Details", "EVENTs", new { id = eventId });
+            }
+            catch
+            {
+                TempData["Error"] = "Error joining waiting list.";
+                return RedirectToAction("Details", "EVENTs", new { id = eventId });
+            }
+        }
+
+        // =========================
+        // SEARCH
+        // =========================
         public async Task<IActionResult> Search(
             string mode,
             int? waitingListId,
@@ -51,7 +111,7 @@ namespace SmartTicketingSystem.Controllers
             DateTime? fromDate,
             DateTime? toDate)
         {
-            var query = _context.Set<WAITING_LIST>().AsQueryable();
+            var query = _context.WAITING_LIST.AsQueryable();
 
             var isAdminOrOrg = await CurrentUserHasAnyRoleAsync("Admin", "Organizer");
             if (!isAdminOrOrg)
@@ -68,7 +128,7 @@ namespace SmartTicketingSystem.Controllers
             else if (mode == "MemberID" && member_id.HasValue)
                 query = query.Where(w => w.member_id == member_id.Value);
             else if (mode == "Status" && !string.IsNullOrWhiteSpace(status))
-                query = query.Where(w => (w.Status ?? "") == status);
+                query = query.Where(w => w.Status == status);
             else if (mode == "DateRange")
             {
                 if (fromDate.HasValue) query = query.Where(w => w.AddedAt >= fromDate.Value);
@@ -79,9 +139,7 @@ namespace SmartTicketingSystem.Controllers
                 if (waitingListId.HasValue) query = query.Where(w => w.WaitingListID == waitingListId.Value);
                 if (eventId.HasValue) query = query.Where(w => w.EventID == eventId.Value);
                 if (member_id.HasValue) query = query.Where(w => w.member_id == member_id.Value);
-
-                if (!string.IsNullOrWhiteSpace(status)) query = query.Where(w => (w.Status ?? "") == status);
-
+                if (!string.IsNullOrWhiteSpace(status)) query = query.Where(w => w.Status == status);
                 if (fromDate.HasValue) query = query.Where(w => w.AddedAt >= fromDate.Value);
                 if (toDate.HasValue) query = query.Where(w => w.AddedAt < toDate.Value.AddDays(1));
             }
@@ -89,7 +147,9 @@ namespace SmartTicketingSystem.Controllers
             return View("Index", await query.OrderByDescending(w => w.AddedAt).ToListAsync());
         }
 
-        // INDEX: Admin/Organizer all, member only own
+        // =========================
+        // INDEX
+        // =========================
         public async Task<IActionResult> Index()
         {
             var isAdminOrOrg = await CurrentUserHasAnyRoleAsync("Admin", "Organizer");
@@ -105,7 +165,9 @@ namespace SmartTicketingSystem.Controllers
                 .ToListAsync());
         }
 
-        // DETAILS: Admin/Organizer OR owner
+        // =========================
+        // DETAILS
+        // =========================
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -123,20 +185,24 @@ namespace SmartTicketingSystem.Controllers
             return View(waiting);
         }
 
-        // CREATE: member can add themselves (force member_id + AddedAt)
+        // =========================
+        // CREATE (GET)
+        // =========================
         public IActionResult Create() => View();
 
+        // =========================
+        // CREATE (POST)
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("WaitingListID,EventID,member_id,AddedAt,Status")] WAITING_LIST waiting)
+        public async Task<IActionResult> Create(WAITING_LIST waiting)
         {
             var myId = await GetCurrentMemberIdAsync();
             if (myId == null) return Forbid();
 
-            // force ownership + timestamp
             waiting.member_id = myId.Value;
-            if (waiting.AddedAt == default) waiting.AddedAt = DateTime.Now;
-            if (string.IsNullOrWhiteSpace(waiting.Status)) waiting.Status = "Pending";
+            waiting.AddedAt = waiting.AddedAt == default ? DateTime.Now : waiting.AddedAt;
+            waiting.Status = string.IsNullOrEmpty(waiting.Status) ? "Pending" : waiting.Status;
 
             if (ModelState.IsValid)
             {
@@ -148,7 +214,9 @@ namespace SmartTicketingSystem.Controllers
             return View(waiting);
         }
 
-        // EDIT/DELETE: AdminOrOrganizer only
+        // =========================
+        // EDIT (GET) - Admin/Organizer only
+        // =========================
         [Authorize(Policy = "AdminOrOrganizer")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -160,10 +228,13 @@ namespace SmartTicketingSystem.Controllers
             return View(waiting);
         }
 
+        // =========================
+        // EDIT (POST) - Admin/Organizer only
+        // =========================
         [Authorize(Policy = "AdminOrOrganizer")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("WaitingListID,EventID,member_id,AddedAt,Status")] WAITING_LIST waiting)
+        public async Task<IActionResult> Edit(int id, WAITING_LIST waiting)
         {
             if (id != waiting.WaitingListID) return NotFound();
 
@@ -177,6 +248,9 @@ namespace SmartTicketingSystem.Controllers
             return View(waiting);
         }
 
+        // =========================
+        // DELETE (GET) - Admin/Organizer only
+        // =========================
         [Authorize(Policy = "AdminOrOrganizer")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -188,6 +262,9 @@ namespace SmartTicketingSystem.Controllers
             return View(waiting);
         }
 
+        // =========================
+        // DELETE (POST) - Admin/Organizer only
+        // =========================
         [Authorize(Policy = "AdminOrOrganizer")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]

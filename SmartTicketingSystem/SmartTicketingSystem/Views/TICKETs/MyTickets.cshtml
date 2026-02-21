@@ -1,65 +1,65 @@
 ﻿@model SmartTicketingSystem.Models.ViewModels.MyTicketsVM
 @{
     ViewData["Title"] = "My Tickets";
-    var returnUrl = Context.Request.Headers["Referer"].ToString();
 }
 
 <div class="container py-4">
-    <!-- Header with Back Button -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center gap-3">
-            <a href="@(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl)" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Back
-            </a>
-            <div>
-                <h2 class="mb-1"><i class="fas fa-qrcode"></i> My Tickets</h2>
-                <p class="text-muted">View all your purchased tickets with QR codes</p>
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-2"><i class="fas fa-qrcode me-2"></i>My Tickets</h2>
+                            <p class="mb-0 opacity-75">View and download your tickets with QR codes</p>
+                        </div>
+                        <a asp-controller="EVENTs" asp-action="Index" class="btn btn-light">
+                            <i class="fas fa-calendar-alt me-2"></i>Browse Events
+                        </a>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div>
-            <a asp-controller="EVENTs" asp-action="Index" class="btn btn-outline-primary">
-                <i class="fas fa-calendar-alt"></i> Browse Events
-            </a>
         </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="row g-4 mb-4">
         <div class="col-md-4">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-white-50">Total Tickets</h6>
-                            <h2 class="mb-0">@Model.Stats.TotalTickets</h2>
-                        </div>
-                        <i class="fas fa-ticket-alt fa-3x opacity-50"></i>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-primary-soft">
+                        <i class="fas fa-ticket-alt text-primary"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Total Tickets</h6>
+                        <h3 class="fw-bold mb-0">@Model.Stats.TotalTickets</h3>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-white-50">Upcoming Events</h6>
-                            <h2 class="mb-0">@Model.Stats.UpcomingEvents</h2>
-                        </div>
-                        <i class="fas fa-calendar-check fa-3x opacity-50"></i>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-success-soft">
+                        <i class="fas fa-calendar-check text-success"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Upcoming Events</h6>
+                        <h3 class="fw-bold mb-0">@Model.Stats.UpcomingEvents</h3>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-white-50">Past Events</h6>
-                            <h2 class="mb-0">@Model.Stats.PastEvents</h2>
-                        </div>
-                        <i class="fas fa-history fa-3x opacity-50"></i>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-info-soft">
+                        <i class="fas fa-history text-info"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Past Events</h6>
+                        <h3 class="fw-bold mb-0">@Model.Stats.PastEvents</h3>
                     </div>
                 </div>
             </div>
@@ -72,9 +72,9 @@
             <div class="card-body text-center py-5">
                 <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
                 <h4>No Tickets Found</h4>
-                <p class="text-muted">You haven't purchased any tickets yet.</p>
-                <a asp-controller="EVENTs" asp-action="Index" class="btn btn-primary">
-                    <i class="fas fa-calendar-alt"></i> Browse Events
+                <p class="text-muted mb-4">You haven't purchased any tickets yet.</p>
+                <a asp-controller="EVENTs" asp-action="Index" class="btn btn-primary btn-lg">
+                    <i class="fas fa-calendar-alt me-2"></i>Browse Events
                 </a>
             </div>
         </div>
@@ -84,42 +84,65 @@
         <!-- Upcoming Events Tickets -->
         @if (Model.UpcomingTickets.Any())
         {
-            <h3 class="mb-3"><i class="fas fa-calendar-alt text-success"></i> Upcoming Events</h3>
+            <h4 class="mb-3"><i class="fas fa-calendar-alt text-success me-2"></i>Upcoming Events</h4>
             <div class="row g-4 mb-5">
                 @foreach (var group in Model.UpcomingTickets)
                 {
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 shadow-sm ticket-group">
+                        <div class="card ticket-group h-100">
                             <div class="card-header bg-success text-white">
                                 <h5 class="mb-0">@group.EventTitle</h5>
-                                <small>@group.EventDate.ToString("MMMM dd, yyyy - h:mm tt")</small>
+                                <small>@group.EventDate.ToString("MMMM dd, yyyy • h:mm tt")</small>
                             </div>
                             <div class="card-body">
-                                <p class="mb-2">
-                                    <i class="fas fa-map-marker-alt"></i> @group.EventVenue<br />
-                                    <i class="fas fa-ticket-alt"></i> @group.Tickets.Count tickets
-                                </p>
-
-                                <hr />
+                                <div class="event-details mb-3">
+                                    <p class="mb-1">
+                                        <i class="fas fa-map-marker-alt text-success me-2"></i>
+                                        @group.EventVenue
+                                    </p>
+                                    <p class="mb-1">
+                                        <i class="fas fa-ticket-alt text-success me-2"></i>
+                                        @group.Tickets.Count @(group.Tickets.Count == 1 ? "ticket" : "tickets")
+                                    </p>
+                                    <p class="mb-1">
+                                        <i class="fas fa-hashtag text-success me-2"></i>
+                                        Booking: @group.BookingReference
+                                    </p>
+                                </div>
 
                                 <div class="row g-2">
                                     @foreach (var ticket in group.Tickets)
                                     {
                                         <div class="col-6">
-                                            <div class="ticket-card text-center p-2 border rounded">
+                                            <div class="ticket-card text-center p-3 border rounded">
+                                                <!-- QR Code -->
                                                 <img src="@Url.Action("Qr", "TICKETs", new { id = ticket.TicketId })"
                                                      alt="QR Code"
-                                                     class="img-fluid mb-2"
-                                                     style="width: 120px; height: 120px;" />
+                                                     class="img-fluid mb-2 qr-code"
+                                                     style="width: 120px; height: 120px; cursor: pointer;"
+                                                     onclick="showQRModal('@Url.Action("Qr", "TICKETs", new { id = ticket.TicketId })', '@ticket.TicketId', '@group.EventTitle')">
+
                                                 <small class="d-block text-muted">Ticket #@ticket.TicketId</small>
-                                                <a href="@Url.Action("Download", "TICKETs", new { id = ticket.TicketId })"
-                                                   class="btn btn-sm btn-outline-primary mt-1">
-                                                    <i class="fas fa-download"></i> Download
-                                                </a>
+
+                                                <div class="btn-group btn-group-sm mt-2">
+                                                    <a href="@Url.Action("Download", "TICKETs", new { id = ticket.TicketId })"
+                                                       class="btn btn-outline-primary" title="Download QR Code">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                    <button class="btn btn-outline-info" onclick="printTicket(@ticket.TicketId)" title="Print Ticket">
+                                                        <i class="fas fa-print"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     }
                                 </div>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Booked on: @group.Tickets.FirstOrDefault()?.IssuedAt.ToString("MMM dd, yyyy")
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -130,35 +153,30 @@
         <!-- Past Events Tickets -->
         @if (Model.PastTickets.Any())
         {
-            <h3 class="mb-3"><i class="fas fa-history text-secondary"></i> Past Events</h3>
+            <h4 class="mb-3"><i class="fas fa-history text-secondary me-2"></i>Past Events</h4>
             <div class="row g-4">
                 @foreach (var group in Model.PastTickets)
                 {
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 shadow-sm ticket-group opacity-75">
+                        <div class="card ticket-group h-100 opacity-75">
                             <div class="card-header bg-secondary text-white">
                                 <h5 class="mb-0">@group.EventTitle</h5>
                                 <small>@group.EventDate.ToString("MMMM dd, yyyy")</small>
                             </div>
                             <div class="card-body">
-                                <p class="mb-2">
-                                    <i class="fas fa-map-marker-alt"></i> @group.EventVenue<br />
-                                    <i class="fas fa-ticket-alt"></i> @group.Tickets.Count tickets
-                                </p>
-
-                                <hr />
-
-                                <div class="text-center">
-                                    <i class="fas fa-check-circle text-success fa-2x"></i>
-                                    <p class="mb-0">Event Completed</p>
-                                    <small class="text-muted">Tickets are for reference only</small>
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-check-circle text-success fa-3x mb-2"></i>
+                                    <h6>Event Completed</h6>
+                                    <p class="text-muted small">@group.Tickets.Count @(group.Tickets.Count == 1 ? "ticket" : "tickets") used</p>
+                                    <p class="text-muted small">
+                                        <i class="fas fa-hashtag me-1"></i>Ref: @group.BookingReference
+                                    </p>
                                 </div>
 
-                                <div class="text-center mt-2">
-                                    <a href="@Url.Action("Qr", "TICKETs", new { id = group.Tickets.First().TicketId })"
-                                       target="_blank" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-eye"></i> View Ticket
-                                    </a>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="viewPastTicket('@group.BookingId')">
+                                        <i class="fas fa-eye me-2"></i>View Tickets
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -167,26 +185,124 @@
             </div>
         }
     }
+</div>
 
-    <!-- Bottom Navigation -->
-    <div class="mt-4 d-flex justify-content-center gap-3">
-        <a href="javascript:history.back()" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Go Back
-        </a>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
-            <i class="fas fa-home"></i> Home
-        </a>
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-qrcode me-2"></i>Ticket QR Code</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <img src="" id="qrImage" class="img-fluid mb-3" style="width: 200px; height: 200px;">
+                <p id="qrTicketId" class="text-muted mb-1"></p>
+                <p id="qrEventName" class="text-muted small mb-3"></p>
+                <div class="d-grid gap-2">
+                    <a href="" id="downloadLink" class="btn btn-primary" download>
+                        <i class="fas fa-download me-2"></i>Download QR Code
+                    </a>
+                    <button class="btn btn-outline-secondary" onclick="printQR()">
+                        <i class="fas fa-print me-2"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        let currentQRUrl = '';
+
+        function showQRModal(imageUrl, ticketId, eventName) {
+            currentQRUrl = imageUrl;
+            $('#qrImage').attr('src', imageUrl);
+            $('#qrTicketId').text('Ticket #' + ticketId);
+            $('#qrEventName').text(eventName);
+            $('#downloadLink').attr('href', imageUrl);
+            $('#qrModal').modal('show');
+        }
+
+        function printTicket(ticketId) {
+            var printWindow = window.open('@Url.Action("Qr", "TICKETs")/' + ticketId, '_blank');
+            if (printWindow) {
+                printWindow.onload = function() {
+                    setTimeout(function() {
+                        printWindow.print();
+                    }, 500);
+                };
+            }
+        }
+
+        function printQR() {
+            var printWindow = window.open(currentQRUrl, '_blank');
+            if (printWindow) {
+                printWindow.onload = function() {
+                    setTimeout(function() {
+                        printWindow.print();
+                    }, 500);
+                };
+            }
+        }
+
+        function viewPastTicket(bookingId) {
+            window.location.href = '@Url.Action("Tickets", "BOOKINGs")/' + bookingId;
+        }
+
+        // Auto-dismiss alerts
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    </script>
+}
+
 <style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4361ee, #7209b7);
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        border: 1px solid #eee;
+        height: 100%;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .bg-primary-soft {
+        background: rgba(67,97,238,0.1);
+    }
+
+    .bg-success-soft {
+        background: rgba(6,214,160,0.1);
+    }
+
+    .bg-info-soft {
+        background: rgba(76,201,240,0.1);
+    }
+
     .ticket-group {
-        transition: transform 0.2s;
+        border: none;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        transition: all 0.3s;
     }
 
         .ticket-group:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+            box-shadow: 0 15px 40px rgba(67,97,238,0.15);
         }
 
     .ticket-card {
@@ -196,11 +312,28 @@
 
         .ticket-card:hover {
             transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             z-index: 10;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-    .opacity-50 {
-        opacity: 0.7;
+    .qr-code {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+        .qr-code:hover {
+            transform: scale(1.1);
+        }
+
+    .opacity-75 {
+        opacity: 0.75;
+    }
+
+    .card-header.bg-success {
+        background: linear-gradient(135deg, #06d6a0, #04b386) !important;
+    }
+
+    .card-header.bg-secondary {
+        background: linear-gradient(135deg, #6c757d, #5a6268) !important;
     }
 </style>

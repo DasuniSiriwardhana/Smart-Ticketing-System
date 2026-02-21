@@ -15,7 +15,7 @@ namespace SmartTicketingSystem.Data.Migrations
                 name: "REVIEW_REPORT",
                 columns: table => new
                 {
-                    RportID = table.Column<int>(type: "int", nullable: false)
+                    ReportID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ReviewID = table.Column<int>(type: "int", nullable: false),
                     ReportedByUserID = table.Column<int>(type: "int", nullable: false),
@@ -25,7 +25,7 @@ namespace SmartTicketingSystem.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_REVIEW_REPORT", x => x.RportID);
+                    table.PrimaryKey("PK_REVIEW_REPORT", x => x.ReportID);
                 });
         }
 

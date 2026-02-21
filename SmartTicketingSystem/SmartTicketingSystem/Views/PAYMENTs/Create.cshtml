@@ -1,37 +1,37 @@
 ﻿@model SmartTicketingSystem.Models.PAYMENT
 @{
-    ViewData["Title"] = "Complete Your Payment";
+    ViewData["Title"] = "Complete Payment";
     var booking = ViewBag.Booking as SmartTicketingSystem.Models.BOOKING;
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="BOOKINGs" asp-action="MyBookings">My Bookings</a></li>
+            <li class="breadcrumb-item active">Payment</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Payment Form -->
+        <div class="col-lg-8">
+            <div class="card payment-card">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-credit-card"></i> Complete Your Payment</h4>
+                    <h4 class="mb-0"><i class="fas fa-credit-card me-2"></i>Complete Your Payment</h4>
                 </div>
-                <div class="card-body">
-
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success">@TempData["Success"]</div>
-                    }
-                    @if (TempData["Error"] != null)
-                    {
-                        <div class="alert alert-danger">@TempData["Error"]</div>
-                    }
-
+                <div class="card-body p-4">
                     <!-- Booking Summary -->
-                    <div class="alert alert-info">
+                    <div class="booking-summary bg-light p-3 rounded mb-4">
                         <div class="row">
                             <div class="col-md-6">
-                                <strong>Booking Reference:</strong><br />
-                                @booking?.BookingReference
+                                <p class="mb-1"><strong>Booking Reference:</strong> @booking?.BookingReference</p>
+                                <p class="mb-1"><strong>Event:</strong> @booking?.Event?.title</p>
                             </div>
                             <div class="col-md-6">
-                                <strong>Total Amount:</strong><br />
-                                <span class="h5 text-primary">Rs. @booking?.TotalAmount.ToString("N2")</span>
+                                <p class="mb-1"><strong>Date:</strong> @booking?.Event?.StartDateTime.ToString("MMM dd, yyyy")</p>
+                                <p class="mb-1"><strong>Total Amount:</strong> <span class="text-primary fw-bold">Rs. @booking?.TotalAmount.ToString("N2")</span></p>
                             </div>
                         </div>
                     </div>
@@ -41,7 +41,6 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
                         <input type="hidden" asp-for="BookingID" value="@booking?.BookingID" />
-                        <input type="hidden" asp-for="PaymentMethod" id="selectedPaymentMethod" />
 
                         <!-- Payment Method Selection -->
                         <div class="mb-4">
@@ -50,134 +49,256 @@
                                 <div class="col-md-4">
                                     <div class="payment-method-card" onclick="selectMethod('Card')">
                                         <div class="card p-3 text-center" id="method-Card">
-                                            <i class="fas fa-credit-card fa-2x mb-2"></i>
+                                            <i class="fas fa-credit-card fa-2x mb-2 text-primary"></i>
                                             <span>Credit/Debit Card</span>
-                                            <small class="text-muted d-block">Instant tickets</small>
+                                            <small class="text-muted">Instant payment</small>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="payment-method-card" onclick="selectMethod('BankTransfer')">
                                         <div class="card p-3 text-center" id="method-BankTransfer">
-                                            <i class="fas fa-university fa-2x mb-2"></i>
+                                            <i class="fas fa-university fa-2x mb-2 text-success"></i>
                                             <span>Bank Transfer</span>
-                                            <small class="text-muted d-block">Manual processing</small>
+                                            <small class="text-muted">Manual processing</small>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="payment-method-card" onclick="selectMethod('Cash')">
                                         <div class="card p-3 text-center" id="method-Cash">
-                                            <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                                            <i class="fas fa-money-bill-wave fa-2x mb-2 text-warning"></i>
                                             <span>Cash at Venue</span>
-                                            <small class="text-muted d-block">Pay on arrival</small>
+                                            <small class="text-muted">Pay on arrival</small>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <input type="hidden" asp-for="PaymentMethod" id="selectedPaymentMethod" />
                             <span asp-validation-for="PaymentMethod" class="text-danger"></span>
                         </div>
 
-                        <!-- CARD DETAILS FORM - ONLY SHOWS WHEN CARD IS SELECTED -->
+                        <!-- Card Details Form -->
                         <div id="cardDetails" style="display: none;">
                             <div class="card mb-4 border-primary">
                                 <div class="card-header bg-primary text-white">
-                                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Enter Card Details</h5>
+                                    <h5 class="mb-0"><i class="fas fa-lock me-2"></i>Card Details</h5>
                                 </div>
                                 <div class="card-body">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Card Number</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
-                                            <input type="text" class="form-control" id="cardNumber"
-                                                   placeholder="1234 5678 9012 3456" maxlength="19" />
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label">Card Number</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white"><i class="fas fa-credit-card text-primary"></i></span>
+                                                <input type="text" class="form-control" id="cardNumber"
+                                                       placeholder="1234 5678 9012 3456" maxlength="19">
+                                            </div>
                                         </div>
-                                        <div class="invalid-feedback">Please enter a valid 16-digit card number</div>
-                                    </div>
-
-                                    <div class="row">
                                         <div class="col-md-6">
-                                            <label class="form-label fw-bold">Expiry Date</label>
+                                            <label class="form-label">Expiry Date</label>
                                             <input type="text" class="form-control" id="expiryDate"
-                                                   placeholder="MM/YY" maxlength="5" />
-                                            <div class="invalid-feedback">Invalid expiry date (MM/YY)</div>
+                                                   placeholder="MM/YY" maxlength="5">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label fw-bold">CVV</label>
+                                            <label class="form-label">CVV</label>
                                             <input type="password" class="form-control" id="cvv"
-                                                   placeholder="123" maxlength="3" />
-                                            <div class="invalid-feedback">Invalid CVV (3 digits)</div>
+                                                   placeholder="123" maxlength="3">
                                         </div>
-                                    </div>
-
-                                    <div class="mb-3 mt-3">
-                                        <label class="form-label fw-bold">Card Holder Name</label>
-                                        <input type="text" class="form-control" id="cardHolderName"
-                                               placeholder="Name as on card" />
-                                        <div class="invalid-feedback">Please enter card holder name</div>
-                                    </div>
-
-                                    <div class="alert alert-success mt-3">
-                                        <i class="fas fa-lock"></i>
-                                        <strong>Secure Payment</strong> - Your card details are encrypted. Tickets will be generated immediately after successful payment.
+                                        <div class="col-12">
+                                            <label class="form-label">Card Holder Name</label>
+                                            <input type="text" class="form-control" id="cardHolderName"
+                                                   placeholder="Name as on card">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Bank Transfer Instructions - Shows when Bank Transfer is selected -->
+                        <!-- Bank Transfer Instructions -->
                         <div id="bankDetails" style="display: none;">
                             <div class="alert alert-info">
-                                <h5><i class="fas fa-university"></i> Bank Transfer Instructions</h5>
-                                <hr />
+                                <h5 class="alert-heading"><i class="fas fa-university me-2"></i>Bank Transfer Instructions</h5>
+                                <hr>
                                 <p><strong>Bank:</strong> National Bank</p>
                                 <p><strong>Account Name:</strong> Smart Ticketing System</p>
                                 <p><strong>Account Number:</strong> 1234-5678-9012-3456</p>
-                                <p><strong>Reference:</strong> <span class="fw-bold">@($"PAY-{booking?.BookingReference}")</span></p>
-                                <p class="mb-0">After transfer, enter the reference number below. Your tickets will be generated after admin confirmation (usually within 24 hours).</p>
+                                <p><strong>Reference:</strong> <span class="fw-bold">PAY-@booking?.BookingReference</span></p>
+                                <p class="mb-0">Please use the reference number above for faster verification. Tickets will be issued after payment confirmation.</p>
                             </div>
-                        </div>
-
-                        <!-- Cash Payment Instructions - Shows when Cash is selected -->
-                        <div id="cashDetails" style="display: none;">
-                            <div class="alert alert-warning">
-                                <h5><i class="fas fa-money-bill-wave"></i> Cash Payment at Venue</h5>
-                                <hr />
-                                <p><strong>Venue:</strong> @booking?.Event?.venue</p>
-                                <p><strong>Date:</strong> @booking?.Event?.StartDateTime.ToString("MMMM dd, yyyy - h:mm tt")</p>
-                                <p><strong>Amount:</strong> <span class="fw-bold">Rs. @booking?.TotalAmount.ToString("N2")</span></p>
-                                <p><strong>What to bring:</strong> Exact cash amount and your booking reference (<strong>@booking?.BookingReference</strong>)</p>
-                                <p class="mb-0">Your tickets will be available at the venue after payment. Please arrive 30 minutes early.</p>
-                            </div>
-                        </div>
-
-                        <!-- Transaction Reference (for Bank Transfer only) -->
-                        <div id="transactionRef" style="display: none;">
                             <div class="mb-3">
                                 <label asp-for="TransactionReference" class="form-label fw-bold">Transaction Reference</label>
                                 <input asp-for="TransactionReference" class="form-control"
-                                       placeholder="Enter bank transaction reference number" />
-                                <span asp-validation-for="TransactionReference" class="text-danger"></span>
-                                <small class="text-muted">Enter the reference number from your bank transfer receipt</small>
+                                       placeholder="Enter bank transaction reference">
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2 mt-4">
+                        <!-- Cash Payment Instructions -->
+                        <div id="cashDetails" style="display: none;">
+                            <div class="alert alert-warning">
+                                <h5 class="alert-heading"><i class="fas fa-money-bill-wave me-2"></i>Cash Payment Instructions</h5>
+                                <hr>
+                                <p><strong>Venue:</strong> @booking?.Event?.venue</p>
+                                <p><strong>Date:</strong> @booking?.Event?.StartDateTime.ToString("MMMM dd, yyyy - h:mm tt")</p>
+                                <p><strong>Amount to Pay:</strong> Rs. @booking?.TotalAmount.ToString("N2")</p>
+                                <p class="mb-0">Please bring the exact amount and your booking reference <strong>@booking?.BookingReference</strong> to the venue. Tickets will be provided at the door.</p>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
-                                <i class="fas fa-lock"></i> Complete Payment
+                                <i class="fas fa-lock me-2"></i>Pay Rs. @booking?.TotalAmount.ToString("N2")
                             </button>
                             <a asp-controller="BOOKINGs" asp-action="MyBookings" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left"></i> Back to My Bookings
+                                <i class="fas fa-times me-2"></i>Cancel
                             </a>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <h6>@booking?.Event?.title</h6>
+                    <p class="text-muted small">
+                        <i class="fas fa-calendar-alt me-2"></i>@booking?.Event?.StartDateTime.ToString("MMM dd, yyyy")<br>
+                        <i class="fas fa-map-marker-alt me-2"></i>@booking?.Event?.venue
+                    </p>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>Rs. @booking?.TotalAmount.ToString("N2")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Fees:</span>
+                        <span>Rs. 0.00</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Total:</span>
+                        <span class="text-primary">Rs. @booking?.TotalAmount.ToString("N2")</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="text-center small text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>Secure Payment
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        let selectedMethod = '';
+
+        function selectMethod(method) {
+            selectedMethod = method;
+            $('#selectedPaymentMethod').val(method);
+
+            // Remove highlight from all cards
+            $('.payment-method-card .card').removeClass('border-primary border-success border-warning');
+
+            // Add highlight to selected card
+            var color = method === 'Card' ? 'primary' : method === 'BankTransfer' ? 'success' : 'warning';
+            $(`#method-${method}`).addClass(`border-${color}`);
+
+            // Hide all detail sections
+            $('#cardDetails').hide();
+            $('#bankDetails').hide();
+            $('#cashDetails').hide();
+
+            // Show relevant section
+            if (method === 'Card') {
+                $('#cardDetails').show();
+            } else if (method === 'BankTransfer') {
+                $('#bankDetails').show();
+            } else if (method === 'Cash') {
+                $('#cashDetails').show();
+            }
+        }
+
+        // Format card number with spaces
+        $('#cardNumber').on('input', function() {
+            let value = $(this).val().replace(/\s/g, '').replace(/\D/g, '');
+            if (value.length > 0) {
+                value = value.match(new RegExp('.{1,4}', 'g')).join(' ');
+            }
+            $(this).val(value);
+        });
+
+        // Format expiry date
+        $('#expiryDate').on('input', function() {
+            let value = $(this).val().replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0,2) + '/' + value.substring(2,4);
+            }
+            $(this).val(value);
+        });
+
+        // CVV validation
+        $('#cvv').on('input', function() {
+            $(this).val($(this).val().replace(/\D/g, '').substring(0,3));
+        });
+
+        // Form validation
+        $('#paymentForm').submit(function(e) {
+            if (!selectedMethod) {
+                e.preventDefault();
+                alert('Please select a payment method');
+                return false;
+            }
+
+            if (selectedMethod === 'Card') {
+                let cardNumber = $('#cardNumber').val().replace(/\s/g, '');
+                let expiry = $('#expiryDate').val();
+                let cvv = $('#cvv').val();
+                let cardHolder = $('#cardHolderName').val();
+
+                if (cardNumber.length !== 16) {
+                    e.preventDefault();
+                    alert('Please enter a valid 16-digit card number');
+                    return false;
+                }
+
+                if (!expiry.match(/^\d{2}\/\d{2}$/)) {
+                    e.preventDefault();
+                    alert('Please enter a valid expiry date (MM/YY)');
+                    return false;
+                }
+
+                if (cvv.length !== 3) {
+                    e.preventDefault();
+                    alert('Please enter a valid 3-digit CVV');
+                    return false;
+                }
+
+                if (!cardHolder) {
+                    e.preventDefault();
+                    alert('Please enter card holder name');
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    </script>
+}
+
 <style>
+    .payment-card {
+        border: none;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
     .payment-method-card {
         cursor: pointer;
         transition: all 0.3s;
@@ -190,160 +311,20 @@
         .payment-method-card .card {
             border: 2px solid transparent;
             transition: all 0.3s;
-            height: 120px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
             .payment-method-card .card.border-primary {
-                border-color: #0d6efd !important;
-                background-color: #f0f7ff;
-                box-shadow: 0 4px 10px rgba(13,110,253,0.2);
+                border-color: #4361ee !important;
+                background: rgba(67,97,238,0.02);
             }
 
-            .payment-method-card .card i {
-                color: #0d6efd;
+            .payment-method-card .card.border-success {
+                border-color: #06d6a0 !important;
+                background: rgba(6,214,160,0.02);
+            }
+
+            .payment-method-card .card.border-warning {
+                border-color: #f72585 !important;
+                background: rgba(247,37,133,0.02);
             }
 </style>
-
-@section Scripts {
-    <script>
-        let selectedMethod = '';
-
-        function selectMethod(method) {
-            selectedMethod = method;
-
-            // Update hidden input
-            $('#selectedPaymentMethod').val(method);
-
-            // Remove highlight from all cards
-            $('.payment-method-card .card').removeClass('border-primary');
-
-            // Add highlight to selected card
-            $(`#method-${method}`).addClass('border-primary');
-
-            // Hide all sections
-            $('#cardDetails').hide();
-            $('#bankDetails').hide();
-            $('#cashDetails').hide();
-            $('#transactionRef').hide();
-
-            // Show relevant section based on selection
-            if (method === 'Card') {
-                $('#cardDetails').show();  // Card form appears ONLY for Card
-            } else if (method === 'BankTransfer') {
-                $('#bankDetails').show();
-                $('#transactionRef').show(); // Transaction ref for bank transfer
-            } else if (method === 'Cash') {
-                $('#cashDetails').show(); // Cash instructions
-            }
-        }
-
-        // Format card number with spaces (only needed if Card is selected)
-        $('#cardNumber').on('input', function() {
-            let value = $(this).val().replace(/\s/g, '').replace(/\D/g, '');
-            if (value.length > 0) {
-                value = value.match(new RegExp('.{1,4}', 'g')).join(' ');
-            }
-            $(this).val(value);
-
-            if (value.replace(/\s/g, '').length === 16) {
-                $(this).removeClass('is-invalid').addClass('is-valid');
-            } else {
-                $(this).removeClass('is-valid').addClass('is-invalid');
-            }
-        });
-
-        // Format expiry date
-        $('#expiryDate').on('input', function() {
-            let value = $(this).val().replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.substring(0,2) + '/' + value.substring(2,4);
-            }
-            $(this).val(value);
-
-            if (value.length === 5 && value.match(/^\d{2}\/\d{2}$/)) {
-                $(this).removeClass('is-invalid').addClass('is-valid');
-            } else {
-                $(this).removeClass('is-valid').addClass('is-invalid');
-            }
-        });
-
-        // CVV validation
-        $('#cvv').on('input', function() {
-            let value = $(this).val().replace(/\D/g, '');
-            $(this).val(value);
-
-            if (value.length === 3) {
-                $(this).removeClass('is-invalid').addClass('is-valid');
-            } else {
-                $(this).removeClass('is-valid').addClass('is-invalid');
-            }
-        });
-
-        // Card holder name validation
-        $('#cardHolderName').on('input', function() {
-            if ($(this).val().length > 0) {
-                $(this).removeClass('is-invalid').addClass('is-valid');
-            } else {
-                $(this).removeClass('is-valid').addClass('is-invalid');
-            }
-        });
-
-        // Form validation before submit
-        $('#paymentForm').submit(function(e) {
-            if (!selectedMethod) {
-                e.preventDefault();
-                alert('Please select a payment method');
-                return false;
-            }
-
-            // ONLY validate card details if Card method is selected
-            if (selectedMethod === 'Card') {
-                let cardNumber = $('#cardNumber').val().replace(/\s/g, '');
-                let expiry = $('#expiryDate').val();
-                let cvv = $('#cvv').val();
-                let cardHolder = $('#cardHolderName').val();
-
-                let isValid = true;
-
-                if (cardNumber.length !== 16) {
-                    $('#cardNumber').addClass('is-invalid');
-                    isValid = false;
-                } else {
-                    $('#cardNumber').removeClass('is-invalid').addClass('is-valid');
-                }
-
-                if (!expiry.match(/^\d{2}\/\d{2}$/)) {
-                    $('#expiryDate').addClass('is-invalid');
-                    isValid = false;
-                } else {
-                    $('#expiryDate').removeClass('is-invalid').addClass('is-valid');
-                }
-
-                if (cvv.length !== 3) {
-                    $('#cvv').addClass('is-invalid');
-                    isValid = false;
-                } else {
-                    $('#cvv').removeClass('is-invalid').addClass('is-valid');
-                }
-
-                if (!cardHolder) {
-                    $('#cardHolderName').addClass('is-invalid');
-                    isValid = false;
-                } else {
-                    $('#cardHolderName').removeClass('is-invalid').addClass('is-valid');
-                }
-
-                if (!isValid) {
-                    e.preventDefault();
-                    alert('Please fill all card details correctly');
-                    return false;
-                }
-            }
-
-            return true;
-        });
-    </script>
-}

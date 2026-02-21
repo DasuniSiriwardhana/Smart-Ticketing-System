@@ -3,44 +3,66 @@
     ViewData["Title"] = "Book Tickets - " + ViewBag.Event.title;
     var ev = ViewBag.Event as SmartTicketingSystem.Models.EVENT;
     var eventId = ViewBag.EventId;
+    var availablePromos = ViewBag.EventPromos as List<SmartTicketingSystem.Models.PROMO_CODE> ?? new List<SmartTicketingSystem.Models.PROMO_CODE>();
 }
 
-<div class="container mt-4">
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="EVENTs" asp-action="Index">Events</a></li>
+            <li class="breadcrumb-item"><a asp-controller="EVENTs" asp-action="Details" asp-route-id="@eventId">@ev?.title</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Book Tickets</li>
+        </ol>
+    </nav>
+
     <div class="row">
-        <div class="col-md-8">
-            <div class="card">
+        <!-- Main Booking Form -->
+        <div class="col-lg-8">
+            <div class="card booking-card">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Book Tickets for @ev?.title</h4>
+                    <h4 class="mb-0"><i class="fas fa-ticket-alt me-2"></i>Book Tickets for @ev?.title</h4>
                 </div>
-                <div class="card-body">
-                    
+                <div class="card-body p-4">
                     <form asp-action="Book" method="post" id="bookingForm">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="eventId" value="@eventId" />
 
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            Select your tickets below. You can pay later to receive QR tickets.
+                        <!-- Event Summary -->
+                        <div class="event-summary bg-light p-3 rounded mb-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><i class="fas fa-calendar-alt text-primary me-2"></i>@ev?.StartDateTime.ToString("MMMM dd, yyyy")</p>
+                                    <p class="mb-1"><i class="fas fa-clock text-primary me-2"></i>@ev?.StartDateTime.ToString("h:mm tt") - @ev?.endDateTime.ToString("h:mm tt")</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><i class="fas fa-map-marker-alt text-primary me-2"></i>@ev?.venue</p>
+                                    <!-- FIXED: Removed category reference -->
+                                    <p class="mb-1"><i class="fas fa-tag text-primary me-2"></i>Event</p>
+                                </div>
+                            </div>
                         </div>
 
                         @if (!Model.Any())
                         {
                             <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
+                                <i class="fas fa-exclamation-triangle me-2"></i>
                                 No tickets available for this event.
                             </div>
                         }
                         else
                         {
-                            <div class="table-responsive">
-                                <table class="table table-hover">
+                            <!-- Ticket Selection Table -->
+                            <div class="table-responsive mb-4">
+                                <table class="table ticket-table">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Ticket Type</th>
                                             <th>Price</th>
                                             <th>Available</th>
-                                            <th style="width: 150px;">Quantity</th>
-                                            <th>Subtotal</th>
+                                            <th style="width: 120px;">Quantity</th>
+                                            <th class="text-end">Subtotal</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -48,63 +70,61 @@
                                         {
                                             var ticket = Model[i];
                                             <tr class="ticket-row" data-price="@ticket.Price" data-id="@ticket.TicketTypeId">
-                                                <td class="fw-bold">@ticket.TypeName</td>
                                                 <td>
+                                                    <strong>@ticket.TypeName</strong>
                                                     @if (ticket.Price == 0)
                                                     {
-                                                        <span class="badge bg-success">FREE</span>
+                                                        <span class="badge bg-success ms-2">FREE</span>
+                                                    }
+                                                </td>
+                                                <td class="ticket-price">
+                                                    @if (ticket.Price == 0)
+                                                    {
+                                                        <span class="text-success">FREE</span>
                                                     }
                                                     else
                                                     {
-                                                        <span>Rs. @ticket.Price.ToString("N2")</span>
+                                                        @:Rs. @ticket.Price.ToString("N2")
                                                     }
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-info available-badge">@ticket.AvailableQuantity</span>
+                                                    <span class="badge bg-info availability-badge">@ticket.AvailableQuantity</span>
                                                 </td>
                                                 <td>
-                                                    <input type="number"
-                                                           name="quantities[@ticket.TicketTypeId]"
-                                                           class="form-control form-control-sm ticket-quantity"
-                                                           min="0"
-                                                           max="@ticket.AvailableQuantity"
-                                                           value="0"
-                                                           data-price="@ticket.Price"
-                                                           data-id="@ticket.TicketTypeId" />
+                                                    <div class="quantity-control">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary quantity-btn" onclick="decrementQuantity(@ticket.TicketTypeId)">-</button>
+                                                        <input type="number"
+                                                               name="quantities[@ticket.TicketTypeId]"
+                                                               class="form-control form-control-sm ticket-quantity text-center"
+                                                               id="qty-@ticket.TicketTypeId"
+                                                               min="0"
+                                                               max="@ticket.AvailableQuantity"
+                                                               value="0"
+                                                               data-price="@ticket.Price"
+                                                               data-id="@ticket.TicketTypeId"
+                                                               readonly>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary quantity-btn" onclick="incrementQuantity(@ticket.TicketTypeId)">+</button>
+                                                    </div>
                                                 </td>
-                                                <td class="subtotal" id="subtotal-@ticket.TicketTypeId">Rs. 0.00</td>
+                                                <td class="text-end subtotal-cell">
+                                                    <span class="subtotal" id="subtotal-@ticket.TicketTypeId">Rs. 0.00</span>
+                                                </td>
                                             </tr>
                                         }
                                     </tbody>
-                                    <tfoot class="table-secondary">
-                                        <tr>
-                                            <td colspan="4" class="text-end fw-bold">Subtotal:</td>
-                                            <td class="fw-bold" id="subtotal">Rs. 0.00</td>
-                                        </tr>
-                                        <tr id="discountRow" style="display: none;">
-                                            <td colspan="4" class="text-end text-success">Discount:</td>
-                                            <td class="text-success" id="discountAmount">- Rs. 0.00</td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="4" class="text-end fw-bold fs-5">Total:</td>
-                                            <td class="fw-bold fs-5 text-primary" id="total">Rs. 0.00</td>
-                                        </tr>
-                                    </tfoot>
                                 </table>
                             </div>
 
                             <!-- Promo Code Section -->
-                            <div class="card mt-3 mb-3">
+                            <div class="promo-section card mb-4">
                                 <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-8">
-                                            <label class="form-label fw-bold">
-                                                <i class="fas fa-tag"></i> Have a Promo Code?
-                                            </label>
+                                    <h6 class="mb-3"><i class="fas fa-tag me-2 text-success"></i>Have a Promo Code?</h6>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
                                             <div class="input-group">
                                                 <input type="text" class="form-control" id="promoCode"
-                                                       placeholder="Enter promo code" name="promoCode" />
-                                                <button class="btn btn-outline-success" type="button" id="applyPromo">
+                                                       placeholder="Enter promo code">
+                                                <button class="btn btn-success" type="button" id="applyPromo">
                                                     Apply
                                                 </button>
                                                 <button class="btn btn-outline-danger" type="button" id="removePromo"
@@ -112,61 +132,119 @@
                                                     Remove
                                                 </button>
                                             </div>
-                                            <div id="promoMessage" class="mt-1 small"></div>
+                                            <div id="promoMessage" class="mt-2 small"></div>
+                                            <input type="hidden" name="promoCode" id="promoCodeInput" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="d-flex gap-2 mt-3">
-                                <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
-                                    <i class="fas fa-check"></i> Confirm Booking
-                                </button>
-                                <a asp-action="Details" asp-route-id="@eventId" class="btn btn-secondary btn-lg">
-                                    <i class="fas fa-times"></i> Cancel
-                                </a>
+                            <!-- Available Promos Grid -->
+                            @if (availablePromos.Any())
+                            {
+                                <div class="promos-grid card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0"><i class="fas fa-tags me-2 text-success"></i>Available Promotions</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-2">
+                                            @foreach (var promo in availablePromos)
+                                            {
+                                                <div class="col-md-4">
+                                                    <div class="promo-card p-2 border rounded" onclick="applyPromoCode('@promo.code')">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span class="fw-bold text-success">@promo.code</span>
+                                                            @if (promo.DiscountType == "Percentage")
+                                                            {
+                                                                <span class="badge bg-primary">@promo.DiscountValue% OFF</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-primary">Rs. @promo.DiscountValue.ToString("N2") OFF</span>
+                                                            }
+                                                        </div>
+                                                        <small class="text-muted d-block">Valid until @promo.endDate.ToString("MMM dd, yyyy")</small>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Booking Summary -->
+                            <div class="booking-summary card bg-light">
+                                <div class="card-body">
+                                    <h6 class="mb-3">Booking Summary</h6>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Subtotal:</span>
+                                        <span class="fw-bold" id="summarySubtotal">Rs. 0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2 text-success" id="discountRow" style="display: none;">
+                                        <span>Discount:</span>
+                                        <span class="fw-bold" id="summaryDiscount">- Rs. 0.00</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="h5 mb-0">Total:</span>
+                                        <span class="h5 mb-0 text-primary fw-bold" id="summaryTotal">Rs. 0.00</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <small class="text-muted mt-2 d-block">
-                                <i class="fas fa-info-circle"></i>
-                                After payment, QR tickets will be generated for each ticket.
-                            </small>
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-3 mt-4">
+                                <button type="submit" class="btn btn-success btn-lg flex-grow-1" id="submitBtn" disabled>
+                                    <i class="fas fa-check-circle me-2"></i>Confirm Booking
+                                </button>
+                                <a asp-action="Details" asp-route-id="@eventId" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
                         }
                     </form>
-
                 </div>
             </div>
         </div>
 
         <!-- Order Summary Sidebar -->
-        <div class="col-md-4">
+        <div class="col-lg-4">
             <div class="card sticky-top" style="top: 20px;">
                 <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Order Summary</h5>
+                    <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Order Summary</h5>
                 </div>
                 <div class="card-body">
                     <h6>@ev?.title</h6>
-                    <p class="text-muted small">@ev?.StartDateTime.ToString("MMMM dd, yyyy h:mm tt")</p>
+                    <p class="text-muted small">
+                        <i class="fas fa-calendar-alt"></i> @ev?.StartDateTime.ToString("MMM dd, yyyy")<br>
+                        <i class="fas fa-clock"></i> @ev?.StartDateTime.ToString("h:mm tt")
+                    </p>
 
-                    <hr />
+                    <hr>
 
                     <div id="orderItems">
-                        <p class="text-muted">No tickets selected</p>
+                        <p class="text-muted text-center">No tickets selected</p>
                     </div>
 
-                    <hr />
+                    <hr>
 
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between mb-2">
                         <span>Subtotal:</span>
                         <span class="fw-bold" id="sidebarSubtotal">Rs. 0.00</span>
                     </div>
-                    <div class="d-flex justify-content-between text-success" id="sidebarDiscount" style="display: none;">
+                    <div class="d-flex justify-content-between mb-2 text-success" id="sidebarDiscount" style="display: none;">
                         <span>Discount:</span>
                         <span id="sidebarDiscountAmount">- Rs. 0.00</span>
                     </div>
                     <div class="d-flex justify-content-between fs-5 fw-bold mt-2">
                         <span>Total:</span>
                         <span class="text-primary" id="sidebarTotal">Rs. 0.00</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="text-center small text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>Secure Checkout
                     </div>
                 </div>
             </div>
@@ -176,165 +254,204 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            let selectedPromo = null;
-            let promoDiscount = 0;
+        let promoDiscount = 0;
+        let appliedPromoCode = '';
 
-            // Calculate totals
-            function calculateTotals() {
-                let subtotal = 0;
+        // Quantity increment/decrement
+        function incrementQuantity(id) {
+            var input = $('#qty-' + id);
+            var max = parseInt(input.attr('max'));
+            var current = parseInt(input.val()) || 0;
+            if (current < max) {
+                input.val(current + 1);
+                calculateTotals();
+            }
+        }
 
-                $('.ticket-quantity').each(function() {
-                    let qty = parseInt($(this).val()) || 0;
+        function decrementQuantity(id) {
+            var input = $('#qty-' + id);
+            var current = parseInt(input.val()) || 0;
+            if (current > 0) {
+                input.val(current - 1);
+                calculateTotals();
+            }
+        }
+
+        // Calculate totals
+        function calculateTotals() {
+            let subtotal = 0;
+
+            $('.ticket-quantity').each(function() {
+                let qty = parseInt($(this).val()) || 0;
+                let price = parseFloat($(this).data('price'));
+                let id = $(this).data('id');
+                let lineTotal = qty * price;
+
+                subtotal += lineTotal;
+                $(`#subtotal-${id}`).text('Rs. ' + lineTotal.toFixed(2));
+            });
+
+            let total = subtotal - promoDiscount;
+            if (total < 0) total = 0;
+
+            // Update displays
+            $('#summarySubtotal').text('Rs. ' + subtotal.toFixed(2));
+            $('#summaryTotal').text('Rs. ' + total.toFixed(2));
+            $('#sidebarSubtotal').text('Rs. ' + subtotal.toFixed(2));
+            $('#sidebarTotal').text('Rs. ' + total.toFixed(2));
+
+            // Update order items
+            let orderHtml = '';
+            $('.ticket-quantity').each(function() {
+                let qty = parseInt($(this).val()) || 0;
+                if (qty > 0) {
+                    let type = $(this).closest('tr').find('td:first').text().trim();
                     let price = parseFloat($(this).data('price'));
-                    let id = $(this).data('id');
-                    let lineTotal = qty * price;
+                    orderHtml += `<div class="d-flex justify-content-between small mb-2">
+                        <span>${qty} x ${type}</span>
+                        <span>Rs. ${(qty * price).toFixed(2)}</span>
+                    </div>`;
+                }
+            });
 
-                    subtotal += lineTotal;
-                    $(`#subtotal-${id}`).text('Rs. ' + lineTotal.toFixed(2));
-                });
+            $('#orderItems').html(orderHtml || '<p class="text-muted text-center">No tickets selected</p>');
 
-                let total = subtotal - promoDiscount;
-                if (total < 0) total = 0;
+            // Enable/disable submit button
+            $('#submitBtn').prop('disabled', subtotal === 0);
+        }
 
-                // Update displays
-                $('#subtotal').text('Rs. ' + subtotal.toFixed(2));
-                $('#total').text('Rs. ' + total.toFixed(2));
-                $('#sidebarSubtotal').text('Rs. ' + subtotal.toFixed(2));
-                $('#sidebarTotal').text('Rs. ' + total.toFixed(2));
-
-                // Update order items
-                let orderHtml = '';
-                $('.ticket-quantity').each(function() {
-                    let qty = parseInt($(this).val()) || 0;
-                    if (qty > 0) {
-                        let type = $(this).closest('tr').find('td:first').text();
-                        let price = parseFloat($(this).data('price'));
-                        orderHtml += `<div class="d-flex justify-content-between small mb-1">
-                            <span>${qty} x ${type}</span>
-                            <span>Rs. ${(qty * price).toFixed(2)}</span>
-                        </div>`;
-                    }
-                });
-
-                $('#orderItems').html(orderHtml || '<p class="text-muted">No tickets selected</p>');
-
-                // Enable/disable submit button based on selection
-                $('#submitBtn').prop('disabled', subtotal === 0);
+        // Apply promo code
+        $('#applyPromo').click(function() {
+            let code = $('#promoCode').val().trim();
+            if (!code) {
+                $('#promoMessage').html('<span class="text-danger">Please enter a promo code</span>');
+                return;
             }
 
-            // Quantity change handler
-            $('.ticket-quantity').on('input', function() {
-                let max = parseInt($(this).attr('max'));
-                let val = parseInt($(this).val()) || 0;
+            let subtotal = parseFloat($('#summarySubtotal').text().replace('Rs. ', ''));
 
-                if (val > max) {
-                    $(this).val(max);
-                }
-                if (val < 0) {
-                    $(this).val(0);
-                }
+            $.ajax({
+                url: '@Url.Action("Validate", "BOOKING_PROMO")',
+                type: 'POST',
+                data: {
+                    code: code,
+                    eventId: @eventId,
+                    totalAmount: subtotal
+                },
+                success: function(response) {
+                    if (response.valid) {
+                        appliedPromoCode = code;
+                        promoDiscount = response.discountAmount;
 
-                calculateTotals();
-            });
+                        $('#promoCodeInput').val(code);
+                        $('#promoMessage').html('<span class="text-success">' + response.message + '</span>');
+                        $('#applyPromo').hide();
+                        $('#removePromo').show();
+                        $('#discountRow').show();
+                        $('#sidebarDiscount').show();
+                        $('#summaryDiscount').text('- Rs. ' + promoDiscount.toFixed(2));
+                        $('#sidebarDiscountAmount').text('- Rs. ' + promoDiscount.toFixed(2));
 
-            // Apply promo code
-            $('#applyPromo').click(function() {
-                let code = $('#promoCode').val().trim();
-                if (!code) {
-                    $('#promoMessage').html('<span class="text-danger">Please enter a promo code</span>');
-                    return;
-                }
-
-                let subtotal = parseFloat($('#subtotal').text().replace('Rs. ', ''));
-
-                $.ajax({
-                    url: '@Url.Action("Validate", "BOOKING_PROMO")',
-                    type: 'POST',
-                    data: {
-                        code: code,
-                        eventId: @eventId,
-                        totalAmount: subtotal
-                    },
-                    success: function(response) {
-                        if (response.valid) {
-                            selectedPromo = {
-                                code: code,
-                                id: response.promoId,
-                                discount: response.discountAmount
-                            };
-                            promoDiscount = response.discountAmount;
-
-                            // Create a hidden input for the promo code
-                            $('#promoCodeInput').remove();
-                            $('<input>').attr({
-                                type: 'hidden',
-                                id: 'promoCodeInput',
-                                name: 'promoCode',
-                                value: code
-                            }).appendTo('#bookingForm');
-
-                            $('#promoMessage').html('<span class="text-success">' + response.message + '</span>');
-                            $('#applyPromo').hide();
-                            $('#removePromo').show();
-                            $('#discountRow').show();
-                            $('#sidebarDiscount').show();
-                            $('#discountAmount').text('- Rs. ' + promoDiscount.toFixed(2));
-                            $('#sidebarDiscountAmount').text('- Rs. ' + promoDiscount.toFixed(2));
-
-                            calculateTotals();
-                        } else {
-                            $('#promoMessage').html('<span class="text-danger">' + response.message + '</span>');
-                        }
-                    },
-                    error: function() {
-                        $('#promoMessage').html('<span class="text-danger">Error validating promo code</span>');
+                        calculateTotals();
+                    } else {
+                        $('#promoMessage').html('<span class="text-danger">' + response.message + '</span>');
                     }
-                });
-            });
-
-            // Remove promo code
-            $('#removePromo').click(function() {
-                selectedPromo = null;
-                promoDiscount = 0;
-                $('#promoCode').val('');
-                $('#promoCodeInput').remove();
-                $('#promoMessage').html('');
-                $('#applyPromo').show();
-                $('#removePromo').hide();
-                $('#discountRow').hide();
-                $('#sidebarDiscount').hide();
-                calculateTotals();
-            });
-
-            // Simple form submission - just let it submit normally
-            $('#bookingForm').submit(function(e) {
-                let hasTickets = false;
-                $('.ticket-quantity').each(function() {
-                    if (parseInt($(this).val()) > 0) {
-                        hasTickets = true;
-                    }
-                });
-
-                if (!hasTickets) {
-                    e.preventDefault();
-                    alert('Please select at least one ticket');
-                    return false;
+                },
+                error: function() {
+                    $('#promoMessage').html('<span class="text-danger">Error validating promo code</span>');
                 }
-
-                // Log form data before submission
-                console.log('Form submitting with:');
-                $('.ticket-quantity').each(function() {
-                    if (parseInt($(this).val()) > 0) {
-                        console.log('Ticket ID:', $(this).data('id'), 'Quantity:', $(this).val());
-                    }
-                });
-
-                return true; // Allow form to submit
             });
+        });
 
-            // Initial calculation
+        // Remove promo code
+        $('#removePromo').click(function() {
+            appliedPromoCode = '';
+            promoDiscount = 0;
+            $('#promoCode').val('');
+            $('#promoCodeInput').val('');
+            $('#promoMessage').html('');
+            $('#applyPromo').show();
+            $('#removePromo').hide();
+            $('#discountRow').hide();
+            $('#sidebarDiscount').hide();
             calculateTotals();
         });
+
+        // Apply promo from grid
+        function applyPromoCode(code) {
+            $('#promoCode').val(code);
+            $('#applyPromo').click();
+        }
+
+        // Auto-calculate on quantity change
+        $('.ticket-quantity').on('change input', calculateTotals);
+
+        // Form validation
+        $('#bookingForm').submit(function(e) {
+            let hasTickets = $('.ticket-quantity').toArray().some(input => parseInt($(input).val()) > 0);
+            if (!hasTickets) {
+                e.preventDefault();
+                alert('Please select at least one ticket');
+            }
+        });
+
+        // Initial calculation
+        calculateTotals();
     </script>
 }
+
+<style>
+    .booking-card {
+        border: none;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .quantity-btn {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ticket-quantity {
+        width: 50px;
+        text-align: center;
+        -moz-appearance: textfield;
+    }
+
+        .ticket-quantity::-webkit-outer-spin-button,
+        .ticket-quantity::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+    .promo-card {
+        cursor: pointer;
+        transition: all 0.3s;
+        background: white;
+    }
+
+        .promo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-color: #28a745 !important;
+        }
+
+    .ticket-table th {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .subtotal-cell {
+        font-weight: 600;
+        color: #4361ee;
+    }
+</style>

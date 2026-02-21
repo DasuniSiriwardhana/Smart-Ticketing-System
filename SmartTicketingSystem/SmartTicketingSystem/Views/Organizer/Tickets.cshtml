@@ -5,129 +5,171 @@
     var soldCounts = ViewBag.SoldCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2><i class="fas fa-ticket-alt"></i> Manage Ticket Types</h2>
-            <h5 class="text-muted">Event: @ev?.title</h5>
-        </div>
-        <div>
-            <a asp-controller="TICKET_TYPE" asp-action="CreateForEvent" asp-route-eventId="@ev?.eventID"
-               class="btn btn-primary">
-                <i class="fas fa-plus"></i> Add New Ticket Type
-            </a>
-            <a asp-action="Dashboard" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-2"><i class="fas fa-ticket-alt me-2"></i>Manage Ticket Types</h2>
+                            <p class="mb-0 opacity-75">Event: @ev?.title</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-controller="TICKET_TYPE" asp-action="CreateForEvent" asp-route-eventId="@ev?.eventID"
+                               class="btn btn-light">
+                                <i class="fas fa-plus-circle me-2"></i>Add New Ticket Type
+                            </a>
+                            <a asp-action="Dashboard" class="btn btn-outline-light">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show">
-            @TempData["Success"]
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
     @if (!Model.Any())
     {
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> No ticket types added yet.
-            <a asp-controller="TICKET_TYPE" asp-action="CreateForEvent" asp-route-eventId="@ev?.eventID">
-                Click here to add your first ticket type
-            </a>
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
+                <h4>No Ticket Types Added</h4>
+                <p class="text-muted mb-4">Start by adding ticket types for this event.</p>
+                <a asp-controller="TICKET_TYPE" asp-action="CreateForEvent" asp-route-eventId="@ev?.eventID"
+                   class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus-circle me-2"></i>Add First Ticket Type
+                </a>
+            </div>
         </div>
     }
     else
     {
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Ticket Type</th>
-                                <th>Price</th>
-                                <th>Total Seats</th>
-                                <th>Sold</th>
-                                <th>Available</th>
-                                <th>Sales Period</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var ticket in Model)
-                            {
-                                var sold = soldCounts.ContainsKey(ticket.TicketID) ? soldCounts[ticket.TicketID] : 0;
-                                var available = ticket.seatLimit - sold;
-                                var statusClass = ticket.isActive == 'Y' ? "success" : "danger";
-                                var statusText = ticket.isActive == 'Y' ? "Active" : "Inactive";
-                                var now = DateTime.Now;
-                                var isOnSale = now >= ticket.salesStartAt && now <= ticket.salesEndAt;
+        <div class="row g-4">
+            @foreach (var ticket in Model)
+            {
+                var sold = soldCounts.ContainsKey(ticket.TicketID) ? soldCounts[ticket.TicketID] : 0;
+                var available = ticket.seatLimit - sold;
+                var isOnSale = DateTime.Now >= ticket.salesStartAt && DateTime.Now <= ticket.salesEndAt;
 
-                                <tr>
-                                    <td class="fw-bold">@ticket.TypeName</td>
-                                    <td>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card ticket-type-card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center
+                            @(ticket.isActive == 'Y' ? "bg-success text-white" : "bg-secondary text-white")">
+                            <h5 class="mb-0">@ticket.TypeName</h5>
+                            <span class="badge bg-light text-dark">@(ticket.isActive == 'Y' ? "Active" : "Inactive")</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="ticket-details mb-3">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Price</small>
                                         @if (ticket.Price == 0)
                                         {
                                             <span class="badge bg-success">FREE</span>
                                         }
                                         else
                                         {
-                                            <span>Rs. @ticket.Price.ToString("N2")</span>
+                                            <h5 class="mb-0">Rs. @ticket.Price.ToString("N2")</h5>
                                         }
-                                    </td>
-                                    <td>@ticket.seatLimit</td>
-                                    <td>
-                                        <span class="badge bg-info">@sold</span>
-                                    </td>
-                                    <td>
-                                        @if (available > 0)
-                                        {
-                                            <span class="badge bg-success">@available</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">Sold Out</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <small>
-                                            @ticket.salesStartAt.ToString("MMM dd") - @ticket.salesEndAt.ToString("MMM dd, yyyy")
-                                            @if (!isOnSale)
-                                            {
-                                                <span class="badge bg-warning">Not on sale</span>
-                                            }
-                                        </small>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-@statusClass">@statusText</span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a asp-controller="TICKET_TYPE" asp-action="Edit" asp-route-id="@ticket.TicketID"
-                                               class="btn btn-outline-primary" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form asp-controller="TICKET_TYPE" asp-action="ToggleStatus" method="post"
-                                                  style="display:inline;">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@ticket.TicketID" />
-                                                <button type="submit" class="btn btn-outline-warning"
-                                                        title="@(ticket.isActive == 'Y' ? "Deactivate" : "Activate")">
-                                                    <i class="fas @(ticket.isActive == 'Y' ? "fa-eye-slash" : "fa-eye")"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Total Seats</small>
+                                        <h5 class="mb-0">@ticket.seatLimit</h5>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Sold</small>
+                                        <h5 class="mb-0 text-info">@sold</h5>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Available</small>
+                                        <h5 class="mb-0 text-@(available > 0 ? "success" : "danger")">@available</h5>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="sales-period mb-3">
+                                <small class="text-muted d-block">Sales Period</small>
+                                <p class="mb-1">
+                                    <i class="fas fa-calendar-alt me-1"></i>@ticket.salesStartAt.ToString("MMM dd, yyyy") - @ticket.salesEndAt.ToString("MMM dd, yyyy")
+                                </p>
+                                @if (!isOnSale)
+                                {
+                                    <span class="badge bg-warning">Not on sale</span>
+                                }
+                            </div>
+
+                            <div class="progress mb-3" style="height: 8px;">
+                                <div class="progress-bar bg-@(available > 0 ? "primary" : "danger")"
+                                     role="progressbar"
+                                     style="width: @((sold * 100) / ticket.seatLimit)%"
+                                     aria-valuenow="@sold"
+                                     aria-valuemin="0"
+                                     aria-valuemax="@ticket.seatLimit">
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a asp-controller="TICKET_TYPE" asp-action="Edit" asp-route-id="@ticket.TicketID"
+                                   class="btn btn-outline-primary flex-grow-1">
+                                    <i class="fas fa-edit me-2"></i>Edit
+                                </a>
+                                <form asp-controller="TICKET_TYPE" asp-action="ToggleStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@ticket.TicketID" />
+                                    <button type="submit" class="btn btn-outline-warning"
+                                            title="@(ticket.isActive == 'Y' ? "Deactivate" : "Activate")">
+                                        <i class="fas @(ticket.isActive == 'Y' ? "fa-eye-slash" : "fa-eye")"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            }
         </div>
     }
 </div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4361ee, #7209b7);
+    }
+
+    .ticket-type-card {
+        border: none;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+    }
+
+        .ticket-type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(67,97,238,0.15);
+        }
+
+    .ticket-details {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .sales-period {
+        background: #f8f9fa;
+        padding: 0.5rem;
+        border-radius: 8px;
+    }
+
+    .progress {
+        border-radius: 4px;
+    }
+</style>

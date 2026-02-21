@@ -1,74 +1,115 @@
 ﻿@model SmartTicketingSystem.Models.REVIEW
-
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Write a Review";
+    var eventItem = ViewBag.Event as SmartTicketingSystem.Models.EVENT;
+    var eventTitle = eventItem?.title ?? ViewBag.EventTitle;
+    var eventId = Model.eventID;
 }
 
-<h1>Create</h1>
-<h4>REVIEW</h4>
-<hr />
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="EVENTs" asp-action="Details" asp-route-id="@eventId">@eventTitle</a></li>
+            <li class="breadcrumb-item active">Write Review</li>
+        </ol>
+    </nav>
 
-<div class="row">
-    <div class="col-md-5">
-        <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card review-card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        Review: @eventTitle
+                    </h4>
+                </div>
+                <div class="card-body p-4">
 
-            <div class="mb-3">
-                <label asp-for="eventID" class="form-label"></label>
-                <input asp-for="eventID" class="form-control" />
-                <span asp-validation-for="eventID" class="text-danger"></span>
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Share your experience with this event. Your feedback helps others make informed decisions.
+                    </div>
+
+                    <form asp-action="Create" method="post" id="reviewForm">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <input type="hidden" asp-for="eventID" value="@eventId" />
+
+                        <!-- Rating Stars -->
+                        <div class="mb-4">
+                            <label asp-for="Ratings" class="form-label fw-bold">Your Rating</label>
+                            <div class="rating-stars-container">
+                                <div class="rating-stars">
+                                    <i class="far fa-star" data-rating="1"></i>
+                                    <i class="far fa-star" data-rating="2"></i>
+                                    <i class="far fa-star" data-rating="3"></i>
+                                    <i class="far fa-star" data-rating="4"></i>
+                                    <i class="far fa-star" data-rating="5"></i>
+                                </div>
+                                <input type="hidden" asp-for="Ratings" id="selectedRating" value="5" />
+                            </div>
+                            <span asp-validation-for="Ratings" class="text-danger"></span>
+                        </div>
+
+                        <!-- Review Comments -->
+                        <div class="mb-3">
+                            <label asp-for="Comments" class="form-label fw-bold">Your Review</label>
+                            <textarea asp-for="Comments" class="form-control" rows="6"
+                                      placeholder="Tell us about your experience... What did you like? What could be improved?"></textarea>
+                            <span asp-validation-for="Comments" class="text-danger"></span>
+                            <small class="text-muted">Minimum 20 characters, maximum 500 characters</small>
+                        </div>
+
+                        <!-- Verified Attendee (Hidden) -->
+                        <input type="hidden" asp-for="isVerifiedAttendee" value="Y" />
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Review
+                            </button>
+                            <a asp-controller="EVENTs" asp-action="Details" asp-route-id="@eventId"
+                               class="btn btn-outline-secondary btn-lg">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="member_id" class="form-label"></label>
-                <input asp-for="member_id" class="form-control" />
-                <span asp-validation-for="member_id" class="text-danger"></span>
+            <!-- Review Guidelines -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Review Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Be honest and constructive</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Focus on your personal experience</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Avoid offensive language</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Reviews are moderated before publishing</li>
+                    </ul>
+                </div>
             </div>
-
-            <div class="mb-3">
-                <label asp-for="Ratings" class="form-label"></label>
-                <select asp-for="Ratings" class="form-select">
-                    <option value="">Select Rating</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
-                <span asp-validation-for="Ratings" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Comments" class="form-label"></label>
-                <textarea asp-for="Comments" class="form-control" rows="3" maxlength="500"></textarea>
-                <span asp-validation-for="Comments" class="text-danger"></span>
-            </div>
-
-            <!-- checkbox via NotMapped bool -->
-            <div class="mb-3 form-check">
-                <input asp-for="IsVerifiedAttendeeBool" class="form-check-input" />
-                <label asp-for="IsVerifiedAttendeeBool" class="form-check-label">Verified Attendee</label>
-            </div>
-            <span asp-validation-for="IsVerifiedAttendeeBool" class="text-danger"></span>
-
-            <div class="mb-3">
-                <label asp-for="ReviewStatus" class="form-label"></label>
-                <select asp-for="ReviewStatus" class="form-select">
-                    <option value="">Select Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
-                </select>
-                <span asp-validation-for="ReviewStatus" class="text-danger"></span>
-            </div>
-
-            <input type="hidden" asp-for="createdAt" value="@DateTime.Now" />
-
-            <div class="d-flex gap-2">
-                <input type="submit" value="Create" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -76,4 +117,74 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function() {
+            // Rating Stars
+            $('.rating-stars i').hover(
+                function() {
+                    var rating = $(this).data('rating');
+                    highlightStars(rating);
+                },
+                function() {
+                    var currentRating = $('#selectedRating').val() || 5;
+                    highlightStars(currentRating);
+                }
+            );
+
+            $('.rating-stars i').click(function() {
+                var rating = $(this).data('rating');
+                $('#selectedRating').val(rating);
+                highlightStars(rating);
+            });
+
+            function highlightStars(rating) {
+                $('.rating-stars i').each(function(index) {
+                    if (index < rating) {
+                        $(this).removeClass('far').addClass('fas text-warning');
+                    } else {
+                        $(this).removeClass('fas text-warning').addClass('far');
+                    }
+                });
+            }
+
+            // Character Counter (using your model's max length)
+            $('#Comments').on('input', function() {
+                var length = $(this).val().length;
+                var remaining = 500 - length; // Based on [StringLength(500)] in your model
+                var $small = $(this).nextAll('small');
+
+                if (remaining < 0) {
+                    $(this).val($(this).val().substring(0, 500));
+                    remaining = 0;
+                }
+
+                $small.text(remaining + ' characters remaining');
+                if (remaining < 20) {
+                    $small.addClass('text-danger');
+                } else {
+                    $small.removeClass('text-danger');
+                }
+            });
+
+            // Form validation
+            $('#reviewForm').submit(function(e) {
+                var rating = $('#selectedRating').val();
+                var comments = $('#Comments').val();
+
+                if (!rating || rating == 0) {
+                    e.preventDefault();
+                    alert('Please select a rating');
+                    return false;
+                }
+
+                if (!comments || comments.trim().length < 20) {
+                    e.preventDefault();
+                    alert('Please write at least 20 characters in your review');
+                    return false;
+                }
+            });
+        });
+    </script>
 }
+

@@ -91,16 +91,16 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@item.RportID</td>
+                <td>@item.ReportID</td>
                 <td>@item.ReviewID</td>
                 <td>@item.ReportedByUserID</td>
                 <td>@item.ReportReason</td>
                 <td>@item.ReportDetail</td>
                 <td>@item.ReportedAt</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.RportID">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.RportID">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.RportID">Delete</a>
+                    <a asp-action="Edit" asp-route-id="@item.ReportID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.ReportID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ReportID">Delete</a>
                 </td>
             </tr>
         }

@@ -1,48 +1,48 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using SmartTicketingSystem.Models;
+using Microsoft.EntityFrameworkCore;
+using SmartTicketingSystem.Data;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SmartTicketingSystem.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ApplicationDbContext context)
         {
-            _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            if (User.Identity?.IsAuthenticated ?? false)
-            {
-                if (User.IsInRole("Admin"))
-                    return RedirectToAction("Dashboard", "Admin");
+            // Get featured events (upcoming published events)
+            var featuredEvents = await _context.EVENT
+                .Where(e => e.status == "Published" && e.StartDateTime > System.DateTime.Now)
+                .OrderBy(e => e.StartDateTime)
+                .Take(4)
+                .ToListAsync();
 
-                if (User.IsInRole("Organizer"))
-                    return RedirectToAction("Dashboard", "Organizer");
-
-                if (User.IsInRole("UniversityMember"))
-                    return RedirectToAction("Dashboard", "UniversityMember");
-
-                if (User.IsInRole("ExternalMember"))
-                    return RedirectToAction("Dashboard", "ExternalMember");
-            }
-
-            return View(); // guest homepage
+            return View(featuredEvents);
         }
 
-
-        public IActionResult Privacy()
+        public IActionResult About()
         {
             return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public IActionResult Contact()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Contact(string name, string email, string subject, string message)
+        {
+            // You can implement email sending here
+            TempData["Success"] = "Thank you for contacting us. We'll respond soon!";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

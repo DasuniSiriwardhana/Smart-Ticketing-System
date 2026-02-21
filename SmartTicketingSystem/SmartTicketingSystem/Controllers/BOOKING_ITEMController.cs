@@ -20,7 +20,7 @@ namespace SmartTicketingSystem.Controllers
             _context = context;
         }
 
-        // ================= HELPER METHODS =================
+        // =======HELPER METHODS =================
 
         private string? GetIdentityUserId()
         {
@@ -59,7 +59,7 @@ namespace SmartTicketingSystem.Controllers
                                x.member_id == memberId.Value);
         }
 
-        // ================= SEARCH =================
+        // =======SEARCH =================
 
         public async Task<IActionResult> Search(
             string mode,
@@ -99,7 +99,7 @@ namespace SmartTicketingSystem.Controllers
             return View("Index", await query.ToListAsync());
         }
 
-        // ================= INDEX =================
+        // =======INDEX =================
 
         public async Task<IActionResult> Index()
         {
@@ -122,7 +122,7 @@ namespace SmartTicketingSystem.Controllers
             return View(await query.ToListAsync());
         }
 
-        // ================= DETAILS =================
+        // =======DETAILS =================
 
         public async Task<IActionResult> Details(int? id)
         {
@@ -141,7 +141,7 @@ namespace SmartTicketingSystem.Controllers
             return View(item);
         }
 
-        // ================= CREATE =================
+        // =======CREATE =================
 
         public IActionResult Create()
         {
@@ -173,7 +173,7 @@ namespace SmartTicketingSystem.Controllers
             return View(item);
         }
 
-        // ================= EDIT =================
+        // =======EDIT =================
 
         public async Task<IActionResult> Edit(int? id)
         {
@@ -222,7 +222,7 @@ namespace SmartTicketingSystem.Controllers
             return View(item);
         }
 
-        // ================= DELETE =================
+        // =======DELETE =================
 
         public async Task<IActionResult> Delete(int? id)
         {

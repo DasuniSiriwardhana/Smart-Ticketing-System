@@ -1,0 +1,140 @@
+﻿@{
+    ViewData["Title"] = "Contact Us";
+}
+
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold mb-3">Get in Touch</h1>
+            <p class="lead text-muted">We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-5">
+        <!-- Contact Form -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-4">Send us a Message</h3>
+
+                    <form method="post" asp-action="Contact">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Your Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="Dasuni Siriwardhana" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email Address</label>
+                            <input type="email" name="email" class="form-control" placeholder="Dasuni@example.com" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Subject</label>
+                            <input type="text" name="subject" class="form-control" placeholder="Booking Inquiry" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Message</label>
+                            <textarea name="message" rows="5" class="form-control" placeholder="Your message here..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-paper-plane me-2"></i>Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-4">Contact Information</h3>
+
+                    <div class="d-flex mb-4">
+                        <div class="me-3">
+                            <div class="bg-primary-soft rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-map-marker-alt text-primary"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Address</h5>
+                            <p class="text-muted mb-0">No. 479, William Gopallawa Mawatha, Kandy, Sri Lanka</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex mb-4">
+                        <div class="me-3">
+                            <div class="bg-success-soft rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-phone text-success"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Phone</h5>
+                            <p class="text-muted mb-0">+94 11 234 5678</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex mb-4">
+                        <div class="me-3">
+                            <div class="bg-info-soft rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-envelope text-info"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Email</h5>
+                            <p class="text-muted mb-0">support@smartticket.lk</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <div class="bg-warning-soft rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-clock text-warning"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Business Hours</h5>
+                            <p class="text-muted mb-0">Monday - Friday: 7:30 AM - 5:30 PM</p>
+                            <p class="text-muted mb-0">Saturday: 7:30 AM - 5:30 PM</p>
+                            <p class="text-muted mb-0">Sunday: Closed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-3">Follow Us</h3>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="btn btn-outline-primary btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-info btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-danger btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-primary btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

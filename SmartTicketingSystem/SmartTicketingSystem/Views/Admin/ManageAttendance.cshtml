@@ -1,0 +1,68 @@
+﻿@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Manage Attendance";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-calendar-check me-2 text-primary"></i>Manage Attendance</h2>
+        <a asp-action="Scanner" class="btn btn-primary">
+            <i class="fas fa-qrcode me-2"></i>Open Scanner
+        </a>
+    </div>
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            var ev = item.Event;
+            var isPast = item.IsPast;
+            var progressPercent = item.TotalBookings > 0 ? (item.CheckedIn * 100 / item.TotalBookings) : 0;
+
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 @(isPast ? "border-success" : "")">
+                    <div class="card-header @(isPast ? "bg-success text-white" : "bg-primary text-white")">
+                        <h5 class="mb-0">@ev.title</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            <i class="fas fa-calendar me-2"></i>@ev.StartDateTime.ToString("MMM dd, yyyy • hh:mm tt")
+                        </p>
+                        <p class="mb-3">
+                            <i class="fas fa-map-marker me-2"></i>@ev.venue
+                        </p>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Check-ins:</span>
+                                <strong>@item.CheckedIn / @item.TotalBookings</strong>
+                            </div>
+                            <div class="progress mt-1" style="height: 10px;">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                     style="width: @progressPercent%;"
+                                     aria-valuenow="@item.CheckedIn" aria-valuemin="0" aria-valuemax="@item.TotalBookings">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a asp-action="EventAttendees" asp-route-eventId="@ev.eventID"
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-users me-2"></i>Manage Attendees
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        @if (isPast)
+                        {
+                            <span class="badge bg-success">Event Ended - Reviews Enabled</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">Upcoming Event</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

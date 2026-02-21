@@ -1,0 +1,114 @@
+﻿@model SmartTicketingSystem.Models.REVIEW_REPORT
+@{
+    ViewData["Title"] = "Report Review";
+    var review = ViewBag.Review as SmartTicketingSystem.Models.REVIEW;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-flag me-2"></i>
+                        Report Review
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                        </div>
+                    }
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                        </div>
+                    }
+
+                    @if (review != null)
+                    {
+                        <div class="alert alert-light border mb-4">
+                            <h6 class="fw-bold">Review you are reporting:</h6>
+                            <div class="rating-stars mb-2">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= review.Ratings)
+                                    {
+                                        <i class="fas fa-star text-warning"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star text-warning"></i>
+                                    }
+                                }
+                            </div>
+                            <p class="mb-1">@review.Comments</p>
+                            <small class="text-muted">
+                                Posted @review.createdAt.ToString("MMM dd, yyyy")
+                            </small>
+                        </div>
+                    }
+
+                    <form asp-action="Report" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ReviewID" value="@ViewBag.Review?.ReviewID" />
+                        <input type="hidden" name="ReportedByUserID" value="@ViewBag.CurrentUserId" />
+
+                        <div class="mb-3">
+                            <label asp-for="ReportReason" class="form-label fw-bold">Reason for Reporting</label>
+                            <select asp-for="ReportReason" class="form-select" required>
+                                <option value="">Select a reason</option>
+                                <option value="Inappropriate Content">Inappropriate Content</option>
+                                <option value="Spam">Spam</option>
+                                <option value="Offensive Language">Offensive Language</option>
+                                <option value="Harassment">Harassment</option>
+                                <option value="False Information">False Information</option>
+                                <option value="Hate Speech">Hate Speech</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span asp-validation-for="ReportReason" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ReportDetail" class="form-label fw-bold">Additional Details (Optional)</label>
+                            <textarea asp-for="ReportDetail" class="form-control" rows="4"
+                                      placeholder="Please provide more details about why you're reporting this review..."></textarea>
+                            <span asp-validation-for="ReportDetail" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-flag me-2"></i>Submit Report
+                            </button>
+                            <a asp-controller="EVENTs" asp-action="Details" asp-route-id="@review?.eventID" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Reporting Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Only report reviews that violate our community guidelines</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>False reports may result in account restrictions</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Reports are reviewed by admins</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

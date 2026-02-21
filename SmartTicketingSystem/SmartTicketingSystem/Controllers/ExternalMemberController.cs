@@ -53,7 +53,7 @@ namespace SmartTicketingSystem.Controllers
             ViewBag.MyTickets = await _context.TICKET.CountAsync(t => myBookingIds.Contains(t.BookingID));
 
             // 4) Upcoming Public Events (limited view for external members)
-            // Adjust "Published"/"Public" strings if your system uses different values
+            // Adjust "Published"/"Public" 
             var upcomingPublicEventsQuery = _context.EVENT.Where(e =>
                 e.StartDateTime >= DateTime.Now &&
                 e.visibility == "Public" &&

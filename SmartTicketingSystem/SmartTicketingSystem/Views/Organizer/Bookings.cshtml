@@ -1,41 +1,110 @@
 ﻿@model IEnumerable<SmartTicketingSystem.Models.BOOKING>
 @{
-    ViewData["Title"] = "Bookings";
+    ViewData["Title"] = "Event Bookings";
     var ev = ViewBag.Event as SmartTicketingSystem.Models.EVENT;
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2><i class="fas fa-shopping-cart"></i> Bookings for @ev?.title</h2>
-        </div>
-        <div>
-            <a asp-action="Dashboard" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-2"><i class="fas fa-shopping-cart me-2"></i>Event Bookings</h2>
+                            <p class="mb-0 opacity-75">@ev?.title • @ev?.StartDateTime.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                        <a asp-action="Dashboard" class="btn btn-outline-light">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> No bookings found for this event.
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                <h4>No Bookings Found</h4>
+                <p class="text-muted">No one has booked tickets for this event yet.</p>
+            </div>
         </div>
     }
     else
     {
+        <!-- Summary Stats -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary-soft">
+                            <i class="fas fa-shopping-cart text-primary"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="text-muted mb-1">Total Bookings</h6>
+                            <h3 class="fw-bold mb-0">@Model.Count()</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success-soft">
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="text-muted mb-1">Confirmed</h6>
+                            <h3 class="fw-bold mb-0">@Model.Count(b => b.BookingStatus == "Confirmed")</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning-soft">
+                            <i class="fas fa-clock text-warning"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="text-muted mb-1">Pending</h6>
+                            <h3 class="fw-bold mb-0">@Model.Count(b => b.BookingStatus == "PendingPayment")</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-info-soft">
+                            <i class="fas fa-credit-card text-info"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="text-muted mb-1">Total Revenue</h6>
+                            <h3 class="fw-bold mb-0">Rs. @Model.Where(b => b.PaymentStatus == "Paid").Sum(b => b.TotalAmount).ToString("N2")</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings Table -->
         <div class="card">
-            <div class="card-body">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
                             <tr>
                                 <th>Booking Ref</th>
                                 <th>Customer</th>
                                 <th>Email</th>
-                                <th>Date</th>
+                                <th>Booking Date</th>
                                 <th>Tickets</th>
-                                <th>Total</th>
+                                <th class="text-end">Total</th>
                                 <th>Status</th>
                                 <th>Payment</th>
                                 <th>Actions</th>
@@ -52,13 +121,10 @@
                                     <td>
                                         @if (booking.BookingItems != null && booking.BookingItems.Any())
                                         {
-                                            foreach (var item in booking.BookingItems)
-                                            {
-                                                <div>@item.Quantity x @item.TicketType?.TypeName</div>
-                                            }
+                                            @booking.BookingItems.Sum(bi => bi.Quantity)
                                         }
                                     </td>
-                                    <td>Rs. @booking.TotalAmount.ToString("N2")</td>
+                                    <td class="text-end fw-bold">Rs. @booking.TotalAmount.ToString("N2")</td>
                                     <td>
                                         @if (booking.BookingStatus == "Confirmed")
                                         {
@@ -84,14 +150,21 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-warning">Unpaid</span>
+                                            <span class="badge bg-danger">Unpaid</span>
                                         }
                                     </td>
                                     <td>
                                         <a asp-controller="BOOKINGs" asp-action="Details" asp-route-id="@booking.BookingID"
-                                           class="btn btn-sm btn-outline-info">
-                                            <i class="fas fa-eye"></i> View
+                                           class="btn btn-sm btn-outline-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
                                         </a>
+                                        @if (booking.PaymentStatus == "Paid")
+                                        {
+                                            <a asp-controller="BOOKINGs" asp-action="Tickets" asp-route-id="@booking.BookingID"
+                                               class="btn btn-sm btn-outline-success" title="View Tickets">
+                                                <i class="fas fa-qrcode"></i>
+                                            </a>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -102,3 +175,49 @@
         </div>
     }
 </div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4361ee, #7209b7);
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        border: 1px solid #eee;
+        height: 100%;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .bg-primary-soft {
+        background: rgba(67,97,238,0.1);
+    }
+
+    .bg-success-soft {
+        background: rgba(6,214,160,0.1);
+    }
+
+    .bg-warning-soft {
+        background: rgba(247,37,133,0.1);
+    }
+
+    .bg-info-soft {
+        background: rgba(76,201,240,0.1);
+    }
+
+    .table thead th {
+        font-weight: 600;
+        color: #495057;
+    }
+</style>

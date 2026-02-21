@@ -1,143 +1,193 @@
 ﻿@model SmartTicketingSystem.Models.EVENT
+
+
 @{
     ViewData["Title"] = "Create Event";
 }
 
 <div class="container py-4">
-    <div class="card shadow-sm rounded-4">
-        <div class="card-body p-4">
-            <h3 class="mb-1">Create Event</h3>
-            <div class="text-muted mb-4">Fill the details and submit for admin approval.</div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Create New Event</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <form asp-action="Create" method="post">
-                @Html.AntiForgeryToken()
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                <div class="row g-3">
-
-                    <div class="col-md-12">
-                        <label asp-for="title" class="form-label"></label>
-                        <input asp-for="title" class="form-control" />
-                        <span asp-validation-for="title" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-12">
-                        <label asp-for="Description" class="form-label"></label>
-                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-                        <span asp-validation-for="Description" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label asp-for="StartDateTime" class="form-label"></label>
-                        <input asp-for="StartDateTime" class="form-control" type="datetime-local" />
-                        <span asp-validation-for="StartDateTime" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label asp-for="endDateTime" class="form-label"></label>
-                        <input asp-for="endDateTime" class="form-control" type="datetime-local" />
-                        <span asp-validation-for="endDateTime" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-12">
-                        <label asp-for="venue" class="form-label"></label>
-                        <input asp-for="venue" class="form-control" />
-                        <span asp-validation-for="venue" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-12">
-                        <div class="form-check">
-                            <input asp-for="IsOnlineBool" class="form-check-input" type="checkbox" id="isOnlineChk" />
-                            <label class="form-check-label" for="isOnlineChk">Online Event</label>
+                        <!-- Basic Info -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="title" class="form-label fw-bold">Event Title</label>
+                                <input asp-for="title" class="form-control" placeholder="Enter event title" />
+                                <span asp-validation-for="title" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="categoryID" class="form-label fw-bold">Category</label>
+                                <select asp-for="categoryID" class="form-select" asp-items="ViewBag.categoryID">
+                                    <option value="">-- Select Category --</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="col-md-12" id="onlineLinkGroup">
-                        <label asp-for="onlineLink" class="form-label"></label>
-                        <input asp-for="onlineLink" class="form-control" />
-                        <span asp-validation-for="onlineLink" class="text-danger"></span>
-                    </div>
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Describe your event..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
 
-                    <div class="col-md-6">
-                        <label asp-for="capacity" class="form-label"></label>
-                        <input asp-for="capacity" class="form-control" />
-                        <span asp-validation-for="capacity" class="text-danger"></span>
-                    </div>
+                        <!-- Date & Time -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="StartDateTime" class="form-label fw-bold">Start Date & Time</label>
+                                <input asp-for="StartDateTime" class="form-control" type="datetime-local" />
+                                <span asp-validation-for="StartDateTime" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="endDateTime" class="form-label fw-bold">End Date & Time</label>
+                                <input asp-for="endDateTime" class="form-control" type="datetime-local" />
+                                <span asp-validation-for="endDateTime" class="text-danger"></span>
+                            </div>
+                        </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label">Visibility</label>
-                        <select asp-for="visibility" class="form-select">
-                            <option value="University">University</option>
-                            <option value="Public">Public</option>
-                        </select>
-                        <span asp-validation-for="visibility" class="text-danger"></span>
-                    </div>
+                        <!-- Venue & Online -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="venue" class="form-label fw-bold">Venue</label>
+                                <input asp-for="venue" class="form-control" placeholder="e.g., Main Hall, Online" />
+                                <span asp-validation-for="venue" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="IsOnlineBool" class="form-label fw-bold">Is Online Event?</label>
+                                <div class="form-check form-switch mt-2">
+                                    <input asp-for="IsOnlineBool" class="form-check-input" id="IsOnlineBool" />
+                                    <label class="form-check-label" for="IsOnlineBool">Yes, this is an online event</label>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label">Category</label>
-                        <select asp-for="categoryID" class="form-select" asp-items="ViewBag.categoryID">
-                            <option value="">-- Select Category --</option>
-                        </select>
-                        <span asp-validation-for="categoryID" class="text-danger"></span>
-                    </div>
+                        <div class="mb-3" id="onlineLinkField" style="display: none;">
+                            <label asp-for="onlineLink" class="form-label fw-bold">Online Meeting Link</label>
+                            <input asp-for="onlineLink" class="form-control" placeholder="https://zoom.us/j/..." />
+                            <span asp-validation-for="onlineLink" class="text-danger"></span>
+                            <small class="text-muted">Provide the link where attendees can join</small>
+                        </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label">Organizer Unit</label>
-                        <select asp-for="organizerUnitID" class="form-select" asp-items="ViewBag.organizerUnitID">
-                            <option value="">-- Select Unit --</option>
-                        </select>
-                        <span asp-validation-for="organizerUnitID" class="text-danger"></span>
-                    </div>
+                        <!-- Capacity & Visibility -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="capacity" class="form-label fw-bold">Capacity</label>
+                                <input asp-for="capacity" class="form-control" type="number" min="1" value="100" />
+                                <span asp-validation-for="capacity" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="visibility" class="form-label fw-bold">Visibility</label>
+                                <select asp-for="visibility" class="form-select">
+                                    <option value="University">University Only</option>
+                                    <option value="Public">Public (Everyone can see)</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    <div class="col-md-12">
-                        <label asp-for="organizerInfo" class="form-label"></label>
-                        <input asp-for="organizerInfo" class="form-control" />
-                        <span asp-validation-for="organizerInfo" class="text-danger"></span>
-                    </div>
+                        <!-- IMAGE UPLOAD - NEW -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Event Image</label>
+                            <input type="file" name="eventImage" class="form-control" accept="image/*" />
+                            <small class="text-muted">Upload an image for the event (JPEG, PNG, GIF). Max size 5MB.</small>
+                        </div>
 
-                    <div class="col-md-12">
-                        <label asp-for="Agenda" class="form-label"></label>
-                        <textarea asp-for="Agenda" class="form-control" rows="3"></textarea>
-                        <span asp-validation-for="Agenda" class="text-danger"></span>
-                    </div>
+                        <!-- Organizer Info -->
+                        <div class="mb-3">
+                            <label asp-for="organizerInfo" class="form-label fw-bold">Organizer Information</label>
+                            <input asp-for="organizerInfo" class="form-control" placeholder="Name of organizer or team" />
+                        </div>
 
-                    <div class="col-md-12">
-                        <label asp-for="maplink" class="form-label"></label>
-                        <input asp-for="maplink" class="form-control" />
-                        <span asp-validation-for="maplink" class="text-danger"></span>
-                    </div>
+                        <div class="mb-3">
+                            <label asp-for="Agenda" class="form-label fw-bold">Agenda</label>
+                            <textarea asp-for="Agenda" class="form-control" rows="3" placeholder="Event schedule, speakers, etc."></textarea>
+                        </div>
 
+                        <div class="mb-3">
+                            <label asp-for="AccessibilityInfo" class="form-label fw-bold">Accessibility Information</label>
+                            <input asp-for="AccessibilityInfo" class="form-control" placeholder="Wheelchair access, sign language, etc." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="maplink" class="form-label fw-bold">Map Link (Optional)</label>
+                            <input asp-for="maplink" class="form-control" placeholder="https://maps.google.com/..." />
+                        </div>
+
+                        <hr />
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Create Event
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
                 </div>
+            </div>
 
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        Submit for Approval
-                    </button>
-                    <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+            <!-- Help Card -->
+            <div class="card mt-4 bg-light">
+                <div class="card-body">
+                    <h6><i class="fas fa-info-circle me-2 text-primary"></i>Important Information</h6>
+                    <ul class="small mb-0">
+                        <li>Events will be submitted for admin approval before being published.</li>
+                        <li>You can add ticket types after the event is created.</li>
+                        <li>Images will be saved with the event ID as filename.</li>
+                        <li>Make sure all event details are accurate before submitting.</li>
+                    </ul>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
-        (function () {
-            const chk = document.getElementById("isOnlineChk");
-            const group = document.getElementById("onlineLinkGroup");
-            const linkInput = document.querySelector('[name="onlineLink"]');
-
-            function refresh() {
-                if (chk.checked) {
-                    group.style.display = "";
+        $(document).ready(function() {
+            // Show/hide online link field based on checkbox
+            $('#IsOnlineBool').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#onlineLinkField').show();
                 } else {
-                    group.style.display = "none";
-                    if (linkInput) linkInput.value = "";
+                    $('#onlineLinkField').hide();
+                    $('#onlineLink').val('');
                 }
+            });
+
+            // Preview image before upload
+            $('input[name="eventImage"]').change(function(e) {
+                var file = e.target.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        // You can add image preview here if you want
+                        console.log('Image selected:', file.name);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Set default dates if not set
+            if (!$('#StartDateTime').val()) {
+                var now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                now.setHours(now.getHours() + 24); // Tomorrow
+                $('#StartDateTime').val(now.toISOString().slice(0, 16));
+
+                var end = new Date(now);
+                end.setHours(end.getHours() + 2);
+                $('#endDateTime').val(end.toISOString().slice(0, 16));
             }
-            chk.addEventListener("change", refresh);
-            refresh();
-        })();
+        });
     </script>
 }

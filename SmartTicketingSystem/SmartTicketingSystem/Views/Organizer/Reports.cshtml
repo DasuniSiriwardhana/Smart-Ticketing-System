@@ -1,86 +1,106 @@
 ﻿@{
-    ViewData["Title"] = "Reports";
+    ViewData["Title"] = "Event Reports";
     var ev = ViewBag.Event as SmartTicketingSystem.Models.EVENT;
     var dailySales = ViewBag.DailySales as List<dynamic> ?? new List<dynamic>();
     var ticketBreakdown = ViewBag.TicketBreakdown as List<dynamic> ?? new List<dynamic>();
     var promoEffectiveness = ViewBag.PromoEffectiveness as List<dynamic> ?? new List<dynamic>();
-
-    // Helper function to format currency
-    string FormatCurrency(decimal amount)
-    {
-        return "Rs. " + amount.ToString("N2");
-    }
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2><i class="fas fa-chart-bar"></i> Reports for @ev?.title</h2>
-        </div>
-        <div>
-            <a asp-action="Dashboard" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-2"><i class="fas fa-chart-bar me-2"></i>Sales Reports</h2>
+                            <p class="mb-0 opacity-75">@ev?.title • @ev?.StartDateTime.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                        <a asp-action="Dashboard" class="btn btn-outline-light">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Summary Cards -->
     <div class="row g-4 mb-4">
         <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h6>Total Revenue</h6>
-                    <h3>Rs. @dailySales.Sum(d => (decimal)d.Revenue).ToString("N2")</h3>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-primary-soft">
+                        <i class="fas fa-ticket-alt text-primary"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Tickets Sold</h6>
+                        <h3 class="fw-bold mb-0">@ticketBreakdown.Sum(t => (int)t.Sold)</h3>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h6>Total Bookings</h6>
-                    <h3>@dailySales.Sum(d => (int)d.Count)</h3>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-success-soft">
+                        <i class="fas fa-credit-card text-success"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Total Revenue</h6>
+                        <h3 class="fw-bold mb-0">Rs. @dailySales.Sum(d => (decimal)d.Revenue).ToString("N2")</h3>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h6>Total Tickets Sold</h6>
-                    <h3>@ticketBreakdown.Sum(t => (int)t.Sold)</h3>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-info-soft">
+                        <i class="fas fa-calendar-check text-info"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Total Bookings</h6>
+                        <h3 class="fw-bold mb-0">@dailySales.Sum(d => (int)d.Count)</h3>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <h6>Promo Discounts</h6>
-                    <h3>Rs. @promoEffectiveness.Sum(p => (decimal)p.TotalDiscount).ToString("N2")</h3>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-warning-soft">
+                        <i class="fas fa-tags text-warning"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Discounts Given</h6>
+                        <h3 class="fw-bold mb-0">Rs. @promoEffectiveness.Sum(p => (decimal)p.TotalDiscount).ToString("N2")</h3>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Daily Sales Chart -->
-        <div class="col-md-6 mb-4">
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
             <div class="card">
-                <div class="card-header">
-                    <h5>Daily Sales (Last 30 Days)</h5>
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Daily Sales (Last 30 Days)</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="dailySalesChart" style="height: 300px;"></canvas>
+                    <canvas id="dailySalesChart" height="300"></canvas>
                 </div>
             </div>
         </div>
-
-        <!-- Ticket Breakdown Chart -->
-        <div class="col-md-6 mb-4">
+        <div class="col-md-4">
             <div class="card">
-                <div class="card-header">
-                    <h5>Tickets Sold by Type</h5>
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2 text-primary"></i>Tickets by Type</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="ticketBreakdownChart" style="height: 300px;"></canvas>
+                    <canvas id="ticketBreakdownChart" height="300"></canvas>
                 </div>
             </div>
         </div>
@@ -88,35 +108,45 @@
 
     <!-- Ticket Breakdown Table -->
     <div class="card mb-4">
-        <div class="card-header">
-            <h5>Ticket Sales Breakdown</h5>
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-table me-2 text-primary"></i>Ticket Sales Breakdown</h5>
         </div>
         <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Ticket Type</th>
-                        <th>Tickets Sold</th>
-                        <th>Revenue</th>
-                        <th>% of Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{
-                        var totalRevenue = ticketBreakdown.Sum(t => (decimal)t.Revenue);
-                    }
-                    @foreach (var item in ticketBreakdown)
-                    {
-                        var percentage = totalRevenue > 0 ? ((decimal)item.Revenue / totalRevenue * 100) : 0;
+            <div class="table-responsive">
+                <table class="table">
+                    <thead class="bg-light">
                         <tr>
-                            <td>@item.TicketType</td>
-                            <td>@item.Sold</td>
-                            <td>Rs. @item.Revenue.ToString("N2")</td>
-                            <td>@percentage.ToString("F1")%</td>
+                            <th>Ticket Type</th>
+                            <th class="text-end">Tickets Sold</th>
+                            <th class="text-end">Revenue</th>
+                            <th class="text-end">% of Total</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @{
+                            var totalRevenue = ticketBreakdown.Sum(t => (decimal)t.Revenue);
+                        }
+                        @foreach (var item in ticketBreakdown)
+                        {
+                            var percentage = totalRevenue > 0 ? ((decimal)item.Revenue / totalRevenue * 100) : 0;
+                            <tr>
+                                <td class="fw-bold">@item.TicketType</td>
+                                <td class="text-end">@item.Sold</td>
+                                <td class="text-end">Rs. @item.Revenue.ToString("N2")</td>
+                                <td class="text-end">
+                                    <div class="d-flex align-items-center justify-content-end">
+                                        <span class="me-2">@percentage.ToString("F1")%</span>
+                                        <div class="progress" style="width: 100px; height: 8px;">
+                                            <div class="progress-bar bg-primary"
+                                                 style="width: @percentage%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -124,103 +154,166 @@
     @if (promoEffectiveness.Any())
     {
         <div class="card">
-            <div class="card-header">
-                <h5>Promo Code Effectiveness</h5>
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-simple me-2 text-primary"></i>Promo Code Effectiveness</h5>
             </div>
             <div class="card-body">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Promo Code</th>
-                            <th>Times Used</th>
-                            <th>Total Discount</th>
-                            <th>Average Discount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in promoEffectiveness)
-                        {
-                            var avgDiscount = item.TimesUsed > 0 ? (decimal)item.TotalDiscount / (int)item.TimesUsed : 0;
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead class="bg-light">
                             <tr>
-                                <td>@item.PromoCode</td>
-                                <td>@item.TimesUsed</td>
-                                <td>Rs. @item.TotalDiscount.ToString("N2")</td>
-                                <td>Rs. @avgDiscount.ToString("N2")</td>
+                                <th>Promo Code</th>
+                                <th class="text-end">Times Used</th>
+                                <th class="text-end">Total Discount</th>
+                                <th class="text-end">Average Discount</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in promoEffectiveness)
+                            {
+                                var avgDiscount = item.TimesUsed > 0 ? (decimal)item.TotalDiscount / (int)item.TimesUsed : 0;
+                                <tr>
+                                    <td class="fw-bold text-success">@item.PromoCode</td>
+                                    <td class="text-end">@item.TimesUsed</td>
+                                    <td class="text-end text-danger">- Rs. @item.TotalDiscount.ToString("N2")</td>
+                                    <td class="text-end">Rs. @avgDiscount.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     }
 </div>
 
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Daily Sales Chart
-        new Chart(document.getElementById('dailySalesChart'), {
-            type: 'line',
-            data: {
-                labels: [@Html.Raw(string.Join(",", dailySales.Select(d => $"'{d.Date.ToString("MMM dd")}'")))],
-                datasets: [{
-                    label: 'Revenue (Rs.)',
-                    data: [@string.Join(",", dailySales.Select(d => d.Revenue))],
-                    borderColor: 'green',
-                    tension: 0.1,
-                    yAxisID: 'y'
-                }, {
-                    label: 'Bookings',
-                    data: [@string.Join(",", dailySales.Select(d => d.Count))],
-                    borderColor: 'blue',
-                    tension: 0.1,
-                    yAxisID: 'y1'
-                }]
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Daily Sales Chart
+    new Chart(document.getElementById('dailySalesChart'), {
+        type: 'line',
+        data: {
+            labels: [@Html.Raw(string.Join(",", dailySales.Select(d => $"'{d.Date.ToString("MMM dd")}'")))],
+            datasets: [{
+                label: 'Revenue (Rs.)',
+                data: [@string.Join(",", dailySales.Select(d => d.Revenue))],
+                borderColor: '#4361ee',
+                backgroundColor: 'rgba(67,97,238,0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+                yAxisID: 'y'
+            }, {
+                label: 'Bookings',
+                data: [@string.Join(",", dailySales.Select(d => d.Count))],
+                borderColor: '#06d6a0',
+                backgroundColor: 'rgba(6,214,160,0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
             },
-            options: {
-                responsive: true,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Revenue (Rs.)'
+                    }
                 },
-                scales: {
-                    y: {
-                        type: 'linear',
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
                         display: true,
-                        position: 'left',
-                        title: {
-                            display: true,
-                            text: 'Revenue (Rs.)'
-                        }
+                        text: 'Number of Bookings'
                     },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: {
-                            display: true,
-                            text: 'Number of Bookings'
-                        },
-                        grid: {
-                            drawOnChartArea: false,
-                        },
+                    grid: {
+                        drawOnChartArea: false,
                     },
+                },
+            }
+        }
+    });
+
+    // Ticket Breakdown Chart
+    new Chart(document.getElementById('ticketBreakdownChart'), {
+        type: 'doughnut',
+        data: {
+            labels: [@Html.Raw(string.Join(",", ticketBreakdown.Select(t => $"'{t.TicketType}'")))],
+            datasets: [{
+                data: [@string.Join(",", ticketBreakdown.Select(t => t.Sold))],
+                backgroundColor: [
+                    '#4361ee',
+                    '#7209b7',
+                    '#06d6a0',
+                    '#f72585',
+                    '#4cc9f0',
+                    '#ff9f1c'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
                 }
             }
-        });
+        }
+    });
+</script>
 
-        // Ticket Breakdown Chart
-        new Chart(document.getElementById('ticketBreakdownChart'), {
-            type: 'pie',
-            data: {
-                labels: [@Html.Raw(string.Join(",", ticketBreakdown.Select(t => $"'{t.TicketType}'")))],
-                datasets: [{
-                    data: [@string.Join(",", ticketBreakdown.Select(t => t.Sold))],
-                    backgroundColor: [
-                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
-                    ]
-                }]
-            }
-        });
-    </script>
-}
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4361ee, #7209b7);
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        border: 1px solid #eee;
+        height: 100%;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .bg-primary-soft {
+        background: rgba(67,97,238,0.1);
+    }
+
+    .bg-success-soft {
+        background: rgba(6,214,160,0.1);
+    }
+
+    .bg-info-soft {
+        background: rgba(76,201,240,0.1);
+    }
+
+    .bg-warning-soft {
+        background: rgba(247,37,133,0.1);
+    }
+</style>

@@ -94,27 +94,48 @@ namespace SmartTicketingSystem.Controllers
             return View(inquiry);
         }
 
-        // CREATE (Public access allowed)
+        // CREATE (Public access allowed) - FIXED: Added eventId and eventTitle parameters
         [AllowAnonymous]
-        public IActionResult Create()
+        public IActionResult Create(int? eventId, string eventTitle)
         {
+            // Pass the event information to the view
+            ViewBag.EventId = eventId;
+            ViewBag.EventTitle = eventTitle;
+
             return View();
         }
 
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FullName,Email,category,message")] INQUIRY inquiry)
+        public async Task<IActionResult> Create([Bind("FullName,Email,category,message")] INQUIRY inquiry, int? eventId)
         {
             if (ModelState.IsValid)
             {
                 inquiry.createdAt = DateTime.Now;
                 inquiry.status = "Pending";
 
+                // Optionally store the eventId if you want to link inquiries to events
+                // You would need to add an EventId field to your INQUIRY model first
+                // if (eventId.HasValue)
+                //     inquiry.EventId = eventId.Value;
+
                 _context.Add(inquiry);
                 await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Your question has been submitted successfully! We'll respond within 24 hours.";
+
+                // Redirect back to the event details if coming from an event
+                if (eventId.HasValue)
+                {
+                    return RedirectToAction("Details", "EVENTs", new { id = eventId });
+                }
+
                 return RedirectToAction("Index", "Home");
             }
+
+            // If we got this far, something failed, redisplay form
+            ViewBag.EventId = eventId;
             return View(inquiry);
         }
 

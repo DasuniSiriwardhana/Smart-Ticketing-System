@@ -1,229 +1,353 @@
 ﻿@using System.Text.Json
-
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Admin Dashboard";
 
     var bookingLabels = ViewData["BookingMonthLabels"] as List<string> ?? new List<string>();
     var bookingCounts = ViewData["BookingCounts"] as List<int> ?? new List<int>();
-
     var categoryLabels = ViewData["CategoryLabels"] as List<string> ?? new List<string>();
     var categoryCounts = ViewData["CategoryCounts"] as List<int> ?? new List<int>();
 
     var bookingLabelsJson = JsonSerializer.Serialize(bookingLabels);
     var bookingCountsJson = JsonSerializer.Serialize(bookingCounts);
-
     var categoryLabelsJson = JsonSerializer.Serialize(categoryLabels);
     var categoryCountsJson = JsonSerializer.Serialize(categoryCounts);
 
-    // these are anonymous object lists coming from controller
-    var latestBookings = ViewData["LatestBookings"];
-    var latestPayments = ViewData["LatestPayments"];
-    var latestRequests = ViewData["LatestRequests"];
+    var latestBookings = ViewData["LatestBookings"] as IEnumerable<dynamic> ?? new List<dynamic>();
+    var latestPayments = ViewData["LatestPayments"] as IEnumerable<dynamic> ?? new List<dynamic>();
+    var latestRequests = ViewData["LatestRequests"] as IEnumerable<dynamic> ?? new List<dynamic>();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Admin Dashboard</h2>
-
-    <div class="d-flex gap-2">
-        <a class="btn btn-outline-primary" asp-controller="Admin" asp-action="Approvals">Approvals</a>
-        <a class="btn btn-outline-primary" asp-controller="Admin" asp-action="Bookings">Bookings</a>
-        <a class="btn btn-outline-primary" asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index">Requests</a>
-        <a class="btn btn-outline-primary" asp-controller="USERs" asp-action="Index">Users</a>
-        <a class="btn btn-outline-primary" asp-controller="EVENTs" asp-action="Index">Events</a>
-    </div>
-</div>
-
-<div class="row g-4">
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="text-muted">Total Users</div>
-                <div class="display-6">@ViewBag.TotalUsers</div>
-                <a class="btn btn-sm btn-primary mt-2" asp-controller="USERs" asp-action="Index">Manage</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="text-muted">Total Events</div>
-                <div class="display-6">@ViewBag.TotalEvents</div>
-                <a class="btn btn-sm btn-primary mt-2" asp-controller="EVENTs" asp-action="Index">View</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="text-muted">Total Bookings</div>
-                <div class="display-6">@ViewBag.TotalBookings</div>
-                <a class="btn btn-sm btn-primary mt-2" asp-controller="Admin" asp-action="Bookings">View</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="text-muted">Total Payments</div>
-                <div class="display-6">@ViewBag.TotalPayments</div>
-                <a class="btn btn-sm btn-primary mt-2" asp-controller="PAYMENTs" asp-action="Index">View</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm border-warning h-100">
-            <div class="card-body">
-                <div class="text-muted">Pending Approvals</div>
-                <div class="display-6">@ViewBag.PendingApprovals</div>
-                <a class="btn btn-sm btn-warning mt-2" asp-controller="Admin" asp-action="Approvals">Review</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm border-danger h-100">
-            <div class="card-body">
-                <div class="text-muted">Public Requests</div>
-                <div class="display-6">@ViewBag.PendingPublicRequests</div>
-                <a class="btn btn-sm btn-danger mt-2" asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index">Open</a>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<hr class="my-4" />
-
-<div class="row g-4">
-    <div class="col-lg-7">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="mb-3">Bookings per Month</h5>
-                <canvas id="bookingChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-5">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="mb-3">Events by Category</h5>
-                <canvas id="categoryChart"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-<hr class="my-4" />
-
-<div class="row g-4">
-    <div class="col-lg-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="mb-3">Latest Bookings</h5>
-
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Ref</th>
-                                <th class="text-end">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (dynamic b in (IEnumerable<dynamic>)latestBookings)
-                            {
-                                <tr>
-                                    <td>@b.BookingID</td>
-                                    <td>@(b.BookingReference ?? "")</td>
-                                    <td class="text-end">Rs. @b.TotalAmount</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+<div class="container-fluid py-4">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-2">Welcome back, Admin!</h2>
+                            <p class="mb-0 opacity-75">Here's what's happening with your platform today.</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-controller="Admin" asp-action="Scanner" class="btn btn-light">
+                                <i class="fas fa-qrcode me-2"></i>QR Scanner
+                            </a>
+                            <a asp-controller="Admin" asp-action="ManageAttendance" class="btn btn-light">
+                                <i class="fas fa-calendar-check me-2"></i>Attendance
+                            </a>
+                            <a asp-controller="Admin" asp-action="Approvals" class="btn btn-light">
+                                <i class="fas fa-check-circle me-2"></i>Pending Approvals
+                                @if (ViewBag.PendingApprovals > 0)
+                                {
+                                    <span class="badge bg-danger ms-2">@ViewBag.PendingApprovals</span>
+                                }
+                            </a>
+                        </div>
+                    </div>
                 </div>
-
-                <a class="btn btn-sm btn-primary mt-2" asp-controller="Admin" asp-action="Bookings">View</a>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="mb-3">Latest Payments</h5>
-
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Booking</th>
-                                <th class="text-end">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (dynamic p in (IEnumerable<dynamic>)latestPayments)
-                            {
-                                <tr>
-                                    <td>@p.PaymentID</td>
-                                    <td>@p.BookingRef</td>
-                                    <td class="text-end">Rs. @p.Amount</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-primary-soft">
+                        <i class="fas fa-users text-primary"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Total Users</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalUsers</h3>
+                    </div>
                 </div>
+                <div class="stat-footer mt-2">
+                    <a asp-controller="USERs" asp-action="Index" class="text-primary text-decoration-none small">
+                        Manage Users <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
 
-                <a class="btn btn-sm btn-outline-primary" asp-controller="PAYMENTs" asp-action="Index">View all</a>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-success-soft">
+                        <i class="fas fa-calendar text-success"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Total Events</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalEvents</h3>
+                    </div>
+                </div>
+                <div class="stat-footer mt-2">
+                    <a asp-controller="EVENTs" asp-action="Index" class="text-success text-decoration-none small">
+                        View Events <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-info-soft">
+                        <i class="fas fa-ticket-alt text-info"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Bookings</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalBookings</h3>
+                    </div>
+                </div>
+                <div class="stat-footer mt-2">
+                    <a asp-controller="Admin" asp-action="Bookings" class="text-info text-decoration-none small">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-warning-soft">
+                        <i class="fas fa-credit-card text-warning"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Payments</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalPayments</h3>
+                    </div>
+                </div>
+                <div class="stat-footer mt-2">
+                    <a asp-controller="PAYMENTs" asp-action="Index" class="text-warning text-decoration-none small">
+                        View Payments <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="stat-card border-warning">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-warning-soft">
+                        <i class="fas fa-clock text-warning"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Pending Approvals</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.PendingApprovals</h3>
+                    </div>
+                </div>
+                <div class="stat-footer mt-2">
+                    <a asp-controller="Admin" asp-action="Approvals" class="text-warning text-decoration-none small">
+                        Review <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="stat-card border-danger">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-danger-soft">
+                        <i class="fas fa-flag text-danger"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Public Requests</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.PendingPublicRequests</h3>
+                    </div>
+                </div>
+                <div class="stat-footer mt-2">
+                    <a asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index" class="text-danger text-decoration-none small">
+                        View <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="mb-3">Latest Requests</h5>
-
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (dynamic r in (IEnumerable<dynamic>)latestRequests)
-                            {
-                                <tr>
-                                    <td>@r.requestID</td>
-                                    <td>@r.requestFullName</td>
-                                    <td>@r.status</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+    <!-- Quick Action Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">QR Scanner</h5>
+                            <p class="card-text opacity-75">Scan tickets for quick check-in</p>
+                            <a asp-action="Scanner" class="btn btn-light mt-2">Open Scanner</a>
+                        </div>
+                        <i class="fas fa-qrcode fa-3x opacity-50"></i>
+                    </div>
                 </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Manual Check-in</h5>
+                            <p class="card-text opacity-75">Mark attendees manually</p>
+                            <a asp-action="ManageAttendance" class="btn btn-light mt-2">Manage</a>
+                        </div>
+                        <i class="fas fa-pen fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Attendance Report</h5>
+                            <p class="card-text opacity-75">View check-in statistics</p>
+                            <a asp-action="Attendance" class="btn btn-light mt-2">View</a>
+                        </div>
+                        <i class="fas fa-chart-bar fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <a class="btn btn-sm btn-outline-primary" asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index">View all</a>
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Bookings Per Month</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="bookingChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2 text-primary"></i>Events by Category</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest Activity Tables -->
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-ticket-alt me-2 text-primary"></i>Latest Bookings</h5>
+                    <a asp-controller="Admin" asp-action="Bookings" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @if (latestBookings.Any())
+                        {
+                            @foreach (dynamic b in latestBookings)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted d-block">@b.BookingReference</small>
+                                            <small>@b.EventTitle</small>
+                                        </div>
+                                        <span class="badge bg-primary">Rs. @b.TotalAmount</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="list-group-item text-center text-muted">
+                                No recent bookings
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-credit-card me-2 text-success"></i>Latest Payments</h5>
+                    <a asp-controller="PAYMENTs" asp-action="Index" class="btn btn-sm btn-outline-success">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @if (latestPayments.Any())
+                        {
+                            @foreach (dynamic p in latestPayments)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted d-block">Payment #@p.PaymentID</small>
+                                            <small>Booking: @p.BookingRef</small>
+                                        </div>
+                                        <span class="badge bg-success">Rs. @p.Amount</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="list-group-item text-center text-muted">
+                                No recent payments
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2 text-warning"></i>Latest Requests</h5>
+                    <a asp-controller="PUBLIC_EVENT_REQUEST" asp-action="Index" class="btn btn-sm btn-outline-warning">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @if (latestRequests.Any())
+                        {
+                            @foreach (dynamic r in latestRequests)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <small class="fw-bold">@r.requestFullName</small>
+                                            <small class="text-muted d-block">@r.eventTitle</small>
+                                            <small class="text-muted">@r.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                        </div>
+                                        <span class="badge bg-@(r.status == "Pending" ? "warning" : "success")">@r.status</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="list-group-item text-center text-muted">
+                                No recent requests
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Chart Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-    // Bookings line chart
+    // Bookings Line Chart
     new Chart(document.getElementById('bookingChart'), {
         type: 'line',
         data: {
@@ -231,25 +355,101 @@
             datasets: [{
                 label: 'Bookings',
                 data: @Html.Raw(bookingCountsJson),
-                borderColor: 'blue',
-                fill: false,
+                borderColor: '#4361ee',
+                backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                borderWidth: 3,
+                fill: true,
                 tension: 0.3
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
         }
     });
 
-    // Category pie chart
+    // Category Pie Chart
     new Chart(document.getElementById('categoryChart'), {
-        type: 'pie',
+        type: 'doughnut',
         data: {
             labels: @Html.Raw(categoryLabelsJson),
             datasets: [{
-                label: 'Events',
                 data: @Html.Raw(categoryCountsJson),
                 backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
-                ]
+                    '#4361ee',
+                    '#7209b7',
+                    '#06d6a0',
+                    '#f72585',
+                    '#4cc9f0',
+                    '#ff9f1c'
+                ],
+                borderWidth: 0
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
         }
     });
 </script>
+
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+        border: 2px solid transparent;
+        height: 100%;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(67,97,238,0.15);
+        }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .bg-primary-soft {
+        background: rgba(67,97,238,0.1);
+    }
+
+    .bg-success-soft {
+        background: rgba(6,214,160,0.1);
+    }
+
+    .bg-info-soft {
+        background: rgba(76,201,240,0.1);
+    }
+
+    .bg-warning-soft {
+        background: rgba(247,37,133,0.1);
+    }
+
+    .bg-danger-soft {
+        background: rgba(247,37,133,0.1);
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4361ee, #7209b7);
+    }
+</style>

@@ -1,142 +1,167 @@
 ﻿@model IEnumerable<SmartTicketingSystem.Models.BOOKING>
 @{
-    ViewData["Title"] = "All Bookings - Admin";
+    ViewData["Title"] = "All Bookings";
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-ticket-alt"></i> All Bookings</h2>
-        <a asp-action="Dashboard" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-2">All Bookings</h2>
+                            <p class="mb-0 opacity-75">Manage and monitor all bookings across the platform</p>
+                        </div>
+                        <a asp-action="Dashboard" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger">@TempData["Error"]</div>
-    }
-
-    <!-- Summary Cards -->
+    <!-- Summary Stats -->
     <div class="row g-4 mb-4">
         <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h6 class="text-white-50">Total Bookings</h6>
-                    <h3>@ViewBag.TotalBookings</h3>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-primary-soft">
+                        <i class="fas fa-ticket-alt text-primary"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Total Bookings</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalBookings</h3>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h6 class="text-white-50">Paid Bookings</h6>
-                    <h3>@ViewBag.PaidBookings</h3>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-success-soft">
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Paid Bookings</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.PaidBookings</h3>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <h6 class="text-white-50">Unpaid Bookings</h6>
-                    <h3>@ViewBag.UnpaidBookings</h3>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-warning-soft">
+                        <i class="fas fa-clock text-warning"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Unpaid Bookings</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.UnpaidBookings</h3>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h6 class="text-white-50">Total Revenue</h6>
-                    <h3>Rs. @ViewBag.TotalRevenue.ToString("N2")</h3>
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-info-soft">
+                        <i class="fas fa-rupee-sign text-info"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Total Revenue</h6>
+                        <h3 class="fw-bold mb-0">Rs. @ViewBag.TotalRevenue.ToString("N2")</h3>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Search/Filter Bar -->
+    <!-- Search/Filter Section -->
     <div class="card mb-4">
         <div class="card-body">
             <form method="get" class="row g-3">
                 <div class="col-md-3">
-                    <input type="text" name="searchRef" class="form-control" placeholder="Search by Reference"
-                           value="@Context.Request.Query["searchRef"]" />
+                    <label class="form-label fw-bold">Search Reference</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" name="searchRef" class="form-control" placeholder="Booking reference..."
+                               value="@Context.Request.Query["searchRef"]">
+                    </div>
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label fw-bold">Status</label>
                     <select name="status" class="form-select">
                         <option value="">All Status</option>
-                        <option value="Confirmed">Confirmed</option>
-                        <option value="PendingPayment">Pending Payment</option>
-                        <option value="Cancelled">Cancelled</option>
+                        <option value="Confirmed" selected="@(Context.Request.Query["status"] == "Confirmed")">Confirmed</option>
+                        <option value="PendingPayment" selected="@(Context.Request.Query["status"] == "PendingPayment")">Pending Payment</option>
+                        <option value="Cancelled" selected="@(Context.Request.Query["status"] == "Cancelled")">Cancelled</option>
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label fw-bold">Payment</label>
                     <select name="payment" class="form-select">
                         <option value="">All Payments</option>
-                        <option value="Paid">Paid</option>
-                        <option value="Unpaid">Unpaid</option>
+                        <option value="Paid" selected="@(Context.Request.Query["payment"] == "Paid")">Paid</option>
+                        <option value="Unpaid" selected="@(Context.Request.Query["payment"] == "Unpaid")">Unpaid</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i> Filter
+                        <i class="fas fa-filter me-2"></i>Filter
                     </button>
                 </div>
-                <div class="col-md-2">
-                    <a asp-action="Bookings" class="btn btn-secondary w-100">
-                        <i class="fas fa-times"></i> Clear
+                <div class="col-md-2 d-flex align-items-end">
+                    <a asp-action="Bookings" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times me-2"></i>Clear
                     </a>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Bookings Table - READ ONLY -->
+    <!-- Bookings Table -->
     <div class="card">
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-dark">
+                <table class="table table-hover mb-0">
+                    <thead>
                         <tr>
                             <th>ID</th>
                             <th>Reference</th>
                             <th>User</th>
                             <th>Event</th>
-                            <th>Booking Date</th>
-                            <th>Total</th>
+                            <th>Date</th>
+                            <th class="text-end">Total</th>
                             <th>Status</th>
                             <th>Payment</th>
-                            <th>View</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td>@item.BookingID</td>
+                                <td><span class="badge bg-light text-dark">#@item.BookingID</span></td>
                                 <td class="fw-bold">@item.BookingReference</td>
                                 <td>@(item.User?.Email ?? "N/A")</td>
                                 <td>@(item.Event?.title ?? "N/A")</td>
-                                <td>@item.BookingDateTime.ToString("MMM dd, yyyy HH:mm")</td>
-                                <td>Rs. @item.TotalAmount.ToString("N2")</td>
+                                <td>@item.BookingDateTime.ToString("MMM dd, yyyy")</td>
+                                <td class="text-end fw-bold">Rs. @item.TotalAmount.ToString("N2")</td>
                                 <td>
                                     @if (item.BookingStatus == "Confirmed")
                                     {
-                                        <span class="badge bg-success">@item.BookingStatus</span>
+                                        <span class="badge bg-success">Confirmed</span>
                                     }
                                     else if (item.BookingStatus == "Cancelled")
                                     {
-                                        <span class="badge bg-danger">@item.BookingStatus</span>
-                                    }
-                                    else if (item.BookingStatus == "PendingPayment")
-                                    {
-                                        <span class="badge bg-warning">@item.BookingStatus</span>
+                                        <span class="badge bg-danger">Cancelled</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">@item.BookingStatus</span>
+                                        <span class="badge bg-warning">@item.BookingStatus</span>
                                     }
                                 </td>
                                 <td>
@@ -151,7 +176,7 @@
                                 </td>
                                 <td>
                                     <a asp-controller="BOOKINGs" asp-action="Details" asp-route-id="@item.BookingID"
-                                       class="btn btn-sm btn-outline-info">
+                                       class="btn btn-sm btn-outline-info" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                 </td>
@@ -161,17 +186,19 @@
                 </table>
             </div>
         </div>
-    </div>
-
-    <!-- Export Options (Optional) -->
-    <div class="mt-3 text-muted small">
-        <i class="fas fa-info-circle"></i> This is a read-only view. No modifications can be made.
+        @if (!Model.Any())
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
+                <h5>No Bookings Found</h5>
+                <p class="text-muted">Try adjusting your search filters</p>
+            </div>
+        }
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Preserve filter values on page load
         $(document).ready(function() {
             const urlParams = new URLSearchParams(window.location.search);
             $('#status').val(urlParams.get('status') || '');
@@ -179,3 +206,49 @@
         });
     </script>
 }
+
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        border: 1px solid #eee;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .bg-primary-soft {
+        background: rgba(67,97,238,0.1);
+    }
+
+    .bg-success-soft {
+        background: rgba(6,214,160,0.1);
+    }
+
+    .bg-warning-soft {
+        background: rgba(247,37,133,0.1);
+    }
+
+    .bg-info-soft {
+        background: rgba(76,201,240,0.1);
+    }
+
+    .table thead {
+        background: #f8f9fa;
+    }
+
+        .table thead th {
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+</style>

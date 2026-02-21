@@ -4,141 +4,270 @@
 }
 
 <div class="container py-4">
-    <div class="card">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Booking @Model.BookingReference</h4>
-            <span class="badge bg-light text-dark">@Model.BookingStatus</span>
-        </div>
-        <div class="card-body">
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success">@TempData["Success"]</div>
-            }
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger">@TempData["Error"]</div>
-            }
-
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Event Details</h5>
-                    <p>
-                        <strong>@Model.Event?.title</strong><br />
-                        <i class="fas fa-calendar"></i> @Model.Event?.StartDateTime.ToString("MMMM dd, yyyy - h:mm tt")<br />
-                        <i class="fas fa-map-marker-alt"></i> @Model.Event?.venue
-                    </p>
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-2"><i class="fas fa-receipt me-2"></i>Booking Details</h2>
+                            <p class="mb-0 opacity-75">Reference: @Model.BookingReference</p>
+                        </div>
+                        <a asp-action="MyBookings" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Bookings
+                        </a>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <h5>Payment Summary</h5>
-                    <p>
-                        <strong>Total Amount:</strong> Rs. @Model.TotalAmount.ToString("N2")<br />
-                        <strong>Payment Status:</strong>
-                        <span class="badge bg-@(Model.PaymentStatus == "Paid" ? "success" : "danger")">
-                            @Model.PaymentStatus
-                        </span><br />
-                        <strong>Booking Date:</strong> @Model.BookingDateTime.ToString("MMM dd, yyyy HH:mm")
-                    </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Booking Details -->
+        <div class="col-lg-8">
+            <div class="card booking-card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Booking Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <small class="text-muted d-block">Booking Reference</small>
+                                <h5 class="fw-bold">@Model.BookingReference</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <small class="text-muted d-block">Booking Date</small>
+                                <h5>@Model.BookingDateTime.ToString("MMMM dd, yyyy - h:mm tt")</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <small class="text-muted d-block">Event Name</small>
+                                <h5>@Model.Event?.title</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <small class="text-muted d-block">Event Date</small>
+                                <h5>@Model.Event?.StartDateTime.ToString("MMMM dd, yyyy - h:mm tt")</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <small class="text-muted d-block">Venue</small>
+                                <h5>@Model.Event?.venue</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <small class="text-muted d-block">Total Amount</small>
+                                <h3 class="text-primary fw-bold">Rs. @Model.TotalAmount.ToString("N2")</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Status Section -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Booking Status</h6>
+                            @if (Model.BookingStatus == "Confirmed")
+                            {
+                                <div class="status-badge status-success">
+                                    <i class="fas fa-check-circle me-2"></i>Confirmed
+                                </div>
+                            }
+                            else if (Model.BookingStatus == "Cancelled")
+                            {
+                                <div class="status-badge status-danger">
+                                    <i class="fas fa-times-circle me-2"></i>Cancelled
+                                </div>
+                            }
+                            else if (Model.BookingStatus == "PendingPayment")
+                            {
+                                <div class="status-badge status-warning">
+                                    <i class="fas fa-clock me-2"></i>Pending Payment
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="status-badge status-secondary">
+                                    <i class="fas fa-info-circle me-2"></i>@Model.BookingStatus
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Payment Status</h6>
+                            @if (Model.PaymentStatus == "Paid")
+                            {
+                                <div class="status-badge status-success">
+                                    <i class="fas fa-check-circle me-2"></i>Paid
+                                </div>
+                            }
+                            else if (Model.PaymentStatus == "Partial")
+                            {
+                                <div class="status-badge status-warning">
+                                    <i class="fas fa-clock me-2"></i>Partial Payment
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="status-badge status-danger">
+                                    <i class="fas fa-exclamation-circle me-2"></i>Unpaid
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @if (Model.BookingStatus == "Cancelled" && !string.IsNullOrEmpty(Model.CancellationReason))
+                    {
+                        <div class="alert alert-danger mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Cancellation Reason:</strong> @Model.CancellationReason
+                        </div>
+                    }
                 </div>
             </div>
 
-            <hr />
-
-            <h5>Tickets</h5>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Ticket Type</th>
-                        <th>Quantity</th>
-                        <th>Unit Price</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.BookingItems)
+            <!-- Tickets Section -->
+            <div class="card booking-card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-ticket-alt me-2 text-primary"></i>Tickets</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model.BookingItems != null && Model.BookingItems.Any())
                     {
-                        <tr>
-                            <td>@item.TicketType?.TypeName</td>
-                            <td>@item.Quantity</td>
-                            <td>Rs. @item.UnitPrice.ToString("N2")</td>
-                            <td>Rs. @item.LineTotal.ToString("N2")</td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="3" class="text-end">Total:</th>
-                        <th>Rs. @Model.TotalAmount.ToString("N2")</th>
-                    </tr>
-                </tfoot>
-            </table>
+                        <div class="table-responsive">
+                            <table class="table ticket-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ticket Type</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.BookingItems)
+                                    {
+                                        <tr>
+                                            <td>@item.TicketType?.TypeName</td>
+                                            <td>@item.Quantity</td>
+                                            <td>Rs. @item.UnitPrice.ToString("N2")</td>
+                                            <td class="text-end fw-bold">Rs. @item.LineTotal.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-end">Total:</th>
+                                        <th class="text-end text-primary">Rs. @Model.TotalAmount.ToString("N2")</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
 
+                        @if (Model.PaymentStatus == "Paid")
+                        {
+                            <div class="text-center mt-3">
+                                <a asp-action="Tickets" asp-route-id="@Model.BookingID"
+                                   class="btn btn-primary">
+                                    <i class="fas fa-qrcode me-2"></i>View QR Tickets
+                                </a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center mb-0">No tickets found for this booking.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Payment Card -->
+            @if (Model.PaymentStatus != "Paid")
+            {
+                <div class="card payment-card mb-4">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment Required</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Complete your payment to receive QR tickets.</p>
+                        <div class="d-grid gap-2">
+                            <a asp-controller="PAYMENTs" asp-action="Create"
+                               asp-route-bookingId="@Model.BookingID"
+                               class="btn btn-success btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>Pay Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Cancel Card -->
             @if (Model.PaymentStatus != "Paid" && Model.BookingStatus != "Cancelled")
             {
-                <div class="alert alert-warning mt-3">
-                    <h5>Payment Required</h5>
-                    <p>This booking requires payment to generate tickets.</p>
-                    <div class="d-flex gap-2">
-                        <a asp-controller="PAYMENTs" asp-action="Create"
-                           asp-route-bookingId="@Model.BookingID"
-                           class="btn btn-success">
-                            <i class="fas fa-credit-card"></i> Pay Now
-                        </a>
-                        <button type="button" class="btn btn-danger"
+                <div class="card cancel-card mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="fas fa-times-circle me-2"></i>Cancel Booking</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>You can cancel this booking if you change your mind.</p>
+                        <button type="button" class="btn btn-outline-danger w-100"
                                 onclick="showCancelModal(@Model.BookingID, '@Model.BookingReference')">
-                            <i class="fas fa-times"></i> Cancel Booking
+                            <i class="fas fa-times me-2"></i>Cancel Booking
                         </button>
                     </div>
                 </div>
             }
 
-            @if (Model.PaymentStatus == "Paid" && Model.BookingStatus != "Cancelled")
+            <!-- Payment History -->
+            @if (Model.Payments != null && Model.Payments.Any())
             {
-                <div class="alert alert-success mt-3">
-                    <h5>Payment Received</h5>
-                    <p>Your tickets are ready!</p>
-                    <a asp-action="Tickets" asp-route-id="@Model.BookingID"
-                       class="btn btn-primary">
-                        <i class="fas fa-qrcode"></i> View Tickets
-                    </a>
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-history me-2 text-primary"></i>Payment History</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            @foreach (var payment in Model.Payments)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <small class="text-muted d-block">@payment.PaidAt.ToString("MMM dd, yyyy")</small>
+                                            <small>@payment.PaymentMethod</small>
+                                        </div>
+                                        <span class="fw-bold text-success">Rs. @payment.Amount.ToString("N2")</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(payment.TransactionReference))
+                                    {
+                                        <small class="text-muted d-block mt-1">Ref: @payment.TransactionReference</small>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
             }
-
-            @if (Model.BookingStatus == "Cancelled")
-            {
-                <div class="alert alert-secondary mt-3">
-                    <h5>Booking Cancelled</h5>
-                    <p>This booking was cancelled on @Model.CancelledAt?.ToString("MMM dd, yyyy HH:mm")</p>
-                    @if (!string.IsNullOrEmpty(Model.CancellationReason))
-                    {
-                        <p><strong>Reason:</strong> @Model.CancellationReason</p>
-                    }
-                </div>
-            }
-
-            <hr />
-
-            <div class="d-flex justify-content-between">
-                <a asp-action="MyBookings" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to My Bookings
-                </a>
-                @if (Model.PaymentStatus == "Paid" && Model.BookingStatus != "Cancelled")
-                {
-                    <a asp-action="Tickets" asp-route-id="@Model.BookingID"
-                       class="btn btn-outline-info">
-                        <i class="fas fa-qrcode"></i> View Tickets
-                    </a>
-                }
-            </div>
         </div>
     </div>
 </div>
 
-<!-- Cancel Modal (same as in MyBookings) -->
+<!-- Cancel Modal -->
 <div class="modal fade" id="cancelModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Cancel Booking</h5>
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Cancel Booking</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="Cancel" method="post">
@@ -147,13 +276,20 @@
                 <div class="modal-body">
                     <p>Are you sure you want to cancel booking <strong id="cancelBookingRef"></strong>?</p>
                     <div class="mb-3">
-                        <label class="form-label">Reason (optional)</label>
-                        <textarea name="cancellationReason" class="form-control" rows="2"></textarea>
+                        <label class="form-label fw-bold">Reason for cancellation</label>
+                        <textarea name="cancellationReason" class="form-control" rows="3"
+                                  placeholder="Please let us know why you're cancelling..."></textarea>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This action cannot be undone. Cancellation is subject to our policy.
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>Confirm Cancellation
+                    </button>
                 </div>
             </form>
         </div>
@@ -169,3 +305,64 @@
         }
     </script>
 }
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4361ee, #7209b7);
+    }
+
+    .booking-card {
+        border: none;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .info-item {
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+    }
+
+    .status-success {
+        background: rgba(6,214,160,0.1);
+        color: #06d6a0;
+        border: 1px solid #06d6a0;
+    }
+
+    .status-warning {
+        background: rgba(247,37,133,0.1);
+        color: #f72585;
+        border: 1px solid #f72585;
+    }
+
+    .status-danger {
+        background: rgba(247,37,133,0.1);
+        color: #f72585;
+        border: 1px solid #f72585;
+    }
+
+    .status-secondary {
+        background: rgba(108,117,125,0.1);
+        color: #6c757d;
+        border: 1px solid #6c757d;
+    }
+
+    .payment-card, .cancel-card {
+        border: none;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .ticket-table thead {
+        background: #f8f9fa;
+    }
+
+    .ticket-table th {
+        font-weight: 600;
+    }
+</style>

@@ -156,7 +156,7 @@ namespace SmartTicketingSystem.Controllers
             return View();
         }
 
-        // ================= TICKET MANAGEMENT =================
+        // =======TICKET MANAGEMENT =================
         [Authorize(Policy = "UniversityOrganizer")]
         public async Task<IActionResult> Tickets(int eventId)
         {
@@ -193,7 +193,7 @@ namespace SmartTicketingSystem.Controllers
             return View(ticketTypes);
         }
 
-        // ================= PROMOTION MANAGEMENT =================
+        // =======PROMOTION MANAGEMENT =================
         [Authorize(Policy = "UniversityOrganizer")]
         public async Task<IActionResult> Promotions(int eventId)
         {
@@ -236,7 +236,7 @@ namespace SmartTicketingSystem.Controllers
             return View(ev);
         }
 
-        // ================= BOOKINGS FOR EVENT =================
+        // =======BOOKINGS FOR EVENT =================
         [Authorize(Policy = "UniversityOrganizer")]
         public async Task<IActionResult> Bookings(int eventId)
         {
@@ -261,7 +261,7 @@ namespace SmartTicketingSystem.Controllers
             return View(bookings);
         }
 
-        // ================= WAITING LIST =================
+        // =======WAITING LIST =================
         [Authorize(Policy = "UniversityOrganizer")]
         public async Task<IActionResult> WaitingList(int eventId)
         {
@@ -284,7 +284,7 @@ namespace SmartTicketingSystem.Controllers
             return View(waitingList);
         }
 
-        // ================= EVENT REPORTS (UPDATED WITH NULL SAFETY) =================
+        // =======EVENT REPORTS (UPDATED WITH NULL SAFETY) =================
         [Authorize(Policy = "UniversityOrganizer")]
         public async Task<IActionResult> Reports(int eventId)
         {

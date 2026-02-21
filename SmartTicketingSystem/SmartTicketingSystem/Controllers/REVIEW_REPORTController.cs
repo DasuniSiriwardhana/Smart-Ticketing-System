@@ -63,7 +63,7 @@ namespace SmartTicketingSystem.Controllers
             }
 
             if (mode == "ReportID" && reportId.HasValue)
-                query = query.Where(r => r.RportID == reportId.Value);
+                query = query.Where(r => r.ReportID == reportId.Value);
             else if (mode == "ReviewID" && reviewId.HasValue)
                 query = query.Where(r => r.ReviewID == reviewId.Value);
             else if (mode == "ReportedByUserID" && reportedByUserId.HasValue)
@@ -79,7 +79,7 @@ namespace SmartTicketingSystem.Controllers
             }
             else if (mode == "Advanced")
             {
-                if (reportId.HasValue) query = query.Where(r => r.RportID == reportId.Value);
+                if (reportId.HasValue) query = query.Where(r => r.ReportID == reportId.Value);
                 if (reviewId.HasValue) query = query.Where(r => r.ReviewID == reviewId.Value);
                 if (reportedByUserId.HasValue) query = query.Where(r => r.ReportedByUserID == reportedByUserId.Value);
 
@@ -119,7 +119,7 @@ namespace SmartTicketingSystem.Controllers
         {
             if (id == null) return NotFound();
 
-            var report = await _context.REVIEW_REPORT.FirstOrDefaultAsync(m => m.RportID == id);
+            var report = await _context.REVIEW_REPORT.FirstOrDefaultAsync(m => m.ReportID == id);
             if (report == null) return NotFound();
 
             var isAdminOrOrg = await CurrentUserHasAnyRoleAsync("Admin", "Organizer");
@@ -137,7 +137,7 @@ namespace SmartTicketingSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("RportID,ReviewID,ReportedByUserID,ReportReason,ReportDetail,ReportedAt")] REVIEW_REPORT rEVIEW_REPORT)
+        public async Task<IActionResult> Create([Bind("ReportID,ReviewID,ReportedByUserID,ReportReason,ReportDetail,ReportedAt")] REVIEW_REPORT rEVIEW_REPORT)
         {
             var myId = await GetCurrentMemberIdAsync();
             if (myId == null) return Forbid();
@@ -170,9 +170,9 @@ namespace SmartTicketingSystem.Controllers
         [Authorize(Policy = "AdminOrOrganizer")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("RportID,ReviewID,ReportedByUserID,ReportReason,ReportDetail,ReportedAt")] REVIEW_REPORT rEVIEW_REPORT)
+        public async Task<IActionResult> Edit(int id, [Bind("ReportID,ReviewID,ReportedByUserID,ReportReason,ReportDetail,ReportedAt")] REVIEW_REPORT rEVIEW_REPORT)
         {
-            if (id != rEVIEW_REPORT.RportID) return NotFound();
+            if (id != rEVIEW_REPORT.ReportID) return NotFound();
 
             if (ModelState.IsValid)
             {
@@ -189,7 +189,7 @@ namespace SmartTicketingSystem.Controllers
         {
             if (id == null) return NotFound();
 
-            var report = await _context.REVIEW_REPORT.FirstOrDefaultAsync(m => m.RportID == id);
+            var report = await _context.REVIEW_REPORT.FirstOrDefaultAsync(m => m.ReportID == id);
             if (report == null) return NotFound();
 
             return View(report);

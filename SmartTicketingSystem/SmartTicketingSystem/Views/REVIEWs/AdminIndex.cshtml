@@ -1,0 +1,336 @@
+﻿@model IEnumerable<SmartTicketingSystem.Models.ViewModels.ReviewWithUserVM>
+@{
+    ViewData["Title"] = "Review Management";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-2"><i class="fas fa-star me-2"></i>Review Management</h2>
+                            <p class="mb-0 opacity-75">Approve, reject, and manage user reviews</p>
+                        </div>
+                        <a asp-action="Index" class="btn btn-light">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Summary Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-warning-soft">
+                        <i class="fas fa-clock text-warning"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Pending Reviews</h6>
+                        <h3 class="fw-bold mb-0">@Model.Count(r => r.ReviewStatus == "Pending")</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-success-soft">
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Approved Reviews</h6>
+                        <h3 class="fw-bold mb-0">@Model.Count(r => r.ReviewStatus == "Approved")</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-danger-soft">
+                        <i class="fas fa-times-circle text-danger"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="text-muted mb-1">Rejected Reviews</h6>
+                        <h3 class="fw-bold mb-0">@Model.Count(r => r.ReviewStatus == "Rejected")</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Event</label>
+                    <input type="text" name="eventTitle" class="form-control" placeholder="Search by event...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Rating</label>
+                    <select name="rating" class="form-select">
+                        <option value="">All Ratings</option>
+                        <option value="5">5 Stars</option>
+                        <option value="4">4+ Stars</option>
+                        <option value="3">3+ Stars</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Verified</label>
+                    <select name="verified" class="form-select">
+                        <option value="">All</option>
+                        <option value="Y">Verified Only</option>
+                        <option value="N">Unverified</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i>Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reviews Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Event</th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Rating</th>
+                            <th>Comment</th>
+                            <th>Verified</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-light text-dark">#@item.ReviewID</span></td>
+                                <td class="fw-bold">@item.EventTitle</td>
+                                <td>@item.UserFullName</td>
+                                <td>@item.UserEmail</td>
+                                <td>
+                                    <div class="rating-stars">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= item.Ratings)
+                                            {
+                                                <i class="fas fa-star text-warning"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="far fa-star text-warning"></i>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="comment-preview" data-full="@item.Comments">
+                                        @if (item.Comments?.Length > 30)
+                                        {
+                                            @item.Comments.Substring(0, 30)
+
+                                            <text>...</text>
+                                        }
+                                        else
+                                        {
+                                            @item.Comments
+                                        }
+                                    </span>
+                                    @if (item.Comments?.Length > 30)
+                                    {
+                                        <button class="btn btn-link btn-sm p-0" onclick="showFullComment('@item.Comments')">more</button>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.isVerifiedAttendee == 'Y')
+                                    {
+                                        <span class="badge bg-success">Verified</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Unverified</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.ReviewStatus == "Approved")
+                                    {
+                                        <span class="badge bg-success">Approved</span>
+                                    }
+                                    else if (item.ReviewStatus == "Rejected")
+                                    {
+                                        <span class="badge bg-danger">Rejected</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">Pending</span>
+                                    }
+                                </td>
+                                <td>@item.createdAt.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@item.ReviewID"
+                                           class="btn btn-outline-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @if (item.ReviewStatus == "Pending")
+                                        {
+                                            <form asp-action="Approve" method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.ReviewID" />
+                                                <button type="submit" class="btn btn-outline-success" title="Approve">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            <form asp-action="Reject" method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.ReviewID" />
+                                                <button type="submit" class="btn btn-outline-danger" title="Reject">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        <a asp-action="Edit" asp-route-id="@item.ReviewID"
+                                           class="btn btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @if (!Model.Any())
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-star fa-4x text-muted mb-3"></i>
+                <h5>No Reviews Found</h5>
+                <p class="text-muted">There are no reviews matching your criteria.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Comment Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-comment me-2"></i>Full Review</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="fullCommentText"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showFullComment(comment) {
+            $('#fullCommentText').text(comment);
+            $('#commentModal').modal('show');
+        }
+
+        // Auto-dismiss alerts
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    </script>
+}
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4361ee, #7209b7);
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        border: 1px solid #eee;
+        height: 100%;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .bg-warning-soft {
+        background: rgba(247,37,133,0.1);
+    }
+
+    .bg-success-soft {
+        background: rgba(6,214,160,0.1);
+    }
+
+    .bg-danger-soft {
+        background: rgba(247,37,133,0.1);
+    }
+
+    .table thead th {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .rating-stars {
+        white-space: nowrap;
+    }
+
+    .comment-preview {
+        cursor: pointer;
+        color: #4361ee;
+    }
+
+        .comment-preview:hover {
+            text-decoration: underline;
+        }
+</style>
